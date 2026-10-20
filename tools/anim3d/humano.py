@@ -10,9 +10,17 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "inc":  inclinação lateral do tronco (graus; + inclina para o lado da câmera), distribuída pelas vértebras
   "rol":  rotação do corpo inteiro em torno do eixo frente-trás (graus; 90 = deitado de lado; + levanta o lado da câmera)
   "cinc": inclinação lateral da cabeça; "cr": rotação da cabeça (olhar para o lado; + para o lado da câmera)
+  "z":    deslocamento lateral do quadril (unidades do esqueleto; + = para o lado da câmera)
   "oe":   elevação dos ombros 0..1 (encolhimento). Se ausente em exercícios do grupo Trapézio, vale 0 no 1º quadro e 1 nos demais.
 Por animação:
   "cam":  azimute da câmera em graus (64 = 3/4, o padrão; 90 = de frente; 0 = perfil)
+Acessórios além dos de tools/anim/esqueleto.py:
+  "banco" com "inc": encosto inclinado (graus sobre a horizontal) saindo da borda de trás do assento ("enc": comprimento, padrão 7)
+  "halter" com "maos": "f" | "t" | "ambas" (padrão)
+  "cabo"/"elastico" com "ate": [x, y, z] (z = deslocamento lateral, + = lado da câmera) ou "ate": "pes"/"maos";
+    "elastico" com "de": "costas" (passa por trás das costas, de mão a mão)
+  "apoio_tornozelo" {"x":..,"y":..} (opcional): rolo que prende os tornozelos (nórdico); sem x/y usa os tornozelos do 1º quadro
+  "maquina" alta (h >= 6.5, w <= 2.6) ao lado de um assento vira encosto; supino/peck-deck/desenvolvimento na máquina ganham braços móveis
 Elástico entre as mãos: {"tipo": "elastico", "de": "maos", "ate": "maos"} (automático no band-pull-apart sem props).
 
 Movimento: spline cúbica pelos quadros-chave (movimento.py), apoios firmes (pé/mão apoiados ficam parados no mundo via IK
@@ -836,10 +844,11 @@ class Contexto:
         self.grupo = grupo
         self.planta = "esteira" not in tipos and "bike" not in tipos
 
-    def p3(self, x2, y2):
-        """Ponto 2D da animação (x para frente, y para cima) em 3D, com o quadril do 1º quadro como referência."""
+    def p3(self, x2, y2, z2=0.0):
+        """Ponto 2D da animação (x para frente, y para cima; z opcional = para o lado da câmera) em 3D,
+        com o quadril do 1º quadro como referência."""
         hx2, h3 = self.ref["quad"]
-        return Vector((0, h3.y, 0)) + FRENTE * ((x2 - hx2) * self.k) + CIMA * (y2 * self.k)
+        return Vector((0, h3.y, 0)) + FRENTE * ((x2 - hx2) * self.k) + CIMA * (y2 * self.k) + ESQ * (z2 * self.k)
 
     def superficies(self):
         """(xmin, xmax, ymin, ymax, z topo) no mundo: chão + topo de bancos/caixas/máquinas."""
@@ -1010,6 +1019,12 @@ def colocar_chave(h, ctx, q):
     else:
         dz = ctx.z0 - h.proxy(T)[:, 2].min() + q["ay"] * k
     T = Matrix.Translation((0, 0, dz)) @ T
+    if q["y"] is not None:
+        zmin = h.proxy(T)[:, 2].min()
+        if zmin < ctx.z0:
+            T = Matrix.Translation((0, 0, ctx.z0 - zmin)) @ T  # altura dada não pode enterrar joelhos/pés
+    if q["z"]:
+        T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
     # 4) barra fixa: mãos na barra
     if ctx.barra is not None and "barra3" in ref and math.dist(p2["mao_f"], ctx.barra) < 1.6:
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
