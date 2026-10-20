@@ -207,9 +207,9 @@ fun Rotulo(texto: String, cor: Color = Cor.Texto3, modifier: Modifier = Modifier
 }
 
 @Composable
-fun Etiqueta(texto: String, cor: Color = Cor.Brasa, icone: ImageVector? = null, cheia: Boolean = false) {
+fun Etiqueta(texto: String, cor: Color = Cor.Brasa, icone: ImageVector? = null, cheia: Boolean = false, sobreFoto: Boolean = false) {
     Row(
-        Modifier.clip(RoundedCornerShape(50)).background(if (cheia) cor else cor.copy(alpha = 0.14f))
+        Modifier.clip(RoundedCornerShape(50)).background(if (cheia) cor else if (sobreFoto) Cor.Fundo.copy(alpha = 0.78f) else cor.copy(alpha = 0.14f))
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -173,12 +173,12 @@ private fun Hero(vm: AppViewModel, s: Sessao, w: Int, fase: String, corM: Color,
     val forma = RoundedCornerShape(28.dp)
     Box(Modifier.fillMaxWidth().height(380.dp).clip(forma).background(Cor.Sup2).border(1.dp, Cor.Borda, forma).toque("Detalhes do treino ${s.titulo}", onDetalhes)) {
         if (img != null) Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to Color.Black.copy(alpha = 0.15f), 0.45f to Color.Transparent, 1f to Cor.Fundo.copy(alpha = 0.97f))))
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to Color.Black.copy(alpha = 0.45f), 0.38f to Color.Black.copy(alpha = 0.2f), 0.7f to Cor.Fundo.copy(alpha = 0.85f), 1f to Cor.Fundo)))
         Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(cor.copy(alpha = 0.22f), Color.Transparent))))
         Row(Modifier.padding(18.dp)) {
             Etiqueta(if (ehHoje) "HOJE" else "PRÓXIMO", cor, cheia = true)
             Spacer(Modifier.width(8.dp))
-            Etiqueta("Semana $w · $fase", Cor.Texto)
+            Etiqueta("Semana $w · $fase", Cor.Texto, sobreFoto = true)
         }
         Column(Modifier.align(Alignment.BottomStart).padding(20.dp)) {
             Text(s.titulo, style = Tipo.Titulo1, color = Cor.Texto, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -186,9 +186,9 @@ private fun Hero(vm: AppViewModel, s: Sessao, w: Int, fase: String, corM: Color,
             Text(s.foco, style = Tipo.Corpo, color = Cor.Texto2)
             Spacer(Modifier.height(14.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Etiqueta("${s.minutos} min", cor, Icons.Rounded.Schedule)
+                Etiqueta("${s.minutos} min", cor, Icons.Rounded.Schedule, sobreFoto = true)
                 val n = s.blocos.filter { it.tipo != TipoBloco.AQUECIMENTO && it.tipo != TipoBloco.DESAQUECIMENTO }.sumOf { it.itens.size }
-                Etiqueta("$n ${if (n == 1) "exercício" else "exercícios"}", cor, Icons.Rounded.FitnessCenter)
+                Etiqueta("$n ${if (n == 1) "exercício" else "exercícios"}", cor, Icons.Rounded.FitnessCenter, sobreFoto = true)
             }
             Spacer(Modifier.height(18.dp))
             BotaoPrimario("Começar treino", Modifier.fillMaxWidth(), icone = Icons.Rounded.PlayArrow, cor = if (cor == Cor.Brasa) null else cor, onClick = onComecar)
