@@ -6,22 +6,30 @@ mkdir -p shots
 R=shots/resultado.txt
 : > "$R"
 adb wait-for-device
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+sleep 25   # deixa o launcher terminar de carregar (evita o aviso "Pixel Launcher isn't responding")
 adb shell settings put global window_animation_scale 0
+adb shell settings put global hide_error_dialogs 1 || true
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
 adb install -r app/build/outputs/apk/release/app-release.apk >> "$R" 2>&1 || echo "FALHA instalar" >> "$R"
 adb logcat -c
 
-shot() { adb exec-out screencap -p > "shots/$1.png"; }
+dump() { adb shell uiautomator dump /sdcard/ui.xml 2>&1 | grep -qi error && echo "FALHA uiautomator dump" >> "$R"; adb shell cat /sdcard/ui.xml | tr '>' '\n'; }
+fecharAvisos() { # fecha diálogos de "não está respondendo" do sistema tocando em "Wait"
+  local x; x=$(dump | grep -E "text=\"(Wait|Aguardar)\"" | head -1 | sed -E 's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/' | awk '{print int(($1+$3)/2), int(($2+$4)/2)}')
+  if [ -n "$x" ]; then adb shell input tap $x; sleep 1; echo "aviso do sistema fechado" >> "$R"; fi
+}
+shot() { fecharAvisos; adb exec-out screencap -p > "shots/$1.png"; }
 vivo() { adb shell pidof $PKG > /dev/null; }
 abrir() { # $1 nome  $2 tela  $3 demo(true/false)
   adb shell am start -S -W -n $PKG/.MainActivity --ez demo "${3:-true}" --es screen "$2" > /dev/null 2>&1
   sleep "${4:-4}"
   if vivo; then shot "$1"; echo "OK $1" >> "$R"; else echo "CRASH $1" >> "$R"; fi
 }
-centro() { # content-desc (regex) -> "x y"
-  adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1
-  adb shell cat /sdcard/ui.xml | tr '>' '\n' | grep -E "content-desc=\"$1" | head -1 | sed -E 's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/' | awk '{print int(($1+$3)/2), int(($2+$4)/2)}'
+centro() { # content-desc ou texto (regex) -> "x y"
+  dump | grep -E "(content-desc|text)=\"$1" | head -1 | sed -E 's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/' | awk '{print int(($1+$3)/2), int(($2+$4)/2)}'
 }
-tocar() { local c; c=$(centro "$1"); if [ -n "$c" ]; then adb shell input tap $c; sleep "${2:-1.5}"; echo "toque '$1' em $c" >> "$R"; else echo "FALHA não achei '$1'" >> "$R"; fi; }
+tocar() { local c; fecharAvisos; c=$(centro "$1"); if [ -n "$c" ]; then adb shell input tap $c; sleep "${2:-1.5}"; echo "toque '$1' em $c" >> "$R"; else echo "FALHA não achei '$1'" >> "$R"; fi; }
 
 # 1) primeira abertura (sem dados): boas-vindas e questionário
 adb shell pm clear $PKG > /dev/null
