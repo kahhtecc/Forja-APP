@@ -59,7 +59,7 @@ jobs:
           for t in hoje plano sessao treino mobilidade exercicios exercicio:agachamento-barra progresso perfil quiz rotina:pre-corrida; do
             xcrun simctl terminate "$dev" com.kaiquecupertino.forja || true
             xcrun simctl launch "$dev" com.kaiquecupertino.forja -demo 1 -tela "$t"
-            sleep 6
+            sleep 14
             xcrun simctl io "$dev" screenshot "../shots-ios/ios-${t//:/_}.png"
           done
           # primeira abertura (sem plano): questionário
