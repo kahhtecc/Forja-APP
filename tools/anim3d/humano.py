@@ -914,6 +914,24 @@ def fundo(tam):
     return Image.composite(luz, img, halo)
 
 
+def gravar_video(frames, base, fps, crf):
+    """Quadros -> <base>.mp4 (H.264, toca em Android, iPhone e navegador) + <base>.webp (pôster, quadro do meio)."""
+    import shutil
+    import subprocess
+    import tempfile
+    tmp = tempfile.mkdtemp()
+    try:
+        for j, f in enumerate(frames):
+            f.save(os.path.join(tmp, f"{j:04d}.png"))
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "%04d.png"),
+                        "-c:v", "libx264", "-profile:v", "high", "-level", "4.0", "-pix_fmt", "yuv420p", "-preset", "slow",
+                        "-crf", str(crf), "-tune", "animation", "-g", str(max(1, len(frames))), "-movflags", "+faststart", "-an",
+                        base + ".mp4"], check=True)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    frames[len(frames) // 2].save(base + ".webp", "WEBP", quality=82, method=6)
+
+
 def main():
     from PIL import Image
     ap_ = argparse.ArgumentParser()
@@ -927,6 +945,8 @@ def main():
     ap_.add_argument("--fps", type=float, default=6)
     ap_.add_argument("--chaves", action="store_true", help="só quadros-chave (revisão)")
     ap_.add_argument("--pular-existentes", action="store_true")
+    ap_.add_argument("--video", action="store_true", help="grava <id>.mp4 (H.264) + <id>.webp (pôster) em vez da folha de quadros")
+    ap_.add_argument("--crf", type=int, default=20)
     a = ap_.parse_args(sys.argv[1:])
     bpy.ops.wm.read_factory_settings(use_empty=True)
     os.makedirs(a.saida, exist_ok=True)
@@ -948,7 +968,7 @@ def main():
             aid = anim["id"]
             if ids and aid not in ids:
                 continue
-            if a.pular_existentes and not a.chaves and os.path.exists(os.path.join(a.saida, f"{aid}.webp")):
+            if a.pular_existentes and not a.chaves and os.path.exists(os.path.join(a.saida, f"{aid}.mp4" if a.video else f"{aid}.webp")):
                 continue
             t_anim = time.time()
             ex = grupos.get(aid, {})
@@ -1014,6 +1034,10 @@ def main():
                 for j, f in enumerate(frames):
                     folha.paste(f, (j * tam_saida, 0))
                 folha.save(os.path.join(a.saida, f"{aid}.jpg"), quality=88)
+            elif a.video:
+                gravar_video(frames, os.path.join(a.saida, aid), a.fps, a.crf)
+                meta[aid] = {"v": 1, "f": len(frames), "s": a.tam, "fps": a.fps}
+                json.dump(meta, open(meta_path, "w"), separators=(",", ":"), sort_keys=True)
             else:
                 cols = 6
                 linhas = math.ceil(len(frames) / cols)
