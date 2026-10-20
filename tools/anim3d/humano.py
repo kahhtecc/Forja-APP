@@ -7,6 +7,8 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "afa"/"ata": abdução do antebraço
   "pfa"/"pta": abdução da perna (coxa)
   "tr": rotação do tronco (torção, graus; + gira o peito para o lado da câmera)
+  "oe": elevação dos ombros 0..1 (encolhimento). Se ausente em exercícios do grupo Trapézio, vale 0 no 1º quadro e 1 nos demais.
+Elástico entre as mãos: {"tipo": "elastico", "de": "maos", "ate": "maos"} (automático no band-pull-apart sem props).
 Uso (python do ambiente com bpy):
   python tools/anim3d/humano.py --mh <pasta makehuman/data> --anim <dados.json> [--ids a,b] --saida <pasta> [--tam 480] [--amostras 24] [--quadros 12]
 """
@@ -210,6 +212,15 @@ class Humano:
         cab = d(p["c"])
         for nome in ("neck01", "neck02", "neck03", "head"):
             self._apontar(nome, cab)
+        # elevação dos ombros (encolhimento): campo opcional "oe" 0..1
+        oe = pose.get("oe", 0) or 0
+        if oe:
+            for sf, sx in ((".L", 1), (".R", -1)):
+                pb = self.rig.pose.bones["clavicle" + sf]
+                eixo = (pb.bone.matrix_local.to_3x3().inverted() @ FRENTE).normalized()
+                pb.rotation_mode = "QUATERNION"
+                pb.rotation_quaternion = Quaternion(eixo, math.radians(17 * oe * sx))
+            bpy.context.view_layer.update()
         for lado, s, sufixo in (("f", 1, ".L"), ("t", -1, ".R")):
             b, a = p["b" + lado]
             ab = pose.get("b" + lado + "a", 0) or 0
@@ -673,7 +684,9 @@ def montar_aparelhos(ap, anim, h, ref, fase):
                 ap.esfera(meio, 1.1, ap.brasa)
             elif tp in ("elastico", "cabo"):
                 ate = pr.get("ate")
-                if ate == "pes":
+                if ate == "maos":
+                    ap.cilindro(mf, mt, 0.09, ap.brasa, 12)
+                elif ate == "pes":
                     for m, pe in ((mf, h.junta_mundo("foot.L")), (mt, h.junta_mundo("foot.R"))):
                         ap.cilindro(m, pe, 0.07, ap.brasa, 8)
                 elif isinstance(ate, list):
@@ -684,7 +697,7 @@ def montar_aparelhos(ap, anim, h, ref, fase):
 
 # ------------------------------------------------------------------ animação
 
-CAMPOS_3D = ("bfa", "bta", "afa", "ata", "pfa", "pta", "tr")
+CAMPOS_3D = ("bfa", "bta", "afa", "ata", "pfa", "pta", "tr", "oe")
 
 
 def interp3(a, b, t):
@@ -924,6 +937,11 @@ def main():
                     if r not in prim and r not in sec:
                         (prim if not prim else sec).append(r)
             colorir(h, prim, sec)
+            if ex.get("grupo") == "Trapézio" and not any("oe" in q for q in anim["quadros"]):
+                for i_q, q in enumerate(anim["quadros"]):
+                    q["oe"] = 0 if i_q == 0 else 1
+            if anim["id"].startswith("band-pull-apart") and not anim.get("props"):
+                anim["props"] = [{"tipo": "elastico", "de": "maos", "ate": "maos"}]
             h.pegada = 1.0 if any(pr.get("em") == "maos" or pr.get("de") == "maos" or pr.get("tipo") == "barra_fixa"
                                   for pr in anim.get("props", [])) else 0.0
             anim["_anilha"] = 1.25 if ex.get("grupo") in ("Bíceps", "Tríceps", "Ombros", "Trapézio") else 2.2
