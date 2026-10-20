@@ -260,6 +260,26 @@ Princípio: exercício terapêutico (fortalecimento + aeróbio) é recomendado p
 
 ---
 
+## 14. Rotinas de preparo por esporte
+
+**Base comum.** Usar o modelo RAMP: elevar a temperatura, ativar e mobilizar, depois potencializar. Duração de 5–10 min [jeffreys2007]. Preferir mobilidade dinâmica. Se usar alongamento estático antes do treino, ficar abaixo de 60 s por grupo muscular e seguir com atividade dinâmica. Estático ≥60 s reduz o desempenho em cerca de 4,6%; abaixo de 60 s, em cerca de 1,1%; dinâmico melhora em cerca de 1,3% [behm2016].
+
+| Esporte | Rotina sugerida | Base |
+|---|---|---|
+| **Corrida** | 5 min de caminhada ou trote leve (Z1). Mobilidade dinâmica: balanço de pernas e círculos de tornozelo e quadril. Educativos: skipping, calcanhar ao glúteo, carioca. Antes de tiros ou prova, 3–4 acelerações progressivas de 60–100 m. Sem estático longo antes. | [behm2016; jeffreys2007; nhsc25k]. O C25K usa 5 min de caminhada antes e depois. Acelerações e educativos: *(convenção)* |
+| **Ciclismo** | 10–15 min de pedal progressivo de Z1 a Z2. Antes de intervalos ou teste de FTP, 2–3 esforços curtos (30–60 s) perto da intensidade alvo, com recuperação. | O teste de FTP pede aquecimento completo [allencoggan2019]. Durações: *(convenção)* |
+| **Musculação** | 5 min de cardio leve. Mobilidade dinâmica das articulações da sessão. Depois, 2–3 séries de aproximação progressivas no 1º exercício composto, com poucas repetições e sem fadiga. | Aquecimento dinâmico com carga alta melhora força e potência de membros superiores; estático curto não afetou a potência [mccrary2015]. Séries de aproximação: *(convenção)* |
+| **Lutas** | 10–15 min no total. Corda ou sombra leve. Mobilidade de pescoço, ombros, punhos e quadril. Ativação: pontes de glúteo, sprawls leves, fuga de quadril. Potencialização: combinações rápidas curtas e 2–3 saltos. | [jeffreys2007; behm2016]. Conteúdo específico: *(convenção)* |
+| **Futebol (FIFA 11+)** | **Parte 1** (~8 min): corridas em baixa velocidade, com alongamento ativo e contatos controlados com o parceiro. **Parte 2** (~10 min): força, pliometria e equilíbrio em 3 níveis (prancha, prancha lateral, nórdico, equilíbrio unipodal, agachamentos, saltos). **Parte 3**: corridas em velocidade moderada a alta, com mudanças de direção. Total de ~20 min. Fazer na ordem e só subir de nível quando dominar o atual. 2–3x/semana. | [fifa11; soligard2008]. A duração da Parte 3 (~2 min) foi inferida do total de ~20 min. |
+| **Tênis / raquete** | RAMP com ênfase em membros superiores e tronco: rotação externa com elástico, círculos de braço, rotação torácica, afundo com rotação. Depois, trocas de bola progressivas e saques em intensidade crescente. | Sem fonte específica de tênis verificada nesta pesquisa. Extrapolado de [mccrary2015; jeffreys2007; behm2016]. *(convenção)* |
+| **Natação** | Nadadores competitivos: o aquecimento melhora o desempenho, sobretudo em provas acima de 200 m. Volume moderado de 1.000–1.500 m em intensidade adequada, breve aproximação ao ritmo de prova e recuperação suficiente antes da largada. Amadores: 200–400 m leves e educativos, com mobilidade de ombros e rotação torácica fora da água. | [neiva2014]. Volume para amadores: *(convenção)* |
+
+### Alongamento pós-treino (doses)
+- Manter cada alongamento por **10–30 s** até o ponto de tensão ou leve desconforto; idosos podem se beneficiar de **30–60 s**. Fazer **2–4 repetições**, somando ~**60 s por grupo muscular**, **≥2–3 dias/semana**. O alongamento é mais eficaz com o músculo aquecido, então o fim da sessão é um bom momento [garber2011].
+- Desaquecimento sugerido: 5 min de atividade leve (caminhada ou pedal), depois alongamentos dos grupos trabalhados [nhsc25k; garber2011].
+
+---
+
 ## Fontes
 
 | id | Referência | Link |
@@ -309,4 +329,7 @@ Princípio: exercício terapêutico (fortalecimento + aeróbio) é recomendado p
 | acog2020 | ACOG Committee Opinion No. 804: Physical activity and exercise during pregnancy and the postpartum period. *Obstet Gynecol* 2020;135(4):e178–e188 | https://doi.org/10.1097/AOG.0000000000003772 |
 | nice_ng226 | NICE NG226. Osteoarthritis in over 16s: diagnosis and management (2022) | https://www.nice.org.uk/guidance/ng226/chapter/Recommendations |
 | nice_ng59 | NICE NG59. Low back pain and sciatica in over 16s: assessment and management | https://www.nice.org.uk/guidance/ng59 |
+| mccrary2015 | McCrary JM, Ackermann BJ, Halaki M. A systematic review of the effects of upper body warm-up on performance and injury. *Br J Sports Med* 2015;49(14):935–942 | https://bjsm.bmj.com/content/49/14/935 |
+| neiva2014 | Neiva HP et al. Warm-up and performance in competitive swimming. *Sports Med* 2014;44(3):319–330 | https://doi.org/10.1007/s40279-013-0117-y |
+| fifa11 | FIFA Medical Network / F-MARC. FIFA 11+ manual (estrutura em 3 partes), 2011; resumo AMSSM | https://www.amssm.org/coachs-corner-what-is-fifa-11+-va-24.html |
 | silbernagel2007 | Silbernagel KG et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. *Am J Sports Med* 2007;35(6):897–906 | https://doi.org/10.1177/0363546506298279 |

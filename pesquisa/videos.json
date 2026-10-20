@@ -1076,5 +1076,152 @@
   "canal": "Neovita Fisioterapia Domiciliar",
   "idioma": "pt",
   "verificado": true
+ },
+ "balanco-pernas": {
+  "id": "difYoBtZi2s",
+  "titulo": "How To Do Leg Swings",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
+ },
+ "circulos-tornozelo": {
+  "id": "SG3aVv8bXd0",
+  "titulo": "How to Do Ankle Circles",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
+ },
+ "circulos-punho": {
+  "id": "WwYtcWuXetk",
+  "titulo": "Giros de Punhos",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "circulos-ombro": {
+  "id": "J54MUf4HKjY",
+  "titulo": "Rotação dos Ombros",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "circulos-joelho": {
+  "id": "RJTezdqvB2A",
+  "titulo": "Joint Rotations Warm-Up Sequence",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": false
+ },
+ "chute-gluteo": {
+  "id": "aOJqqj1Dn6U",
+  "titulo": "Corrida Estacionária com Toque no Calcanhar",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "carioca": {
+  "id": "T9_dYox1OQI",
+  "titulo": "Educativo de corrida: Carioca ou Samba - Personal Trainer Ricardo Wesley",
+  "canal": "Personal Trainer Ricardo Wesley",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "abertura-peito-dinamica": {
+  "id": "AsMMF3YWIIM",
+  "titulo": "How To Do STANDING CROSS BODY ARM SWINGS",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
+ },
+ "spider": {
+  "id": "QHLoczU7FLA",
+  "titulo": "Alongamentos e Mobilidade - Mobilidade de Quadril \"Homem Aranha\"",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "alongamento-gluteo": {
+  "id": "-g0nuyTHMrI",
+  "titulo": "Piriformis Figure 4 Stretch - Ask Doctor Jo",
+  "canal": "Ask Doctor Jo (fisioterapeuta)",
+  "idioma": "en",
+  "verificado": true
+ },
+ "abraco-joelhos": {
+  "id": "5R7eWaNWO3U",
+  "titulo": "Double Knee to Chest - Ask Doctor Jo",
+  "canal": "Ask Doctor Jo (fisioterapeuta)",
+  "idioma": "en",
+  "verificado": true
+ },
+ "alongamento-triceps": {
+  "id": "hVlYfDablao",
+  "titulo": "Alongamento Tríceps",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "alongamento-antebraco": {
+  "id": "4UauKt2BC8I",
+  "titulo": "Alongamento de flexores e extensores do antebraço",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "alongamento-pescoco": {
+  "id": "63gE8iHoO0g",
+  "titulo": "Alongamento da região do pescoço",
+  "canal": "TV UFG (fisioterapeuta Hugo Serrano, segundo descrição)",
+  "idioma": "pt",
+  "verificado": false
+ },
+ "alongamento-lateral": {
+  "id": "OwdP6EcGcZw",
+  "titulo": "Exercício de ALONGAMENTO inclinação lateral de tronco",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "torcao-coluna": {
+  "id": "r3PX2YfHjp0",
+  "titulo": "7 Torção da Coluna Vertebral",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "alongamento-dorsal": {
+  "id": "bA34-wI3mO4",
+  "titulo": "Alongamento Dorsal",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "moinho": {
+  "id": "IqZkE7vqRW0",
+  "titulo": "How To Do A WINDMILL ROTATION STRETCH",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
+ },
+ "isometria-pescoco": {
+  "id": "x9-G3ZKt75w",
+  "titulo": "Exercícios Isométricos - Core Cervical",
+  "canal": "não identificado",
+  "idioma": "pt",
+  "verificado": true
+ },
+ "nordico": {
+  "id": "_e9vFU9-tkc",
+  "titulo": "How to Set Up, Perform, & Program Nordic Hamstring Curls (Progressions",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
+ },
+ "prova": {
+  "id": "6xlqqbhVphk",
+  "titulo": "How Do I Pace A 5km Run Personal Best?!",
+  "canal": "não identificado",
+  "idioma": "en",
+  "verificado": true
  }
 }

@@ -56,6 +56,11 @@ def main():
         sys.exit(f"Exercícios sem padrão de movimento: {missing}")
     with open(os.path.join(ROOT, "app/src/main/assets/exercises.json"), "w") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    par = os.path.join(ROOT, "pesquisa", "parametros.json")
+    if os.path.exists(par):
+        fontes = json.load(open(par)).get("fontes", [])
+        with open(os.path.join(ROOT, "app/src/main/assets/fontes.json"), "w") as f:
+            json.dump([{k: x.get(k) for k in ("id", "titulo", "ano", "url")} for x in fontes], f, ensure_ascii=False)
     print(f"{len(data)} exercícios, {sum(1 for d in data if 'video' in d)} com vídeo")
 
 

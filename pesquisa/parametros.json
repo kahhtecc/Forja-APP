@@ -2124,6 +2124,194 @@
    "titulo": "Silbernagel KG et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. Am J Sports Med 2007;35(6):897–906",
    "ano": 2007,
    "url": "https://doi.org/10.1177/0363546506298279"
+  },
+  {
+   "id": "mccrary2015",
+   "titulo": "McCrary JM, Ackermann BJ, Halaki M. A systematic review of the effects of upper body warm-up on performance and injury. Br J Sports Med 2015;49(14):935-942",
+   "ano": 2015,
+   "url": "https://bjsm.bmj.com/content/49/14/935"
+  },
+  {
+   "id": "neiva2014",
+   "titulo": "Neiva HP et al. Warm-up and performance in competitive swimming. Sports Med 2014;44(3):319-330",
+   "ano": 2014,
+   "url": "https://doi.org/10.1007/s40279-013-0117-y"
+  },
+  {
+   "id": "fifa11",
+   "titulo": "FIFA 11+ manual (estrutura em 3 partes) — resumo AMSSM",
+   "ano": 2011,
+   "url": "https://www.amssm.org/coachs-corner-what-is-fifa-11+-va-24.html"
   }
- ]
+ ],
+ "preparo_por_esporte": {
+  "base": {
+   "modelo": "RAMP",
+   "min": [
+    5,
+    10
+   ],
+   "estatico_max_s_por_grupo": 60,
+   "fontes": [
+    "jeffreys2007",
+    "behm2016"
+   ]
+  },
+  "corrida": {
+   "min": [
+    8,
+    12
+   ],
+   "blocos": [
+    "caminhada/trote Z1 5min",
+    "balanco-pernas",
+    "circulos-tornozelo",
+    "circulos-quadril",
+    "educativos-corrida",
+    "chute-gluteo",
+    "carioca",
+    "3-4 acelerações 60-100m (antes de qualidade/prova)"
+   ],
+   "origem": "convencao",
+   "fontes": [
+    "behm2016",
+    "jeffreys2007",
+    "nhsc25k"
+   ]
+  },
+  "ciclismo": {
+   "min": [
+    10,
+    15
+   ],
+   "blocos": [
+    "pedal progressivo Z1->Z2",
+    "2-3 esforços 30-60s perto da intensidade alvo"
+   ],
+   "origem": "convencao",
+   "fontes": [
+    "allencoggan2019"
+   ]
+  },
+  "musculacao": {
+   "min": [
+    5,
+    10
+   ],
+   "blocos": [
+    "cardio leve 5min",
+    "mobilidade dinâmica das articulações da sessão",
+    "2-3 séries de aproximação no 1º composto"
+   ],
+   "origem": "convencao",
+   "fontes": [
+    "mccrary2015",
+    "jeffreys2007"
+   ]
+  },
+  "luta": {
+   "min": [
+    10,
+    15
+   ],
+   "blocos": [
+    "corda",
+    "sombra",
+    "circulos-ombro",
+    "circulos-punho",
+    "circulos-quadril",
+    "ponte-gluteo",
+    "sprawl",
+    "fuga-quadril",
+    "combinações rápidas"
+   ],
+   "origem": "convencao",
+   "fontes": [
+    "jeffreys2007",
+    "behm2016"
+   ]
+  },
+  "futebol_fifa11": {
+   "partes": [
+    {
+     "parte": 1,
+     "min": 8,
+     "conteudo": "corridas baixa velocidade + alongamento ativo + contatos controlados"
+    },
+    {
+     "parte": 2,
+     "min": 10,
+     "conteudo": "força, pliometria, equilíbrio (3 níveis)"
+    },
+    {
+     "parte": 3,
+     "min": 2,
+     "conteudo": "corridas moderada/alta velocidade com mudanças de direção",
+     "obs": "duração inferida do total ~20 min"
+    }
+   ],
+   "total_min": 20,
+   "sessoes_semana": [
+    2,
+    3
+   ],
+   "fontes": [
+    "fifa11",
+    "soligard2008"
+   ]
+  },
+  "tenis_raquete": {
+   "min": [
+    10,
+    15
+   ],
+   "blocos": [
+    "rotacao-externa",
+    "circulos-braco",
+    "rotacao-toracica",
+    "trocas de bola progressivas",
+    "saques progressivos"
+   ],
+   "origem": "convencao (sem fonte específica de tênis verificada)",
+   "fontes": [
+    "mccrary2015",
+    "jeffreys2007"
+   ]
+  },
+  "natacao": {
+   "competitivo_m": [
+    1000,
+    1500
+   ],
+   "amador_m": [
+    200,
+    400
+   ],
+   "obs": "breve aproximação ao ritmo de prova e recuperação antes; maior benefício >200m",
+   "fontes": [
+    "neiva2014"
+   ]
+  },
+  "alongamento_pos": {
+   "duracao_s": [
+    10,
+    30
+   ],
+   "idosos_s": [
+    30,
+    60
+   ],
+   "repeticoes": [
+    2,
+    4
+   ],
+   "total_s_por_grupo": 60,
+   "dias_semana_min": 2,
+   "desaquecimento_min": 5,
+   "fontes": [
+    "garber2011",
+    "nhsc25k"
+   ]
+  }
+ }
 }

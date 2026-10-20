@@ -25,3 +25,7 @@
 - As estruturas de planos de corrida (semanas, longão) e de luta (rounds, pescoço) são **convenção de treinadores**, coerente com as fontes, e não números de estudo.
 - As 7 perguntas do PAR-Q+ são tradução livre da versão oficial em inglês. Existe versão brasileira validada (Schwartz 2021), mas o texto dela não foi obtido.
 - As adaptações por lesão são conservadoras e não diagnósticas.
+
+## Rodada 2
+- `videos.json`: +21 entradas (18 de `lista-exercicios-novos.tsv` + `isometria-pescoco`, `nordico`, `prova`), total 175, sem IDs duplicados. 19 com título confirmado; `circulos-joelho` e `alongamento-pescoco` ficaram com `verificado: false` porque o vídeo é genérico (sequência de rotações articulares e alongamento cervical geral). `isometria-pescoco` não é específico de lutadores, e `prova` está em EN (5 km).
+- `diretrizes.md`: nova seção 14, "Rotinas de preparo por esporte", com 3 fontes novas (McCrary 2015, Neiva 2014, manual FIFA 11+/AMSSM). Os mesmos dados foram para `parametros.json → preparo_por_esporte`. O orçamento de buscas acabou antes de achar uma fonte específica de tênis, então tênis/raquete está marcado como convenção extrapolada. A duração da Parte 3 do FIFA 11+ (~2 min) foi inferida do total de ~20 min.

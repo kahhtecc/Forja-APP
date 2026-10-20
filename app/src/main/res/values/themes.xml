@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.Forja" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fundo</item>
+        <item name="android:statusBarColor">@color/fundo</item>
+        <item name="android:navigationBarColor">@color/fundo</item>
+    </style>
+    <color name="fundo">#0E0D0C</color>
+    <color name="brasa">#FF5B22</color>
+</resources>

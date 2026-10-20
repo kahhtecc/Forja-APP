@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- F condensado -->
+    <path android:pathData="M38,32 L72,32 L69,42 L50,42 L50,50 L66,50 L63,60 L50,60 L50,78 L38,78 Z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient android:type="linear" android:startX="38" android:startY="32" android:endX="72" android:endY="78">
+                <item android:offset="0" android:color="#FFFF8A50"/>
+                <item android:offset="0.6" android:color="#FFFF5B22"/>
+                <item android:offset="1" android:color="#FFD9381E"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- faísca -->
+    <path android:fillColor="#FFF2EBE0" android:pathData="M74,52 L76,57 L81,59 L76,61 L74,66 L72,61 L67,59 L72,57 Z"/>
+</vector>

@@ -1,0 +1,97 @@
+package com.forja.app
+
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
+import com.forja.app.core.Armazenamento
+import com.forja.app.core.Catalogo
+import com.forja.app.core.Datas
+import com.forja.app.core.Loja
+import com.forja.app.core.Questionario
+import com.forja.app.core.Registro
+import com.forja.app.core.Roteiro
+import com.forja.app.core.SerieFeita
+import org.json.JSONArray
+import java.time.LocalDate
+
+class Preferencias(ctx: Context, nome: String) : Armazenamento {
+    private val sp = ctx.getSharedPreferences(nome, Context.MODE_PRIVATE)
+    override fun ler(chave: String): String? = sp.getString(chave, null)
+    override fun gravar(chave: String, valor: String?) {
+        sp.edit().apply { if (valor == null) remove(chave) else putString(chave, valor) }.apply()
+    }
+}
+
+data class Fonte(val id: String, val titulo: String, val ano: Int, val url: String)
+
+class AppViewModel(app: Application) : AndroidViewModel(app) {
+    val catalogo: Catalogo = Catalogo.deJson(app.assets.open("exercises.json").bufferedReader().use { it.readText() })
+    val fontes: List<Fonte> = runCatching {
+        val a = JSONArray(app.assets.open("fontes.json").bufferedReader().use { it.readText() })
+        (0 until a.length()).map { a.getJSONObject(it).let { o -> Fonte(o.optString("id"), o.optString("titulo"), o.optInt("ano"), o.optString("url")) } }
+    }.getOrDefault(emptyList())
+
+    /** Treino em andamento (EstadoTreino), mantido ao abrir o vídeo ou girar a tela. */
+    var treino: Any? = null
+
+    var demo: Boolean = false
+        private set
+    lateinit var loja: Loja
+        private set
+
+    fun iniciar(demo: Boolean) {
+        if (this::loja.isInitialized && this.demo == demo) return
+        this.demo = demo
+        val arm = Preferencias(getApplication(), if (demo) "forja_demo" else "forja")
+        loja = Loja(catalogo, arm) { LocalDate.now().toEpochDay() }
+        if (demo) semearDemo()
+    }
+
+    /** Perfil e histórico de exemplo para o modo demonstração (capturas e apresentação). */
+    private fun semearDemo() {
+        if (loja.estado.value.temPlano) return
+        val r = mapOf(
+            "nome" to listOf("Kaique"), "modalidade" to listOf("academia"), "objetivo" to listOf("massa"), "experiencia" to listOf("intermediario"),
+            "dias" to listOf("4"), "dias_semana" to Questionario.diasSugeridos(4).map { "$it" }, "minutos" to listOf("60"),
+            "idade" to listOf("29"), "sexo" to listOf("m"), "altura" to listOf("178"), "peso" to listOf("80"),
+            "limitacoes" to listOf("nenhuma"), "parq" to listOf("nenhuma"),
+        )
+        loja.salvarRespostas(r)
+        val hoje = loja.hoje()
+        // começa duas semanas atrás para já existir histórico
+        val inicio = Datas.segunda(hoje) - 14
+        val plano = loja.estado.value.plano ?: return
+        val arm = Preferencias(getApplication(), "forja_demo")
+        arm.gravar(Loja.K_INICIO, inicio.toString())
+        for (w in 1..3) {
+            plano.semanas[w - 1].sessoes.forEachIndexed { i, s ->
+                val dia = inicio + (w - 1) * 7 + (s.diaSemana - 1)
+                if (dia >= hoje) return@forEachIndexed
+                val series = Roteiro.passos(s, catalogo).filter { it.item.reps != null && it.blocoNome != "Aquecimento" }.map {
+                    SerieFeita(it.ex.id, 10 + (w % 2), kgExemplo(it.ex.id) + (w - 1) * 2.5)
+                }
+                loja.registrar(Registro(dia, w, i, s.titulo, s.tipo, s.minutos * 60, series, 7 + (i % 2), ""))
+            }
+        }
+        listOf(81.2, 80.8, 80.5, 80.1).forEachIndexed { k, kg -> pesoEm(hoje - (3 - k) * 7L, kg) }
+        iniciarDeNovo()
+    }
+
+    private fun pesoEm(dia: Long, kg: Double) {
+        val arm = Preferencias(getApplication(), "forja_demo")
+        val a = runCatching { JSONArray(arm.ler(Loja.K_PESOS) ?: "[]") }.getOrDefault(JSONArray())
+        a.put(JSONArray().put(dia).put(kg))
+        arm.gravar(Loja.K_PESOS, a.toString())
+    }
+
+    private fun iniciarDeNovo() {
+        loja = Loja(catalogo, Preferencias(getApplication(), "forja_demo")) { LocalDate.now().toEpochDay() }
+    }
+
+    private fun kgExemplo(id: String): Double = when {
+        "agachamento" in id || "leg" in id || "terra" in id || "stiff" in id -> 60.0
+        "supino" in id || "remada" in id || "puxada" in id -> 40.0
+        "desenvolvimento" in id -> 20.0
+        else -> 12.0
+    }
+}
