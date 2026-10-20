@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Science
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
@@ -135,10 +136,13 @@ fun TelaPerfil(vm: AppViewModel, estado: Estado, nav: Navegador) {
 
             Secao("Sobre")
             LinhaAcao(Icons.Rounded.Science, "Base científica", "Diretrizes e ${vm.fontes.size} referências usadas para montar as rotinas") { nav.ir(Rota.Fontes) }
+            LinhaAcao(Icons.Rounded.Shield, "Política de privacidade", "Nada sai do seu aparelho: sem cadastro, anúncios ou rastreamento") {
+                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACIDADE))) }
+            }
             Cartao(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Text("Forja ${BuildConfig.VERSION_NAME}", style = Tipo.CorpoForte, color = Cor.Texto)
                 Spacer(Modifier.height(6.dp))
-                Text("Fotos dos exercícios: free-exercise-db (domínio público). Fontes Big Shoulders e Manrope (SIL OFL). Vídeos dos respectivos canais no YouTube.",
+                Text("Animações 3D feitas com o MakeHuman (CC0) e o Blender. Fotos: free-exercise-db (domínio público). Fontes Big Shoulders e Manrope (SIL OFL). Vídeos dos respectivos canais no YouTube.",
                     style = Tipo.Pequeno, color = Cor.Texto2)
                 Spacer(Modifier.height(8.dp))
                 Text("O Forja orienta com base em diretrizes reconhecidas, mas não substitui avaliação médica nem acompanhamento de um profissional de educação física.",
@@ -222,3 +226,5 @@ fun TelaFontes(vm: AppViewModel, onVoltar: () -> Unit) {
         }
     }
 }
+
+const val PRIVACIDADE = "https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html"

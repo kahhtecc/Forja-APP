@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
     steps:
       - uses: actions/checkout@v5
 
@@ -96,3 +98,31 @@ jobs:
             --target "${{ github.sha }}" --prerelease \
             --title "Forja iOS · build ${{ github.run_number }}" \
             --notes "IPA não assinado do Forja para iPhone (commit ${{ github.sha }}). Instale com Sideloadly ou AltStore (assina com seu Apple ID). Capturas do simulador anexadas." && break; sleep $((i*15)); done
+
+      # Com conta paga da Apple (secrets ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, APPLE_TEAM_ID): assina e envia ao TestFlight.
+      - name: TestFlight
+        if: env.ASC_KEY_ID != ''
+        working-directory: ios
+        env:
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -o pipefail
+          chave="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"; printf '%s' "$ASC_KEY_P8" > "$chave"
+          auth=(-allowProvisioningUpdates -authenticationKeyPath "$chave" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+          xcodebuild -project Forja.xcodeproj -scheme Forja -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Forja.xcarchive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} "${auth[@]}" archive 2>&1 | tail -20
+          cat > "$RUNNER_TEMP/export.plist" <<PL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PL
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Forja.xcarchive" -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -exportPath "$RUNNER_TEMP/export" "${auth[@]}" 2>&1 | tail -20

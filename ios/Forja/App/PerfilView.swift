@@ -66,9 +66,12 @@ struct PerfilView: View {
 
                 Secao(titulo: "Sobre")
                 linha("flask.fill", "Base científica", "Diretrizes e \(app.fontes.count) referências usadas nas rotinas") { abrir(.fontes) }
+                linha("lock.shield.fill", "Política de privacidade", "Nada sai do seu aparelho: sem cadastro, anúncios ou rastreamento") {
+                    UIApplication.shared.open(URL(string: "https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html")!)
+                }
                 Cartao {
                     Text("Forja 1.0 para iOS").font(Tipo.corpoForte)
-                    Text("Fotos dos exercícios: free-exercise-db (domínio público). Fontes Big Shoulders e Manrope (SIL OFL). Vídeos dos respectivos canais no YouTube.").font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 6)
+                    Text("Animações 3D feitas com o MakeHuman (CC0) e o Blender. Fotos: free-exercise-db (domínio público). Fontes Big Shoulders e Manrope (SIL OFL). Vídeos dos respectivos canais no YouTube.").font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 6)
                     Text("O Forja orienta com base em diretrizes reconhecidas, mas não substitui avaliação médica nem acompanhamento de um profissional de educação física.").font(Tipo.pequeno).foregroundStyle(Cor.texto3).padding(.top, 8)
                     if app.demo { Etiqueta(texto: "Modo demonstração", cor: Cor.alerta).padding(.top, 8) }
                 }.padding(.top, 4)
