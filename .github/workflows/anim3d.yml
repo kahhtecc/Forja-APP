@@ -22,7 +22,7 @@ concurrency:
 jobs:
   render:
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +59,7 @@ jobs:
           [ -z "$ids" ] && exit 0
           python tools/anim3d/humano.py --mh "$RUNNER_TEMP/mh/makehuman/data" \
             --anim tools/anim/dados/lote1.json tools/anim/dados/lote2.json tools/anim/dados/lote3.json \
-            --ids "$ids" --saida saida --tam 480 --amostras 24 --fps 15 --video 2>&1 | grep -E "pronto|Erro|Error|Traceback|^  File" || true
+            --ids "$ids" --saida saida --tam 720 --fps 24 --amostras 12 --crf 18 --video 2>&1 | grep -E "pronto|Erro|Error|Traceback|^  File" || true
           ls saida
       - uses: actions/upload-artifact@v4
         with:
