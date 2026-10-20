@@ -32,18 +32,18 @@ CIMA = Vector((0, 0, 1))
 ESQ = Vector((1, 0, 0))  # lado esquerdo do personagem = lado "f" (perto da câmera)
 
 ALVOS = [
-    ("macrodetails/universal-male-young-maxmuscle-averageweight.target", 1.15),
+    ("macrodetails/universal-male-young-maxmuscle-averageweight.target", 1.0),
     ("macrodetails/caucasian-male-young.target", 1 / 3), ("macrodetails/african-male-young.target", 1 / 3), ("macrodetails/asian-male-young.target", 1 / 3),
     ("macrodetails/proportions/male-young-maxmuscle-averageweight-idealproportions.target", 1.0),
     # proporções de atleta natural (V): ombros largos, cintura fina, barriga chapada
-    ("torso/torso-vshape-incr.target", 0.55),
-    ("measure/measure-waist-circ-decr.target", 0.55),
-    ("measure/measure-shoulder-dist-incr.target", 0.35),
+    ("torso/torso-vshape-incr.target", 0.3),
+    ("measure/measure-waist-circ-decr.target", 0.5),
     ("stomach/stomach-pregnant-decr.target", 0.6),
-    ("measure/measure-neck-circ-incr.target", 0.35),
-    ("buttocks/buttocks-volume-incr.target", 0.25),
-    ("torso/torso-muscle-dorsi-incr.target", 0.4),
-    ("torso/torso-muscle-pectoral-incr.target", 0.3),
+    ("measure/measure-neck-circ-incr.target", 0.25),
+    ("buttocks/buttocks-volume-incr.target", 0.2),
+    ("measure/measure-upperarm-circ-incr.target", 0.35),
+    ("measure/measure-thigh-circ-incr.target", 0.2),
+    ("measure/measure-calf-circ-incr.target", 0.25),
 ]
 NIVEL_SUB = 2  # subdivisão da malha em repouso (relevo muscular precisa de densidade)
 
@@ -58,7 +58,7 @@ def ler_obj(caminho):
             verts.append((float(x), float(y), float(z)))
         elif linha.startswith("g "):
             grupo = linha.split()[1].strip()
-        elif linha.startswith("f ") and grupo == "body":
+        elif linha.startswith("f ") and grupo in ("body", "helper-l-eye", "helper-r-eye"):
             faces.append([int(p.split("/")[0]) - 1 for p in linha.split()[1:]])
     return np.array(verts), faces
 
@@ -260,7 +260,7 @@ GRUPOS = {
 DESTAQUE_PARA = {"coxa": ["quadriceps", "posterior"], "perna": ["panturrilha"], "tronco": ["abdomen", "lombar"], "braco": ["deltoide", "biceps", "triceps"],
                  "antebraco": ["antebraco"], "gluteo": ["gluteo"], "ombro": ["deltoide"]}
 
-PELE = (0.62, 0.60, 0.58)
+PELE = (0.50, 0.495, 0.49)
 SHORT = (0.10, 0.10, 0.11)
 TENIS = (0.08, 0.08, 0.085)
 SOLA = (0.95, 0.30, 0.10)
@@ -291,7 +291,9 @@ def calcular_regioes(h):
     R["pescoco"] = np.clip((pesc - 0.4) * 2, 0, 1) * (V[:, 1] > -0.75 + 0 * z)
     # short: bainha levemente mais baixa atrás, cintura reta
     yb = np.clip(V[:, 1], -1, 1)
-    R["_short"] = ((z > hipz - 1.45 + 0.12 * yb) & (z < hipz + 0.92) & ((coxa + tronco) > 0.5) & (braco + antebr < 0.2)).astype(float)
+    lo, hi = hipz - 1.45 + 0.12 * yb, hipz + 0.92
+    R["_short"] = (anatomia._smooth(lo - 0.025, lo + 0.025, z) * (1 - anatomia._smooth(hi - 0.025, hi + 0.025, z))
+                   * anatomia._smooth(0.3, 0.6, coxa + tronco) * (1 - anatomia._smooth(0.1, 0.3, braco + antebr)))
     R["_tenis"] = ((pe > 0.5) | (z < az + 0.25)).astype(float)
     R["_sola"] = (z < (V[:, 2].min() + 0.22)).astype(float)
     h.regioes = R
@@ -357,9 +359,10 @@ def cena(tam, amostras):
         o.location = loc
         o.rotation_euler = (Vector((0, 0, 9)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
         sc.collection.objects.link(o)
-    luz("chave", (22, -12, 26), 11000, 3)
-    luz("preenchimento", (-16, -20, 8), 1800, 16, (0.9, 0.95, 1.0))
-    luz("recorte", (-10, 22, 20), 9000, 4, (1.0, 0.80, 0.62))
+    # chave bem lateral em relação à câmera (azimute ~64°) para revelar o relevo; preenchimento suave do lado da câmera
+    luz("chave", (-6, -26, 24), 9000, 3.5)
+    luz("preenchimento", (26, -6, 10), 1500, 18, (0.9, 0.95, 1.0))
+    luz("recorte", (8, 24, 20), 7000, 4, (1.0, 0.82, 0.66))
     cam = bpy.data.cameras.new("cam")
     cam.type = "ORTHO"
     co = bpy.data.objects.new("cam", cam)
@@ -369,27 +372,39 @@ def cena(tam, amostras):
 
 
 def material_corpo():
+    """Pele clara acinzentada, leve brilho; cavidade dos sulcos (anatomia) + AO escurecem os vales entre músculos."""
     m = bpy.data.materials.new("pele")
     m.use_nodes = True
     nt = m.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     attr = nt.nodes.new("ShaderNodeVertexColor")
     attr.layer_name = "cor"
+    cav = nt.nodes.new("ShaderNodeAttribute")
+    cav.attribute_name = "cavidade"
+    cavm = nt.nodes.new("ShaderNodeMapRange")
+    cavm.inputs["To Min"].default_value = 1.0
+    cavm.inputs["To Max"].default_value = 0.55
+    nt.links.new(cav.outputs["Fac"], cavm.inputs["Value"])
     ao = nt.nodes.new("ShaderNodeAmbientOcclusion")
-    ao.inputs["Distance"].default_value = 0.9
-    ao.samples = 8
-    mult = nt.nodes.new("ShaderNodeMix")
-    mult.data_type = "RGBA"
-    mult.blend_type = "MULTIPLY"
-    mult.inputs["Factor"].default_value = 0.7
+    ao.inputs["Distance"].default_value = 0.6
+    ao.samples = 6
     gam = nt.nodes.new("ShaderNodeGamma")
-    gam.inputs["Gamma"].default_value = 1.8
+    gam.inputs["Gamma"].default_value = 1.4
     nt.links.new(ao.outputs["AO"], gam.inputs["Color"])
-    nt.links.new(attr.outputs["Color"], mult.inputs[6])
-    nt.links.new(gam.outputs["Color"], mult.inputs[7])
-    nt.links.new(mult.outputs[2], bsdf.inputs["Base Color"])
-    bsdf.inputs["Roughness"].default_value = 0.42
-    bsdf.inputs["Coat Weight"].default_value = 0.2
+    m1 = nt.nodes.new("ShaderNodeMix"); m1.data_type = "RGBA"; m1.blend_type = "MULTIPLY"
+    m1.inputs["Factor"].default_value = 0.75
+    nt.links.new(attr.outputs["Color"], m1.inputs[6])
+    nt.links.new(gam.outputs["Color"], m1.inputs[7])
+    m2 = nt.nodes.new("ShaderNodeMix"); m2.data_type = "RGBA"; m2.blend_type = "MULTIPLY"
+    m2.inputs["Factor"].default_value = 1.0
+    nt.links.new(m1.outputs[2], m2.inputs[6])
+    nt.links.new(cavm.outputs["Result"], m2.inputs[7])
+    nt.links.new(m2.outputs[2], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.5
+    bsdf.inputs["Specular IOR Level"].default_value = 0.45
+    bsdf.inputs["Coat Weight"].default_value = 0.08
+    bsdf.inputs["Coat Roughness"].default_value = 0.25
+    bsdf.inputs["Subsurface Weight"].default_value = 0.0
     return m
 
 

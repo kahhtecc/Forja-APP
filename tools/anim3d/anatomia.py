@@ -50,11 +50,11 @@ def mus(nome, reg, sis, u0, v0, a, b, rot=0.0, h=0.08, n=2.0, af=0.0, exp=0.55):
 
 
 # --- tronco, frente (u = |x|, v = z)
-mus("peitoral_sup", "peito", "frente", 0.80, 5.45, 0.72, 0.42, -12, 0.085, 2.2)
-mus("peitoral_inf", "peito", "frente", 0.82, 4.72, 0.78, 0.50, 8, 0.11, 2.4, af=0.15)
-for i, (z, hz) in enumerate(((3.98, 0.27), (3.42, 0.25), (2.86, 0.25))):
-    mus(f"reto_abd{i}", "abdomen", "frente", 0.43, z, 0.32 - 0.02 * i, hz, 0, 0.072, 3.0, exp=0.5)
-mus("reto_abd_inf", "abdomen", "frente", 0.40, 2.05, 0.30, 0.52, 0, 0.05, 2.6, af=-0.35)
+mus("peitoral", "peito", "frente", 0.92, 5.02, 0.86, 0.80, 6, 0.12, 2.5, af=-0.25, exp=0.45)
+mus("peitoral_clav", "peito", "frente", 0.78, 5.62, 0.62, 0.30, -10, 0.06, 2.0)
+for i, (z, hz) in enumerate(((3.93, 0.31), (3.30, 0.29), (2.70, 0.27))):
+    mus(f"reto_abd{i}", "abdomen", "frente", 0.42, z, 0.34 - 0.015 * i, hz, 0, 0.075, 3.2, exp=0.5)
+mus("reto_abd_inf", "abdomen", "frente", 0.38, 1.85, 0.30, 0.52, 0, 0.05, 2.6, af=-0.35)
 mus("obliquo", "obliquos", "frente", 1.10, 2.65, 0.30, 0.78, -14, 0.06, 2.2)
 for i, z in enumerate((4.62, 4.25, 3.90)):
     mus(f"serratil{i}", "obliquos", "lado", -0.55, z, 0.42, 0.13, 24, 0.045, 2.0)
@@ -66,7 +66,7 @@ mus("trap_med", "trapezio", "costas", 0.42, 5.35, 0.42, 0.62, 0, 0.06, 2.0, af=0
 mus("trap_inf", "trapezio", "costas", 0.22, 4.45, 0.22, 0.55, 0, 0.04, 2.0, af=0.4)
 mus("infraespinhal", "dorsal", "costas", 1.02, 5.15, 0.40, 0.38, -18, 0.07, 2.0)
 mus("redondo", "dorsal", "costas", 1.38, 4.92, 0.30, 0.20, -35, 0.06, 2.0)
-mus("dorsal", "dorsal", "costas", 1.02, 4.05, 0.52, 0.95, 18, 0.09, 2.2, af=0.25)
+mus("dorsal", "dorsal", "costas", 1.02, 3.95, 0.50, 1.25, -24, 0.10, 2.2, af=0.35)
 mus("eretor", "lombar", "costas", 0.32, 2.55, 0.22, 1.05, 0, 0.065, 2.4)
 mus("gluteo_max", "gluteo", "costas", 0.78, 0.55, 0.70, 0.78, 12, 0.10, 2.2)
 mus("gluteo_med", "gluteo", "costas", 1.25, 1.45, 0.38, 0.32, -20, 0.06, 2.0)
