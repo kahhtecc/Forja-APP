@@ -351,7 +351,9 @@ def montar(kit, ctx, h, estados):
         elif tp == "barra":
             _barra(kit, ctx, h)
         elif tp == "halter":
-            _halteres(kit, ctx, h)
+            _halteres(kit, ctx, h, pr.get("maos", "ambas"))
+        elif tp == "apoio_tornozelo":
+            _apoio_tornozelo(kit, ctx, pr, am)
         elif tp == "kettlebell":
             _kettlebell(kit, ctx, h)
         elif tp == "bola":
@@ -384,8 +386,23 @@ def _blocos(kit, ctx, h, blocos, am):
                 if ef["contato"] and r["y0"] - 0.3 <= p.y <= r["y1"] + 0.3 and abs(p.z - r["zt"]) < 0.5:
                     r["lx"] = max(r["lx"], abs(p.x) + 0.7)
     idd = ctx.id
+    ctx.encosto = None
     for r in rects:
         y0, y1, zb, zt, lx = r["y0"], r["y1"], r["zb"], r["zt"], r["lx"]
+        inc = r["pr"].get("inc")
+        if inc:
+            # encosto inclinado saindo da borda de trás (lado -x 2D = +y no mundo) do assento
+            comp = r["pr"].get("enc", 7.0) * k
+            a = math.radians(float(inc))
+            base = Vector((0, y1 - 0.2, zt - 0.35))
+            topo = base + Vector((0, math.cos(a) * comp, math.sin(a) * comp))
+            meio = (base + topo) / 2
+            o = kit.caixa((0, 0, 0), (lx * 2, comp, 0.7), kit.estofado, 0.22)
+            o.matrix_world = Matrix.Translation(meio) @ Matrix.Rotation(a, 4, "X")
+            kit.viga(Vector((0, (base.y + topo.y) / 2 + 0.3, 0.3)), meio - Vector((0, 0, 0.5)), 0.55, 0.55, kit.quadro)
+            kit.viga(Vector((0, y0 + 0.6, 0.3)), Vector((0, topo.y, 0.3)), 0.5, 0.4, kit.quadro)
+            kit.viga((-1.7, topo.y - 0.4, 0.12), (1.7, topo.y - 0.4, 0.12), 0.55, 0.3, kit.quadro)
+            ctx.encosto = (meio.y, topo.z)
         cy = (y0 + y1) / 2
         L = y1 - y0
         alto = r["h"] >= 6.5 and L <= 2.6
@@ -404,6 +421,7 @@ def _blocos(kit, ctx, h, blocos, am):
                 continue
             if assento:
                 zs = max(s["zt"] for s in assento)
+                ctx.encosto = (cy, zt)
                 kit.caixa((0, cy, (zs + zt) / 2 + 0.2), (lx * 2, max(L, 0.7), zt - zs - 0.4), kit.estofado, 0.25)
                 kit.viga((0, cy + (0.6 if cy > assento[0]["y0"] else -0.6), 0.2), (0, cy + 0.6, zt - 1.0), 0.6, 0.6, kit.quadro)
             elif "scott" in idd:
@@ -443,8 +461,47 @@ def _blocos(kit, ctx, h, blocos, am):
             kit.viga((0, cy - L / 2 + 0.3, 0.12), (0, cy + L / 2 - 0.3, 0.12), 0.55, 0.3, kit.quadro)
 
 
+def _apoio_tornozelo(kit, ctx, pr, am):
+    if "x" in pr:
+        c = ctx.p3(pr.get("x", 0), pr.get("y", 1.0))
+    else:
+        a = am[0]
+        c = (a["aL"] + a["aR"]) / 2 + Vector((0, 0.5, 0.35))
+    kit.cil((-2.6, c.y, c.z), (2.6, c.y, c.z), 0.45, kit.estofado, 24)
+    for sx in (-1, 1):
+        kit.viga((sx * 2.9, c.y, 0.1), (sx * 2.9, c.y, c.z), 0.45, 0.45, kit.quadro)
+    kit.caixa((0, c.y, 0.08), (6.4, 1.6, 0.16), kit.quadro, 0.04)
+
+
+def _bracos_maquina(kit, ctx, h, encosto):
+    """Supino/peck-deck/desenvolvimento na máquina: pórtico atrás do encosto e alavancas presas às mãos."""
+    y, zt = encosto
+    for sx in (-1, 1):
+        kit.viga((sx * 3.4, y + 1.2, 0.1), (sx * 3.4, y + 1.2, zt + 2.0), 0.5, 0.7, kit.quadro)
+    kit.viga((-3.6, y + 1.2, zt + 2.0), (3.6, y + 1.2, zt + 2.0), 0.6, 0.7, kit.quadro)
+    kit.caixa((0, y + 1.2, 0.1), (7.6, 2.6, 0.2), kit.quadro, 0.05)
+    peck = "peck" in ctx.id or "voador" in ctx.id
+    alav = {sf: kit.cil_movel(0.17, kit.quadro, 12) for sf in (".L", ".R")}
+    pega = {sf: kit.cil_movel(0.16, kit.preto, 12) for sf in (".L", ".R")}
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        for sf, sx in ((".L", 1), (".R", -1)):
+            g = T @ h.pegada(sf)
+            piv = Vector((sx * 3.2, y + 1.0, zt + 1.6 if not peck else g.z))
+            if peck:
+                piv = Vector((sx * 2.9, y + 0.6, g.z))
+            Kit.por_cil(alav[sf], piv, g + X * sx * 0.5)
+            e = T.to_3x3() @ h.eixo_polegar(sf)
+            Kit.por_cil(pega[sf], g - e * 0.55, g + e * 0.55)
+    kit.moveis.append(upd)
+
+
 def _extras_maquina(kit, ctx, h, am, estados):
     idd = ctx.id
+    if any(s in idd for s in ("supino-maquina", "peck-deck", "desenvolvimento-maquina", "voador")) and ctx.encosto is not None:
+        _bracos_maquina(kit, ctx, h, ctx.encosto)
     if "leg-press" in idd or idd.startswith("hack"):
         _plataforma_movel(kit, ctx, h, estados)
     if "extensora" in idd or "flexora" in idd and "mesa" not in idd:
@@ -610,7 +667,7 @@ def _maos(h, est):
 
 
 def _polia(kit, ctx, pr, am):
-    A = ctx.p3(pr["ate"][0], pr["ate"][1])
+    A = ctx.p3(*pr["ate"][:3])
     h = ctx.h
     hip = am[0]["root"]
     dupla = "crossover" in ctx.id or max(abs(a["gL"].x - a["gR"].x) for a in am) > 6.5 and "puxada" not in ctx.id
@@ -634,12 +691,16 @@ def _polia(kit, ctx, pr, am):
         sent = 1.0 if d > 0 else -1.0
         if abs(d) < 1.5:
             sent = -1.0  # polia sobre a cabeça: torre à frente
-        base = Vector((0, A.y + sent * 2.0, 0))
+        base = Vector((A.x, A.y + sent * 2.0, 0))
+        if abs(A.x) > 2.0:
+            base = Vector((A.x + math.copysign(2.0, A.x), A.y, 0))  # polia lateral (pallof): torre ao lado
         alto = max(A.z + 1.5, 20)
         _torre(kit, base, alto, A.z, None)
-        braco_y = base.y - sent * 0.4
-        if abs(A.y - braco_y) > 0.3:
-            kit.viga(Vector((0, braco_y, A.z + 0.55)), Vector((0, A.y, A.z + 0.55)), 0.45, 0.45, kit.quadro)
+        braco = Vector((base.x, base.y - sent * 0.4 if abs(A.x) <= 2.0 else base.y, A.z + 0.55))
+        if abs(A.x) > 2.0:
+            braco.x = base.x - math.copysign(0.4, A.x)
+        if (Vector((A.x, A.y, A.z + 0.55)) - braco).length > 0.3:
+            kit.viga(braco, Vector((A.x, A.y, A.z + 0.55)), 0.45, 0.45, kit.quadro)
         kit.disco(A, 0.48, 0.18, kit.metal, verts=24)
         kit.disco(A, 0.32, 0.26, kit.quadro, verts=16)
         polias.append(A)
@@ -697,10 +758,11 @@ def _elastico(kit, ctx, h, pr, am):
     ate = pr.get("ate")
     bat = "battle" in ctx.id
     if isinstance(ate, list):
-        A = ctx.p3(ate[0], ate[1])
+        A = ctx.p3(*ate[:3])
         if A.z > 1.2:
-            kit.viga(Vector((0, A.y, 0.1)), Vector((0, A.y, A.z + 0.6)), 0.5, 0.5, kit.quadro)
-            kit.caixa(Vector((0, A.y, 0.08)), (2.0, 2.0, 0.16), kit.quadro, 0.04)
+            kit.viga(Vector((A.x, A.y, 0.1)), Vector((A.x, A.y, A.z + 0.6)), 0.5, 0.5, kit.quadro)
+            kit.caixa(Vector((A.x, A.y, 0.08)), (2.0, 2.0, 0.16), kit.quadro, 0.04)
+            kit.toro(A, 0.3, 0.07, kit.metal, (0, 0, 1))
         else:
             A.z = max(A.z, 0.3)
             kit.toro(A, 0.35, 0.08, kit.metal)
@@ -738,6 +800,28 @@ def _elastico(kit, ctx, h, pr, am):
                 Kit.por_cil(segs[sf], g, Vector(c) + Vector((0, 0, 0.05)))
         kit.moveis.append(upd)
         return
+    if pr.get("de") == "costas":
+        n = 10
+        segs = [kit.cil_movel(0.09, kit.brasa, 10) for _ in range(n)]
+
+        def upd_c(est):
+            h.restaurar(est["est"])
+            T = est["T"]
+            gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
+            R_up = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
+            tras = (T.to_3x3() @ (R_up @ Vector((0, 1, 0)))).normalized()
+            oL = T @ h.cabeca("upperarm01.L") + tras * 1.1
+            oR = T @ h.cabeca("upperarm01.R") + tras * 1.1
+            ctrl = [gL, oL, oR, gR]
+            pts = []
+            for i in range(n + 1):
+                t = i / n
+                p = (ctrl[0] * (1 - t) ** 3 + ctrl[1] * 3 * t * (1 - t) ** 2 + ctrl[2] * 3 * t * t * (1 - t) + ctrl[3] * t ** 3)
+                pts.append(p)
+            for o, p, q in zip(segs, pts[:-1], pts[1:]):
+                Kit.por_cil(o, p, q)
+        kit.moveis.append(upd_c)
+        return
     # entre as mãos
     a1, a2 = kit.cil_movel(0.09, kit.brasa, 10), kit.cil_movel(0.09, kit.brasa, 10)
 
@@ -767,8 +851,9 @@ def _barra(kit, ctx, h):
     kit.moveis.append(upd)
 
 
-def _halteres(kit, ctx, h):
-    hs = {sf: halter_peca(kit) for sf in (".L", ".R")}
+def _halteres(kit, ctx, h, maos="ambas"):
+    lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
+    hs = {sf: halter_peca(kit) for sf in lados}
 
     def upd(est):
         h.restaurar(est["est"])
