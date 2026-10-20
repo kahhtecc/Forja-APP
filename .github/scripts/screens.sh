@@ -35,7 +35,7 @@ tocar() { local c; fecharAvisos; c=$(centro "$1"); if [ -n "$c" ]; then adb shel
 adb shell pm clear $PKG > /dev/null
 abrir 01-boas-vindas home false 5
 tocar "Montar minha rotina"; shot 02-pergunta-nome
-tocar "Continuar"; shot 03-pergunta-modalidade
+tocar "Pular"; shot 03-pergunta-modalidade
 tocar "Corrida" 2; shot 04-pergunta-objetivo
 tocar "Saúde e vida ativa" 2; shot 05-pergunta-experiencia
 tocar "Estou começando" 2; shot 06-pergunta-dias
@@ -58,7 +58,13 @@ abrir 22-video video:agachamento-livre 8
 
 # 3) treino ao vivo: concluir série, ver descanso, pular
 abrir 30-treino player
-tocar "Mais Repetições" 0.5; tocar "Concluir série" 2; shot 31-descanso
+# passa pelo aquecimento cronometrado até a primeira série com repetições
+for _ in 1 2 3 4 5 6 7 8; do
+  [ -n "$(centro "Concluir série")" ] && break
+  [ -n "$(centro "Pular descanso")" ] && { adb shell input tap $(centro "Pular descanso"); sleep 1.5; continue; }
+  c=$(centro "Concluir agora"); [ -n "$c" ] && adb shell input tap $c; sleep 1.5
+done
+tocar "Concluir série" 2; shot 31-descanso
 tocar "Pular descanso" 2; shot 32-treino-serie2
 tocar "Sair do treino" 1.5; shot 33-sair
 vivo || echo "CRASH treino" >> "$R"

@@ -275,7 +275,7 @@ class Humano:
                     dir_b = (J(nome, True) - J(nome)).normalized()
                     if f == 1:
                         palma = dmao.cross(atravs).normalized() * sx
-                        eixo = dir_b.cross(palma).normalized()
+                        eixo = palma.cross(dir_b).normalized()
                     else:
                         eixo = atravs * sx
                     self._eixo_dedo[nome] = (b.matrix_local.to_3x3().inverted() @ eixo).normalized()
@@ -612,8 +612,9 @@ def montar_aparelhos(ap, anim, h, ref, fase):
                     ap.caixa((0, tras.y + 1.4, 5), (2.4, 0.6, 8), ap.metal, 0.1)
             elif tp == "barra_fixa":
                 c = p2_para_3d(pr.get("x", 0), pr.get("y", 21), ref)
-                ap.cilindro((-5, c.y, c.z), (5, c.y, c.z), 0.16, ap.metal)
-                for dx in (-5, 5):
+                mb = max(5.0, anim.get("_xmax_maos", 0) + 1.0)
+                ap.cilindro((-mb, c.y, c.z), (mb, c.y, c.z), 0.16, ap.metal)
+                for dx in (-mb, mb):
                     ap.cilindro((dx, c.y, 0), (dx, c.y, c.z + 0.3), 0.25, ap.preto, 16)
             elif tp == "saco":
                 c = p2_para_3d(pr.get("x", 9), 0, ref)
@@ -853,6 +854,8 @@ def posicionar(h, anim, pose, k, ref):
             print("barra: pegada-barra", np.round(g2 - b3, 2), flush=True)
     if chave3 is not None and "ancora" not in ref:
         ref["ancora"] = chave3(T)[1]
+    gx = max(abs(_aplicar(T, h.pegada_mundo(sf)[None])[0][0]) for sf in (".L", ".R"))
+    ref["xmax_maos"] = max(ref.get("xmax_maos", 0.0), gx)
     h.rig.matrix_world = Matrix(T.tolist())
     bpy.context.view_layer.update()
     if "quad" not in ref:
@@ -937,6 +940,7 @@ def main():
                 posicionar(h, anim, pose, k, ref0)
                 todos.append(h.pontos_mundo())
             ap.limpar()
+            anim["_xmax_maos"] = ref0.get("xmax_maos", 0)
             montar_aparelhos(ap, anim, h, ref_props, "fixos")
             pts = np.concatenate(todos)
             extra = [o for o in ap.objs]
