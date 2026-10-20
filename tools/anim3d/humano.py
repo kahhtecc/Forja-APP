@@ -1033,12 +1033,34 @@ def colocar_chave(h, ctx, q):
         ref["ancora"] = chave3(T).y
     if "quad" not in ref:
         ref["quad"] = (p2["quadril"][0], T @ h.cabeca("root"))
-    # 5) mãos espalmadas no apoio + encaixe fino de pés/mãos na superfície
+    # 5) deitado de costas sobre banco: as costas encostam no estofado (o 2D não conhece a espessura do corpo 3D)
+    T = repousar(h, ctx, T, q)
+    # 6) mãos espalmadas no apoio + encaixe fino de pés/mãos na superfície
     for lado, sf, _ in LADOS:
         if apoio[lado]:
             h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
     encaixar(h, ctx, T, apoio)
     return T, maos, {"apoio": apoio, "p2": p2}
+
+
+def repousar(h, ctx, T, q):
+    t = math.radians(q["t"])
+    supino = -math.sin(t) > 0.75 and abs(q["rol"]) < 30
+    if not supino:
+        return T
+    P = h.proxy(T)
+    Q = P[h.px_partes["tronco"]]
+    melhor = None
+    for x0, x1, y0, y1, zt in ctx.superficies()[1:]:
+        m = (Q[:, 0] >= x0) & (Q[:, 0] <= x1) & (Q[:, 1] >= y0) & (Q[:, 1] <= y1)
+        if m.sum() < 20:
+            continue
+        gap = Q[m, 2].min() - zt
+        if -1.0 < gap < 1.8 and (melhor is None or abs(gap) < abs(melhor)):
+            melhor = gap
+    if melhor is None or abs(melhor) < 0.03:
+        return T
+    return Matrix.Translation((0, 0, -melhor)) @ T
 
 
 def segurar_barra(h, ctx, T):
@@ -1072,7 +1094,7 @@ def encaixar(h, ctx, T, apoio):
         baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
         zs = ctx.superficie_em(baixo, zmin)
         gap = zmin - zs
-        if membro == "perna" and not (-1.0 < gap < 0.45):
+        if membro == "perna" and not (-2.0 < gap < 0.45):
             continue
         if abs(gap) < 0.01:
             continue
@@ -1206,12 +1228,13 @@ def corrigir_barra(h, ctx, T):
     rel = centro - pesc
     meia = max(2.4, min(4.6, ((gL - gR).length) / 2))
     mudou = False
-    if rel.length < 3.0 and rel.dot(up_t) > -2.2:
-        if rel.dot(fw_t) < 0.3:
-            centro = pesc - fw_t * 0.95 - up_t * 0.2  # agachamento com barra nas costas (sobre o trapézio)
+    if rel.length < 3.2 and rel.dot(up_t) > -2.4:
+        if not any(x in ctx.id for x in ("front", "frontal", "clean", "zercher")):
+            centro = pesc - fw_t * 0.95 - up_t * 0.55  # agachamento com barra nas costas (sobre o trapézio)
         else:
             centro = pesc + fw_t * 1.05 - up_t * 0.55  # barra apoiada nos deltoides (frente)
         eixo = (Tq @ ESQ).normalized()
+        meia = 3.7
         mudou = True
     # não atravessar o corpo
     P = h.proxy(T)
@@ -1242,16 +1265,16 @@ def corrigir_barra(h, ctx, T):
     if mudou:
         for _ in range(2):
             for sf, sx in ((".L", 1), (".R", -1)):
-                alvo_m = centro + eixo * (meia * sx * (1 if (gL - centro).dot(eixo) >= 0 or sf == ".R" else -1))
+                alvo_m = centro + eixo * (meia * sx)
                 Rh = h.rot_pegada(sf, Ti.to_3x3() @ eixo, ctx.supinada)
                 h.ik("braco", sf, Ti @ alvo_m - Rh @ h.off_peg[sf], Rh)
-    else:
-        for sf in (".L", ".R"):
-            Rh = h.rot_pegada(sf, Ti.to_3x3() @ eixo, ctx.supinada)
-            g_antes = h.pegada(sf)
-            h.set_rot("wrist" + sf, Rh)
-            # mantém a pegada no mesmo ponto
-            h.ik("braco", sf, h.cabeca("wrist" + sf) + (g_antes - h.pegada(sf)), Rh)
+        return centro, eixo
+    for sf in (".L", ".R"):
+        Rh = h.rot_pegada(sf, Ti.to_3x3() @ eixo, ctx.supinada)
+        g_antes = h.pegada(sf)
+        h.set_rot("wrist" + sf, Rh)
+        # mantém a pegada no mesmo ponto
+        h.ik("braco", sf, h.cabeca("wrist" + sf) + (g_antes - h.pegada(sf)), Rh)
     gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
     return (gL + gR) / 2, (gL - gR).normalized() if (gL - gR).length > 1e-3 else eixo
 
