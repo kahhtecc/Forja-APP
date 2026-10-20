@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: macos-15
@@ -74,12 +78,21 @@ jobs:
           cp -R build-dev/Build/Products/Release-iphoneos/Forja.app Payload/
           zip -qry "../Forja-ios-${{ github.run_number }}.ipa" Payload
 
+      - name: Guardar IPA e capturas (artefato)
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-ios-${{ github.run_number }}
+          path: |
+            Forja-ios-*.ipa
+            shots-ios/
+
       - name: Publicar release
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           files=$(find shots-ios -type f -size +0 2>/dev/null | tr '\n' ' ')
-          gh release create "ios-${{ github.run_number }}" Forja-ios-*.ipa $files \
+          for i in 1 2 3 4; do gh release create "ios-${{ github.run_number }}" Forja-ios-*.ipa $files \
             --target "${{ github.sha }}" --prerelease \
             --title "Forja iOS · build ${{ github.run_number }}" \
-            --notes "IPA não assinado do Forja para iPhone (commit ${{ github.sha }}). Instale com Sideloadly ou AltStore (assina com seu Apple ID). Capturas do simulador anexadas."
+            --notes "IPA não assinado do Forja para iPhone (commit ${{ github.sha }}). Instale com Sideloadly ou AltStore (assina com seu Apple ID). Capturas do simulador anexadas." && break; sleep $((i*15)); done

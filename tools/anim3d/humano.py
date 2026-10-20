@@ -18,7 +18,7 @@ import sys
 
 import bpy
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(AQUI, "..", "anim"))
@@ -127,6 +127,7 @@ class Humano:
         mod = self.obj.modifiers.new("arm", "ARMATURE")
         mod.object = self.rig
         self.obj.parent = self.rig
+        self._preparar_dedos()
         self.pernas = (self.juntas[self.ossos["upperleg01.L"]["head"]], self.juntas[self.ossos["lowerleg02.L"]["tail"]])
 
     def _subdividir_e_esculpir(self):
@@ -157,6 +158,14 @@ class Humano:
         me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
         self.verts = V2
         self.normais = N
+        dedos = lambda sf: [b for b in W if b.endswith(sf) and (b.startswith(("finger", "metacarpal")) or b.startswith("wrist"))]  # noqa: E731
+        sm = lambda nomes: sum((W.get(b, np.zeros(n)) for b in nomes), np.zeros(n))  # noqa: E731
+        self.partes = {}
+        for lado, sf in (("f", ".L"), ("t", ".R")):
+            self.partes["mao_" + lado] = sm(dedos(sf)) > 0.5
+            self.partes["pe_" + lado] = sm(["foot" + sf] + [b for b in W if b.startswith("toe") and b.endswith(sf)]) > 0.5
+            jo = np.array(J("lowerleg01" + sf))
+            self.partes["joelho_" + lado] = (np.linalg.norm(V2 - jo, axis=1) < 0.75) & (sm(["lowerleg01" + sf, "upperleg02" + sf]) > 0.5)
         a = me.attributes.new("cavidade", "FLOAT", "POINT")
         a.data.foreach_set("value", self.cavidade.astype(np.float32))
 
@@ -207,8 +216,13 @@ class Humano:
             aa = pose.get("a" + lado + "a", ab) or 0
             for nome in ("upperarm01", "upperarm02"):
                 self._apontar(nome + sufixo, d(b, ab, s))
-            for nome in ("lowerarm01", "lowerarm02", "wrist"):
+            for nome in ("lowerarm01", "lowerarm02"):
                 self._apontar(nome + sufixo, d(a, aa, s))
+            if self.mao_apoio.get(lado):
+                # mão espalmada: dedos para a frente, palma para baixo
+                self._apontar("wrist" + sufixo, (FRENTE + ESQ * s * 0.25).normalized(), self.TORCAO_APOIO * s)
+            else:
+                self._apontar("wrist" + sufixo, d(a, aa, s))
             c_, sh, pe = p["p" + lado]
             pa = pose.get("p" + lado + "a", 0) or 0
             for nome in ("upperleg01", "upperleg02"):
@@ -217,6 +231,54 @@ class Humano:
                 self._apontar(nome + sufixo, d(sh, pa, s))
             # o osso do pé aponta ~27° para baixo com o pé apoiado (pe = 90)
             self._apontar("foot" + sufixo, d(pe - 27, pa * 0.3, s))
+        self._dedos(self.pegada)
+
+    mao_apoio = {}
+    TORCAO_APOIO = 0
+
+    # dedos: 0 = relaxados (levemente fechados), 1 = segurando (barra/halter)
+    pegada = 0.0
+    CURVA = {"rel": ((14, 18, 12), (8, 10, 6)), "peg": ((62, 78, 48), (25, 30, 25))}
+
+    def _dedos(self, pegada):
+        for sufixo in (".L", ".R"):
+            for f in range(1, 6):
+                rel, peg = self.CURVA["rel"][f == 1], self.CURVA["peg"][f == 1]
+                for j in range(1, 4):
+                    nome = f"finger{f}-{j}{sufixo}"
+                    if nome not in self.rig.pose.bones:
+                        continue
+                    ang = rel[j - 1] + (peg[j - 1] - rel[j - 1]) * pegada
+                    pb = self.rig.pose.bones[nome]
+                    eixo = self._eixo_dedo[nome]
+                    pb.rotation_mode = "QUATERNION"
+                    pb.rotation_quaternion = Quaternion(eixo, math.radians(ang * self.SINAL_DEDO))
+        bpy.context.view_layer.update()
+
+    SINAL_DEDO = 1
+
+    def _preparar_dedos(self):
+        """Eixo de flexão de cada falange (no espaço local do osso), a partir da geometria da mão em repouso."""
+        self._eixo_dedo = {}
+        J = lambda o, c=False: Vector(self.juntas[self.ossos[o]["tail" if c else "head"]])  # noqa: E731
+        for sufixo, sx in ((".L", 1), (".R", -1)):
+            punho = J("wrist" + sufixo)
+            ponta = sum((J(f"finger{f}-1{sufixo}") for f in range(2, 6)), Vector()) / 4
+            dmao = (ponta - punho).normalized()
+            atravs = (J("finger2-1" + sufixo) - J("finger5-1" + sufixo)).normalized()
+            for f in range(1, 6):
+                for j in range(1, 4):
+                    nome = f"finger{f}-{j}{sufixo}"
+                    if nome not in self.ossos:
+                        continue
+                    b = self.rig.data.bones[nome]
+                    dir_b = (J(nome, True) - J(nome)).normalized()
+                    if f == 1:
+                        palma = dmao.cross(atravs).normalized() * sx
+                        eixo = dir_b.cross(palma).normalized()
+                    else:
+                        eixo = atravs * sx
+                    self._eixo_dedo[nome] = (b.matrix_local.to_3x3().inverted() @ eixo).normalized()
 
     def pontos_mundo(self):
         """Malha avaliada (posada) em coordenadas do mundo."""
@@ -228,6 +290,52 @@ class Humano:
         ev.to_mesh_clear()
         mw = np.array(ev.matrix_world)
         return co.reshape(-1, 3) @ mw[:3, :3].T + mw[:3, 3]
+
+    def ik_braco(self, sf, alvo):
+        """Reorienta braço/antebraço (espaço da armadura, rig na identidade) para a pegada chegar em 'alvo'."""
+        S = np.array(self.junta_mundo("upperarm01" + sf))
+        E = np.array(self.junta_mundo("lowerarm01" + sf))
+        W = np.array(self.junta_mundo("wrist" + sf))
+        G = self.pegada_mundo(sf)
+        l1 = np.linalg.norm(E - S)
+        l2 = np.linalg.norm(G - E)
+        v = alvo - S
+        d = min(np.linalg.norm(v), (l1 + l2) * 0.999)
+        d = max(d, abs(l1 - l2) + 1e-3)
+        u = v / max(np.linalg.norm(v), 1e-6)
+        n = np.cross(E - S, G - S)
+        if np.linalg.norm(n) < 1e-4:
+            n = np.cross(u, np.array((1.0, 0, 0)))
+        n /= np.linalg.norm(n)
+        perp = np.cross(n, u)
+        if np.dot(perp, E - S) < 0:
+            perp = -perp
+        a = (l1 * l1 - l2 * l2 + d * d) / (2 * d)
+        hh = math.sqrt(max(l1 * l1 - a * a, 0))
+        E2 = S + u * a + perp * hh
+        G2 = S + u * d
+        dir1 = Vector(E2 - S).normalized()
+        # o antebraço aponta do cotovelo ao punho; corrige pelo desvio punho->pegada
+        ang_off = Vector(W - E).normalized().rotation_difference(Vector(G - E).normalized())
+        dir2 = (ang_off.inverted() @ Vector(G2 - E2)).normalized()
+        punho = Vector(self.rig.pose.bones["wrist" + sf].tail - self.rig.pose.bones["wrist" + sf].head).normalized()
+        q_ante = Vector(W - E).normalized().rotation_difference(dir2)
+        for nome in ("upperarm01", "upperarm02"):
+            self._apontar(nome + sf, dir1)
+        for nome in ("lowerarm01", "lowerarm02"):
+            self._apontar(nome + sf, dir2)
+        self._apontar("wrist" + sf, q_ante @ punho)
+        self._dedos(self.pegada)
+
+    def pegada_mundo(self, sufixo):
+        """Centro da palma (onde a barra/halter fica) em coordenadas do mundo."""
+        w = self.junta_mundo("wrist" + sufixo)
+        f3 = self.junta_mundo("finger3-1" + sufixo)
+        f2 = self.junta_mundo("finger2-1" + sufixo)
+        f5 = self.junta_mundo("finger5-1" + sufixo)
+        sx = 1 if sufixo == ".L" else -1
+        palma = (f3 - w).cross(f2 - f5).normalized() * sx
+        return np.array(w + (f3 - w) * 0.62 + palma * 0.22)
 
     def junta_mundo(self, nome_osso, cauda=False):
         pb = self.rig.pose.bones[nome_osso]
@@ -542,7 +650,7 @@ def montar_aparelhos(ap, anim, h, ref, fase):
                     ap.caixa((0, a.y + 0.9, max(a.z, 1) / 2 + 3), (3.0, 1.0, max(a.z, 1) + 6), ap.preto, 0.2)
                     ap.toro((0, a.y + 0.2, a.z), 0.45, 0.12, ap.metal, (1, 0, 0))
         else:
-            mf = h.junta_mundo("wrist.L", True); mt = h.junta_mundo("wrist.R", True)
+            mf = Vector(h.pegada_mundo(".L")); mt = Vector(h.pegada_mundo(".R"))
             meio = (mf + mt) / 2
             if tp == "barra":
                 R = anim.get("_anilha", 2.2)
@@ -604,24 +712,151 @@ def quadros_anim(anim, fps):
     return out
 
 
-def posicionar(h, anim, pose, k, ref0):
-    """Posa e coloca o corpo no lugar: apoio no chão + âncora/deslocamento horizontal."""
-    h.rig.location = (0, 0, 0)
-    h.posar(pose)
-    p2 = pontos_anim(anim, completar({kk: v for kk, v in pose.items() if kk not in CAMPOS_3D}))
-    quad3 = h.junta_mundo("root")
-    if ref0 is None:
-        alvo_y = quad3.y
-    else:
-        alvo_y = ref0[1].y + (-(p2["quadril"][0] - ref0[0])) * k  # frente = -Y
-    dy = alvo_y - quad3.y
-    if pose.get("y") is not None:
-        dz = p2["quadril"][1] * k - quad3.z
-    else:
-        pts = h.pontos_mundo()
-        dz = -pts[:, 2].min() + (pose.get("ay", 0) or 0) * k
-    h.rig.location = (0, dy, dz)
+def _mat_np(m):
+    return np.array([list(r) for r in m])
+
+
+def _aplicar(T, pts):
+    return pts @ T[:3, :3].T + T[:3, 3]
+
+
+def _rot_x(piv, ang):
+    c, s = math.cos(ang), math.sin(ang)
+    R = np.eye(4)
+    R[1, 1], R[1, 2], R[2, 1], R[2, 2] = c, -s, s, c
+    A = np.eye(4); A[:3, 3] = piv
+    B = np.eye(4); B[:3, 3] = -np.asarray(piv)
+    return A @ R @ B
+
+
+def _trans(d):
+    T = np.eye(4); T[:3, 3] = d
+    return T
+
+
+def _barra_2d(anim):
+    for pr in anim.get("props", []):
+        if pr.get("tipo") == "barra_fixa":
+            return (pr.get("x", 0), pr.get("y", 21))
+    return None
+
+
+def _topos_apoio(anim):
+    """Superfícies onde a mão pode apoiar espalmada: chão + topo de bancos/caixas (x0, x1, altura) em unidades 2D."""
+    tops = [(-1e9, 1e9, 0.0)]
+    for pr in anim.get("props", []):
+        if pr.get("tipo") in ("banco", "caixa", "maquina"):
+            x, w = pr.get("x", 0), pr.get("w", 8)
+            tops.append((x - 0.5, x + w + 0.5, pr.get("y", 0) + pr.get("h", 4)))
+    return tops
+
+
+def posicionar(h, anim, pose, k, ref):
+    """Posa e coloca o corpo no lugar, corrigindo a diferença de proporções entre o esqueleto 2D e o humano 3D:
+    - mãos de apoio (no chão/banco) ficam espalmadas, dedos para a frente;
+    - com dois apoios no chão (mãos e pés/joelhos) o corpo gira no plano sagital até os dois tocarem o chão;
+    - "fixo": o ponto fixo (mão/pé da frente) fica parado no mundo 3D, não no 2D;
+    - barra fixa: mãos na barra (pendurado: o corpo sobe/desce até a pegada; com pés no chão: gira em volta dos pés).
+    ref: dict compartilhado na animação (k, e o que o primeiro quadro define)."""
+    if not isinstance(ref, dict):
+        ref = {"k": k}
+    pose2 = completar({kk: v for kk, v in pose.items() if kk not in CAMPOS_3D})
+    p2 = pontos_anim(anim, pose2)
+    props_maos = any(pr.get("em") == "maos" for pr in anim.get("props", []))
+    barra = _barra_2d(anim)
+    tops = _topos_apoio(anim)
+    apoio = {}
+    for lado in ("f", "t"):
+        mx, my = p2["mao_" + lado]
+        perto_barra = barra is not None and math.dist((mx, my), barra) < 1.6
+        apoio[lado] = (not props_maos and not perto_barra and any(x0 <= mx <= x1 and abs(my - top) < 0.4 for x0, x1, top in tops))
+    h.mao_apoio = apoio
+    h.rig.matrix_world = Matrix()
     bpy.context.view_layer.update()
+    h.posar(pose)
+    pts = h.pontos_mundo()
+    T = np.eye(4)
+    junta = lambda nome, cauda=False: np.array(h.junta_mundo(nome, cauda))  # noqa: E731 (sem T: rig na identidade)
+    # 1) dois apoios no chão -> nivelar
+    sup = []
+    for nome2, parte in (("mao_f", "mao_f"), ("mao_t", "mao_t"), ("ponta_f", "pe_f"), ("calcanhar_f", "pe_f"), ("ponta_t", "pe_t"),
+                         ("calcanhar_t", "pe_t"), ("joelho_f", "joelho_f"), ("joelho_t", "joelho_t")):
+        if p2[nome2][1] < 0.35 and pose.get("y") is None:
+            sup.append((p2[nome2][0], parte))
+    if sup:
+        xs = [x for x, _ in sup]
+        if max(xs) - min(xs) > 2.5:
+            frente = {pt for x, pt in sup if x > max(xs) - 1.2}
+            tras = {pt for x, pt in sup if x < min(xs) + 1.2}
+            for _ in range(2):
+                P = _aplicar(T, pts)
+
+                def baixo(partes):
+                    m = np.zeros(len(P), bool)
+                    for pt in partes:
+                        m |= h.partes[pt]
+                    idx = np.where(m)[0]
+                    i0 = idx[np.argmin(P[idx, 2])]
+                    return P[i0]
+                a, b = baixo(frente), baixo(tras)
+                ang = math.atan2(b[2] - a[2], b[1] - a[1])
+                alvo = 0.0 if abs(ang) < math.pi / 2 else math.copysign(math.pi, ang)
+                giro = max(-0.45, min(0.45, alvo - ang))
+                T = _rot_x(a, giro) @ T
+    # 2) horizontal
+    fixo = anim.get("fixo")
+    chave3 = None
+    if fixo == "maos":
+        chave3 = lambda TT: _aplicar(TT, h.pegada_mundo(".L")[None])[0]  # noqa: E731
+    elif fixo == "pes":
+        chave3 = lambda TT: _aplicar(TT, junta("foot.L")[None])[0]  # noqa: E731
+    quad3 = _aplicar(T, junta("root")[None])[0]
+    if chave3 is not None and "ancora" in ref:
+        dy = ref["ancora"] - chave3(T)[1]
+    elif "quad" in ref:
+        dy = ref["quad"][1][1] + (-(p2["quadril"][0] - ref["quad"][0])) * k - quad3[1]
+    else:
+        dy = 0.0
+    T = _trans((0, dy, 0)) @ T
+    # 3) vertical
+    if pose.get("y") is not None:
+        dz = p2["quadril"][1] * k - _aplicar(T, junta("root")[None])[0][2]
+    else:
+        dz = -_aplicar(T, pts)[:, 2].min() + (pose.get("ay", 0) or 0) * k
+    T = _trans((0, 0, dz)) @ T
+    # 4) barra fixa: mãos na barra
+    if barra is not None and "barra3" in ref and math.dist(p2["mao_f"], barra) < 1.6:
+        g = (_aplicar(T, h.pegada_mundo(".L")[None])[0] + _aplicar(T, h.pegada_mundo(".R")[None])[0]) / 2
+        b3 = ref["barra3"]
+        pes_chao = min(p2["ponta_f"][1], p2["calcanhar_f"][1]) < 0.35 and pose.get("y") is None
+        if pes_chao:
+            piv = _aplicar(T, junta("foot.L")[None])[0]
+            r = math.hypot(g[1] - piv[1], g[2] - piv[2])
+            if r > 1e-3 and abs(b3[2] - piv[2]) < r:
+                ang_g = math.atan2(g[2] - piv[2], g[1] - piv[1])
+                alvo = math.asin((b3[2] - piv[2]) / r)
+                alvo = alvo if math.cos(ang_g) >= 0 else math.pi - alvo
+                d = (alvo - ang_g + math.pi) % (2 * math.pi) - math.pi
+                T = _rot_x(piv, max(-0.5, min(0.5, d))) @ T
+        else:
+            T = _trans((0, b3[1] - g[1], b3[2] - g[2])) @ T
+        # IK de dois ossos por braço: cada mão alcança a barra (corrige braço 3D x 2D)
+        Ti = np.linalg.inv(T)
+        for _ in range(2):
+            for sf in (".L", ".R"):
+                gl = h.pegada_mundo(sf)
+                alvo = _aplicar(Ti, np.array([[0, b3[1], b3[2]]]))[0]
+                alvo[0] = gl[0]
+                h.ik_braco(sf, alvo)
+        if os.environ.get("FORJA_DEBUG"):
+            g2 = (_aplicar(T, h.pegada_mundo(".L")[None])[0] + _aplicar(T, h.pegada_mundo(".R")[None])[0]) / 2
+            print("barra: pegada-barra", np.round(g2 - b3, 2), flush=True)
+    if chave3 is not None and "ancora" not in ref:
+        ref["ancora"] = chave3(T)[1]
+    h.rig.matrix_world = Matrix(T.tolist())
+    bpy.context.view_layer.update()
+    if "quad" not in ref:
+        ref["quad"] = (p2["quadril"][0], np.array(h.junta_mundo("root")))
     return p2
 
 
@@ -686,12 +921,17 @@ def main():
                     if r not in prim and r not in sec:
                         (prim if not prim else sec).append(r)
             colorir(h, prim, sec)
+            h.pegada = 1.0 if any(pr.get("em") == "maos" or pr.get("de") == "maos" or pr.get("tipo") == "barra_fixa"
+                                  for pr in anim.get("props", [])) else 0.0
             anim["_anilha"] = 1.25 if ex.get("grupo") in ("Bíceps", "Tríceps", "Ombros", "Trapézio") else 2.2
             poses = anim["quadros"] if a.chaves else quadros_anim(anim, a.fps)
             # referência (quadro 0) e enquadramento fixo
-            p2 = posicionar(h, anim, anim["quadros"][0], k, None)
-            ref0 = (p2["quadril"][0], h.junta_mundo("root").copy())
-            ref_props = (p2["quadril"][0], h.junta_mundo("root").copy(), k)
+            ref0 = {"k": k}
+            posicionar(h, anim, anim["quadros"][0], k, ref0)
+            ref_props = (ref0["quad"][0], Vector(ref0["quad"][1]), k)
+            b2 = _barra_2d(anim)
+            if b2 is not None:
+                ref0["barra3"] = np.array(p2_para_3d(b2[0], b2[1], ref_props))
             todos = []
             for pose in anim["quadros"] + poses[:: max(1, len(poses) // 8)]:
                 posicionar(h, anim, pose, k, ref0)
