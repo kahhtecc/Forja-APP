@@ -72,6 +72,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/download-artifact@v4
         with:
           path: partes
@@ -97,4 +99,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app/src/main/assets
           git commit -m "Vídeos 3D renderizados (run ${{ github.run_number }})" || exit 0
-          for i in 1 2 3 4; do git pull --rebase -q && git push && break; sleep $((i*5)); done
+          for i in 1 2 3 4; do git pull --rebase -X theirs -q && git push && break; sleep $((i*5)); done

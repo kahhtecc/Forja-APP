@@ -1,0 +1,50 @@
+name: Juntar vídeos 3D
+
+# Junta os vídeos de uma execução do render (artefatos video3d-*) no estado atual do branch.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID da execução do workflow 'Animações 3D (render)'"
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  juntar:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: partes
+          pattern: video3d-*
+          run-id: ${{ github.event.inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Juntar e gravar
+        run: |
+          mkdir -p app/src/main/assets/video3d
+          python3 - <<'PY'
+          import json, glob, os, shutil
+          destino = "app/src/main/assets/video3d"
+          meta_p = os.path.join(destino, "meta.json")
+          meta = json.load(open(meta_p)) if os.path.exists(meta_p) else {}
+          for m in glob.glob("partes/*/meta.json"):
+              meta.update(json.load(open(m)))
+          for w in glob.glob("partes/*/*.webp") + glob.glob("partes/*/*.mp4"):
+              shutil.copy(w, destino)
+          meta = {k: v for k, v in meta.items() if os.path.exists(os.path.join(destino, f"{k}.mp4"))}
+          json.dump(meta, open(meta_p, "w"), sort_keys=True)
+          print(len(meta), "vídeos")
+          PY
+          python3 tools/build_conteudo.py
+          du -sh app/src/main/assets/video3d
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets
+          git commit -m "Vídeos 3D (render ${{ github.event.inputs.run_id }})" || exit 0
+          git push
