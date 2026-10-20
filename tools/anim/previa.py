@@ -107,7 +107,9 @@ def desenhar(anim, pose, ox=0.0):
             d.ellipse((m[0] - rr, m[1] - rr, m[0] + rr, m[1] + rr), fill=PROP)
         elif tp in ("elastico", "cabo"):
             ate = pr.get("ate")
-            if ate == "pes":
+            if ate is None or pr.get("de") == "costas":
+                a = T("ombro")  # elástico pelas costas: só indica a ligação com o tronco
+            elif ate == "pes":
                 a = T("tornozelo_f")
             else:
                 a = tela(ate[0], ate[1], ox)
