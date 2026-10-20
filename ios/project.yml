@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
+  developmentLanguage: pt-BR
 packages:
   ForjaCore:
     path: ForjaCore
@@ -34,6 +35,8 @@ targets:
       path: Forja/Info.plist
       properties:
         CFBundleDisplayName: Forja
+        CFBundleDevelopmentRegion: pt-BR
+        CFBundleLocalizations: [pt-BR]
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen:

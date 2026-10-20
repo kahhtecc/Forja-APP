@@ -34,12 +34,12 @@ struct DemoExercicio: View {
                         let mix: Double = t < 0.4 ? 0 : t < 0.5 ? (t - 0.4) / 0.1 : t < 0.9 ? 1 : 1 - (t - 0.9) / 0.1
                         let zoom = 1.04 + 0.03 * sin(t * 2 * .pi)
                         ZStack {
-                            Image(uiImage: a).resizable().scaledToFill()
-                            Image(uiImage: b).resizable().scaledToFill().opacity(mix)
+                            Preencher(imagem: a)
+                            Preencher(imagem: b).opacity(mix)
                         }.scaleEffect(zoom)
                     }
                 } else {
-                    Image(uiImage: b).resizable().scaledToFill().scaleEffect(1.04)
+                    Preencher(imagem: b).scaleEffect(1.04)
                 }
                 LinearGradient(stops: [.init(color: .clear, location: 0.55), .init(color: .black.opacity(0.55), location: 1)], startPoint: .top, endPoint: .bottom)
                 cor.opacity(0.10)
@@ -62,10 +62,18 @@ struct DemoExercicio: View {
     }
 }
 
+/// Imagem que preenche o espaço disponível sem empurrar o layout (o tamanho vem de quem a contém).
+struct Preencher: View {
+    let imagem: UIImage
+    var body: some View {
+        Color.clear.overlay(Image(uiImage: imagem).resizable().scaledToFill()).clipped()
+    }
+}
+
 struct FotoAsset: View {
     let nome: String
     var body: some View {
-        if let i = CacheImagens.shared.imagem(nome) { Image(uiImage: i).resizable().scaledToFill() } else { Cor.sup2 }
+        if let i = CacheImagens.shared.imagem(nome) { Preencher(imagem: i) } else { Cor.sup2 }
     }
 }
 

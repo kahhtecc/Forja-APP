@@ -57,10 +57,10 @@ struct Animacao3DView: View {
                 if animar {
                     TimelineView(.animation(minimumInterval: 1 / m.fps, paused: false)) { ctx in
                         let i = Int(ctx.date.timeIntervalSinceReferenceDate * m.fps) % lista.count
-                        Image(uiImage: lista[i]).resizable().scaledToFill()
+                        Preencher(imagem: lista[i])
                     }
                 } else {
-                    Image(uiImage: lista[lista.count / 2]).resizable().scaledToFill()
+                    Preencher(imagem: lista[lista.count / 2])
                 }
             }
         }
