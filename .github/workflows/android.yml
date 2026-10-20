@@ -3,7 +3,7 @@ name: Android APK
 on:
   push:
     branches: [ "claude/**", "main" ]
-    paths-ignore: [ "tools/**", "pesquisa/**", "ios/**", "PROGRESSO.md", ".github/workflows/ios.yml" ]
+    paths-ignore: [ "tools/**", "pesquisa/**", "ios/**", "web/**", "PROGRESSO.md", ".github/workflows/ios.yml", ".github/workflows/pages.yml", ".github/workflows/anim3d.yml" ]
   workflow_dispatch:
 
 permissions:
