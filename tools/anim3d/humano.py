@@ -24,6 +24,9 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(AQUI, "..", "anim"))
 from esqueleto import completar, interpolar, pontos_anim  # noqa: E402
 
+sys.path.insert(0, AQUI)
+import anatomia  # noqa: E402
+
 FRENTE = Vector((0, -1, 0))
 CIMA = Vector((0, 0, 1))
 ESQ = Vector((1, 0, 0))  # lado esquerdo do personagem = lado "f" (perto da câmera)
@@ -32,7 +35,17 @@ ALVOS = [
     ("macrodetails/universal-male-young-maxmuscle-averageweight.target", 1.15),
     ("macrodetails/caucasian-male-young.target", 1 / 3), ("macrodetails/african-male-young.target", 1 / 3), ("macrodetails/asian-male-young.target", 1 / 3),
     ("macrodetails/proportions/male-young-maxmuscle-averageweight-idealproportions.target", 1.0),
+    # proporções de atleta natural (V): ombros largos, cintura fina, barriga chapada
+    ("torso/torso-vshape-incr.target", 0.55),
+    ("measure/measure-waist-circ-decr.target", 0.55),
+    ("measure/measure-shoulder-dist-incr.target", 0.35),
+    ("stomach/stomach-pregnant-decr.target", 0.6),
+    ("measure/measure-neck-circ-incr.target", 0.35),
+    ("buttocks/buttocks-volume-incr.target", 0.25),
+    ("torso/torso-muscle-dorsi-incr.target", 0.4),
+    ("torso/torso-muscle-pectoral-incr.target", 0.3),
 ]
+NIVEL_SUB = 2  # subdivisão da malha em repouso (relevo muscular precisa de densidade)
 
 
 # ------------------------------------------------------------------ carga do MakeHuman
@@ -87,10 +100,13 @@ class Humano:
         malha = bpy.data.meshes.new("corpo")
         malha.from_pydata([tuple(p) for p in self.verts], [], self.faces)
         malha.update()
-        for pol in malha.polygons:
-            pol.use_smooth = True
         self.obj = bpy.data.objects.new("corpo", malha)
         bpy.context.scene.collection.objects.link(self.obj)
+        for b, lst in self.pesos.items():
+            g = self.obj.vertex_groups.new(name=b)
+            for i, w in lst:
+                g.add([i], w, "REPLACE")
+        self._subdividir_e_esculpir()
         arm = bpy.data.armatures.new("esqueleto")
         self.rig = bpy.data.objects.new("esqueleto", arm)
         bpy.context.scene.collection.objects.link(self.rig)
@@ -108,17 +124,41 @@ class Humano:
             if b.get("parent"):
                 eb[nome].parent = eb[b["parent"]]
         bpy.ops.object.mode_set(mode="OBJECT")
-        for b, lst in self.pesos.items():
-            g = self.obj.vertex_groups.new(name=b)
-            for i, w in lst:
-                g.add([i], w, "REPLACE")
         mod = self.obj.modifiers.new("arm", "ARMATURE")
         mod.object = self.rig
-        sub = self.obj.modifiers.new("sub", "SUBSURF")
-        sub.levels = 1
-        sub.render_levels = 1
         self.obj.parent = self.rig
         self.pernas = (self.juntas[self.ossos["upperleg01.L"]["head"]], self.juntas[self.ossos["lowerleg02.L"]["tail"]])
+
+    def _subdividir_e_esculpir(self):
+        """Subdivide a malha em repouso (pesos interpolados) e aplica o relevo muscular (anatomia.py)."""
+        ob = self.obj
+        if NIVEL_SUB:
+            bpy.context.view_layer.objects.active = ob
+            sub = ob.modifiers.new("sub0", "SUBSURF")
+            sub.levels = NIVEL_SUB
+            sub.render_levels = NIVEL_SUB
+            bpy.ops.object.modifier_apply(modifier="sub0")
+        me = ob.data
+        n = len(me.vertices)
+        co = np.zeros(n * 3); me.vertices.foreach_get("co", co); V = co.reshape(-1, 3)
+        no = np.zeros(n * 3); me.vertex_normals.foreach_get("vector", no); N = no.reshape(-1, 3)
+        ev = np.zeros(len(me.edges) * 2, dtype=np.int64); me.edges.foreach_get("vertices", ev); E = ev.reshape(-1, 2)
+        nomes = {g.index: g.name for g in ob.vertex_groups}
+        W = {nm: np.zeros(n) for nm in nomes.values()}
+        for v in me.vertices:
+            for g in v.groups:
+                W[nomes[g.group]][v.index] = g.weight
+        self.W = W
+        self.E, self.deg = anatomia.arestas_vizinhos(E, n)
+        J = lambda osso, cauda=False: self.juntas[self.ossos[osso]["tail" if cauda else "head"]]  # noqa: E731
+        V2, self.musculos, self.cavidade, self.domos = anatomia.esculpir(V, N, W, J, self.E, self.deg)
+        me.vertices.foreach_set("co", V2.ravel())
+        me.update()
+        me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
+        self.verts = V2
+        self.normais = N
+        a = me.attributes.new("cavidade", "FLOAT", "POINT")
+        a.data.foreach_set("value", self.cavidade.astype(np.float32))
 
     # ---------------------------------------------------------- pose
     def _apontar(self, nome, direcao, torcao=0.0, referencia=None):
@@ -183,10 +223,11 @@ class Humano:
         dg = bpy.context.evaluated_depsgraph_get()
         ev = self.obj.evaluated_get(dg)
         me = ev.to_mesh()
-        mw = ev.matrix_world
-        pts = np.array([tuple(mw @ v.co) for v in me.vertices])
+        co = np.zeros(len(me.vertices) * 3)
+        me.vertices.foreach_get("co", co)
         ev.to_mesh_clear()
-        return pts
+        mw = np.array(ev.matrix_world)
+        return co.reshape(-1, 3) @ mw[:3, :3].T + mw[:3, 3]
 
     def junta_mundo(self, nome_osso, cauda=False):
         pb = self.rig.pose.bones[nome_osso]
@@ -228,82 +269,48 @@ SECUNDARIO = (0.93, 0.42, 0.28)
 
 
 def calcular_regioes(h):
-    me = h.obj.data
-    n = len(me.vertices)
+    """Regiões de cor = forma dos músculos esculpidos (anatomia.py) + short/tênis por geometria."""
+    n = len(h.verts)
     V = h.verts
-    N = np.array([tuple(v.normal) for v in me.vertices])
-    W = {}
-    for b, lst in h.pesos.items():
-        arr = np.zeros(n)
-        for i, w in lst:
-            arr[i] = w
-        W[b] = arr
+    W = h.W
+    zero = np.zeros(n)
 
     def soma(nomes):
-        return sum((W.get(x, np.zeros(n)) for x in nomes), np.zeros(n))
+        return sum((W.get(x, zero) for x in nomes), zero.copy())
     J = lambda osso, cauda=False: h.juntas[h.ossos[osso]["tail" if cauda else "head"]]  # noqa: E731
-    sh = J("upperarm01.L"); hip = J("upperleg01.L"); knee = J("lowerleg01.L"); ank = J("foot.L"); neck = J("neck01")
-    shx, shz, hipz, kz, az = abs(sh[0]), sh[2], hip[2], knee[2], ank[2]
-    x, y, z = V[:, 0], V[:, 1], V[:, 2]
-    ax = np.abs(x)
-    nx, ny = N[:, 0], N[:, 1]
-    inward = nx * np.sign(x) < -0.45
+    hip = J("upperleg01.L"); ank = J("foot.L")
+    hipz, az = hip[2], ank[2]
+    z = V[:, 2]
     tronco = soma(TRONCO) + soma(["pelvis.L", "pelvis.R"])
     braco = soma(["upperarm01.L", "upperarm01.R", "upperarm02.L", "upperarm02.R"])
-    ombro = soma(["shoulder01.L", "shoulder01.R"]) + soma(["upperarm01.L", "upperarm01.R"])
     antebr = soma(["lowerarm01.L", "lowerarm01.R", "lowerarm02.L", "lowerarm02.R"]) + 0.6 * soma(["wrist.L", "wrist.R"])
     coxa = soma(["upperleg01.L", "upperleg01.R", "upperleg02.L", "upperleg02.R"])
-    perna = soma(["lowerleg01.L", "lowerleg01.R", "lowerleg02.L", "lowerleg02.R"])
     pesc = soma(PESCOCO_OSSOS)
     pe = soma(["foot.L", "foot.R"]) + soma([b for b in W if b.startswith("toe")])
-    shL = np.array([sh[0], sh[1], sh[2]]); shR = np.array([-sh[0], sh[1], sh[2]])
-    dist_sh = np.minimum(np.linalg.norm(V - shL, axis=1), np.linalg.norm(V - shR, axis=1))
-    R = {}
-    R["deltoide"] = (ombro > 0.3) & (dist_sh < 1.3) & (z > shz - 1.3)
-    R["biceps"] = (braco > 0.5) & (ny < -0.15) & ~R["deltoide"]
-    R["triceps"] = (braco > 0.5) & (ny > 0.15) & ~R["deltoide"]
-    R["antebraco"] = antebr > 0.5
-    R["peito"] = (tronco > 0.5) & (ny < -0.3) & (z > shz - 2.5) & (z < shz - 0.1) & (ax < shx * 0.92)
-    R["abdomen"] = (tronco > 0.5) & (ny < -0.42) & (z > hipz + 0.8) & (z < shz - 2.5) & (ax < 1.4)
-    R["obliquos"] = (tronco > 0.5) & (np.abs(nx) > 0.55) & (z > hipz + 0.5) & (z < shz - 2.1)
-    R["dorsal"] = (tronco > 0.5) & (ny > 0.25) & (z > shz - 3.9) & (z < shz - 0.7) & (ax > 0.45)
-    R["trapezio"] = ((tronco + pesc + soma(["clavicle.L", "clavicle.R"])) > 0.4) & (ny > 0.1) & (z > shz - 1.5) & (ax < shx * 0.85) & (z < neck[2] + 1.0)
-    R["lombar"] = (tronco > 0.5) & (ny > 0.35) & (z > hipz + 0.3) & (z < shz - 3.7) & (ax < 1.3)
-    R["gluteo"] = (ny > 0.2) & (z > hipz - 1.8) & (z < hipz + 1.0) & ((coxa + tronco) > 0.5) & (ax < abs(hip[0]) + 1.2)
-    R["adutores"] = (coxa > 0.5) & inward & (z > kz + 1.0)
-    R["quadriceps"] = (coxa > 0.5) & (ny < 0.05) & (z > kz + 0.3) & (z < hipz - 0.5) & ~R["adutores"]
-    R["posterior"] = (coxa > 0.5) & (ny > 0.25) & (z > kz + 0.3) & (z < hipz - 1.5)
-    R["panturrilha"] = (perna > 0.5) & (ny > 0.0) & (z > az + 1.0)
-    R["tibial"] = (perna > 0.5) & (ny < -0.2) & (z > az + 0.8)
-    R["pescoco"] = pesc > 0.5
-    R["_short"] = (z > hipz - 1.35) & (z < hipz + 0.95) & ((coxa + tronco) > 0.5) & (braco + antebr < 0.2)
-    R["_tenis"] = (pe > 0.5) | (z < az + 0.25)
-    R["_sola"] = z < (V[:, 2].min() + 0.22)
-    # vizinhança para suavizar as bordas
-    viz = [[] for _ in range(n)]
-    for f in h.faces:
-        for i in range(len(f)):
-            a, b = f[i], f[(i + 1) % len(f)]
-            viz[a].append(b); viz[b].append(a)
-    h.vizinhos = [np.array(sorted(set(v))) for v in viz]
-    h.regioes = {k: v.astype(float) for k, v in R.items()}
+    R = {k: v.copy() for k, v in h.musculos.items()}
+    R["pescoco"] = np.clip((pesc - 0.4) * 2, 0, 1) * (V[:, 1] > -0.75 + 0 * z)
+    # short: bainha levemente mais baixa atrás, cintura reta
+    yb = np.clip(V[:, 1], -1, 1)
+    R["_short"] = ((z > hipz - 1.45 + 0.12 * yb) & (z < hipz + 0.92) & ((coxa + tronco) > 0.5) & (braco + antebr < 0.2)).astype(float)
+    R["_tenis"] = ((pe > 0.5) | (z < az + 0.25)).astype(float)
+    R["_sola"] = (z < (V[:, 2].min() + 0.22)).astype(float)
+    h.regioes = R
 
 
 def suavizar(h, arr, passos=3):
-    for _ in range(passos):
-        arr = np.array([(arr[i] * 2 + arr[nb].mean()) / 3 if len(nb) else arr[i] for i, nb in enumerate(h.vizinhos)])
-    return arr
+    return anatomia.suavizar_campo(arr, h.E, h.deg, passos * 2, 0.5)
 
 
 def colorir(h, primarios, secundarios):
     n = len(h.verts)
     cor = np.tile(np.array(PELE), (n, 1))
+
     def pinta(mask, c, forca=1.0):
-        m = suavizar(h, mask) * forca
+        m = suavizar(h, mask, 1) * forca
         cor[:] = cor * (1 - m[:, None]) + np.array(c) * m[:, None]
     for r in secundarios:
         if r in h.regioes:
-            pinta(h.regioes[r], SECUNDARIO, 0.8)
+            pinta(h.regioes[r], SECUNDARIO, 0.9)
     for r in primarios:
         if r in h.regioes:
             pinta(h.regioes[r], PRIMARIO, 1.0)
@@ -311,16 +318,15 @@ def colorir(h, primarios, secundarios):
     sm = suavizar(h, h.regioes["_short"], 1)
     alvo_short = np.tile(np.array(SHORT), (n, 1))
     if "gluteo" in primarios:
-        g = suavizar(h, h.regioes["gluteo"]) * 0.75
-        alvo_short = alvo_short * (1 - g[:, None]) + np.array((0.55, 0.06, 0.04)) * g[:, None]
+        g = suavizar(h, h.regioes["gluteo"], 1) * 0.8
+        alvo_short = alvo_short * (1 - g[:, None]) + np.array((0.50, 0.05, 0.035)) * g[:, None]
     cor = cor * (1 - sm[:, None]) + alvo_short * sm[:, None]
-    tm = h.regioes["_tenis"]
+    tm = suavizar(h, h.regioes["_tenis"], 1)
     cor = cor * (1 - tm[:, None]) + np.array(TENIS) * tm[:, None]
     so = h.regioes["_sola"]
     cor = cor * (1 - so[:, None]) + np.array(SOLA) * so[:, None]
-    attr = h.obj.data.color_attributes["cor"]
-    for i in range(n):
-        attr.data[i].color = (cor[i, 0], cor[i, 1], cor[i, 2], 1.0)
+    rgba = np.concatenate([cor, np.ones((n, 1))], axis=1).astype(np.float32)
+    h.obj.data.color_attributes["cor"].data.foreach_set("color", rgba.ravel())
 
 
 # ------------------------------------------------------------------ cena
