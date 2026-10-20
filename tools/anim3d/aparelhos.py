@@ -53,7 +53,7 @@ class Kit:
         self.borracha = _mat("borracha", (0.03, 0.03, 0.032), 0.0, 0.75)
         self.brasa = _mat("brasa", (0.95, 0.28, 0.08), 0.0, 0.4)
         self.cabo_m = _mat("cabo", (0.25, 0.25, 0.27), 0.8, 0.35)
-        self.chao = _mat("tapete", (0.20, 0.08, 0.05), 0.0, 0.9)
+        self.chao = _mat("tapete", (0.075, 0.04, 0.032), 0.0, 0.95)
         self.madeira = _mat("madeira", (0.42, 0.27, 0.15), 0.0, 0.6)
         self.cinza = _mat("cinza", (0.30, 0.30, 0.32), 0.0, 0.6)
 
@@ -211,6 +211,13 @@ def preparar(ctx, h):
     ctx.bike = None
     if "bike" not in ctx.tipos:
         return
+    pr = [p for p in ctx.props if p.get("tipo") == "bike"][0]
+    if "eixo" in pr:
+        c = ctx.p3(*pr["eixo"][:2])
+        ctx.bike = {"c": c, "r": float(pr.get("raio_pedivela", 1.75)) * ctx.k,
+                    "selim": ctx.p3(*pr["selim"][:2]) if "selim" in pr else None,
+                    "guidao": ctx.p3(*pr["guidao"][:2]) if "guidao" in pr else None}
+        return
     # círculo dos pedais: onde os antepés passam ao longo do ciclo
     pts = {".L": [], ".R": []}
     for j in range(24):
@@ -328,15 +335,18 @@ def montar(kit, ctx, h, estados):
         elif tp == "esteira":
             _esteira(kit, ctx, root_y, am)
         elif tp == "tapete":
-            ys = []
+            pp = []
             for est in estados[:: max(1, len(estados) // 6)]:
                 h.restaurar(est["est"])
                 P = h.proxy(est["T"])
-                ys.append(P[P[:, 2] < ctx.z0 + 1.5][:, 1])
-            ys = np.concatenate(ys) if ys else np.array([root_y])
-            y0, y1 = (float(ys.min()), float(ys.max())) if len(ys) else (root_y - 8, root_y + 8)
-            comp = max(16.0, y1 - y0 + 3.0)
-            kit.caixa((0, (y0 + y1) / 2, ALTURA_TAPETE / 2), (6.5, comp, ALTURA_TAPETE), kit.chao, 0.03)
+                pp.append(P[P[:, 2] < ctx.z0 + 1.2])
+            pp = np.concatenate(pp) if pp else np.zeros((0, 3))
+            if len(pp) < 5:
+                pp = np.array([[0, root_y - 8, 0], [0, root_y + 8, 0]])
+            lo, hi = pp.min(axis=0), pp.max(axis=0)
+            cx, cy = (lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2
+            lx, ly = max(6.5, hi[0] - lo[0] + 2.0), max(16.0, hi[1] - lo[1] + 3.0)
+            kit.caixa((cx, cy, ALTURA_TAPETE / 2), (lx, ly, ALTURA_TAPETE), kit.chao, 0.03)
         elif tp == "rolo":
             c = ctx.p3(pr.get("x", 0), pr.get("y", 0.8))
             r = 0.75
@@ -351,16 +361,24 @@ def montar(kit, ctx, h, estados):
         elif tp == "barra":
             _barra(kit, ctx, h)
         elif tp == "halter":
-            _halteres(kit, ctx, h, pr.get("maos", "ambas"))
+            _halteres(kit, ctx, h, _qual_mao(pr))
         elif tp == "apoio_tornozelo":
             _apoio_tornozelo(kit, ctx, pr, am)
         elif tp == "kettlebell":
-            _kettlebell(kit, ctx, h)
+            _kettlebell(kit, ctx, h, _qual_mao(pr))
         elif tp == "bola":
             _bola(kit, ctx, h)
         elif tp == "corda":
             _corda(kit, ctx, h)
     _extras_maquina(kit, ctx, h, am, estados)
+
+
+def _qual_mao(pr):
+    m = pr.get("maos")
+    if m in ("f", "t"):
+        return m
+    em = pr.get("em", "")
+    return em[-1] if em in ("mao_f", "mao_t") else "ambas"
 
 
 def _meio_corpo(am):
@@ -512,6 +530,34 @@ def _extras_maquina(kit, ctx, h, am, estados):
         _almofadas_joelho(kit, ctx, h, fora="abdutora" in idd)
     if "remo-ergometro" in idd:
         _assento_remo(kit, ctx, h)
+    if "eliptico" in idd:
+        _eliptico(kit, ctx, h, am)
+
+
+def _eliptico(kit, ctx, h, am):
+    """Elíptico: pedais sob os pés, bielas até a coluna da frente e alças móveis presas às mãos."""
+    col = [p for p in ctx.props if p.get("tipo") == "maquina"]
+    yc = ctx.p3(col[0].get("x", 4) + col[0].get("w", 1) / 2, 0).y if col else am[0]["root"].y - 5
+    kit.viga((0, yc, 0.2), (0, am[0]["root"].y + 5, 0.2), 0.8, 0.4, kit.quadro)
+    kit.caixa((0, am[0]["root"].y + 5, 0.15), (3.6, 1.2, 0.3), kit.quadro, 0.05)
+    ped = {sf: kit.caixa((0, 0, 0), (1.4, 3.2, 0.25), kit.borracha, 0.05) for sf in (".L", ".R")}
+    biela = {sf: kit.cil_movel(0.16, kit.quadro, 10) for sf in (".L", ".R")}
+    alca = {sf: kit.cil_movel(0.16, kit.metal, 12) for sf in (".L", ".R")}
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        P = h.proxy(T)
+        for sf, ef, sx in ((".L", "pe_f", 1), (".R", "pe_t", -1)):
+            pts = P[h.px_partes[ef]]
+            sol = pts[pts[:, 2] < pts[:, 2].min() + 0.25].mean(axis=0)
+            c = Vector((sx * 1.0, sol[1], sol[2] - 0.15))
+            ped[sf].matrix_world = Matrix.Translation(c)
+            Kit.por_cil(biela[sf], c + Vector((0, -1.4, 0)), Vector((sx * 1.0, yc + 0.6, 2.4)))
+            g = T @ h.pegada(sf)
+            piv = Vector((sx * 1.6, yc + 0.4, 6.5))
+            Kit.por_cil(alca[sf], piv, g + (g - piv).normalized() * 1.0)
+    kit.moveis.append(upd)
 
 
 def _plataforma_movel(kit, ctx, h, estados):
@@ -526,11 +572,15 @@ def _plataforma_movel(kit, ctx, h, estados):
         d = cs[0][1].copy()
     d.normalize()
     n0 = cs[0][1]
+    ext0, ext1 = c0 - d * 3.0 + n0 * 0.8, c1 + d * 3.0 + n0 * 0.8
+    for p in (ext0, ext1):
+        if p.z < 0.3:
+            # não deixa o trilho entrar no chão
+            t = (0.3 - p.z) / max(abs(d.z), 1e-3)
+            p += d * (t if p is ext0 else -t) if abs(d.z) > 1e-3 else Vector((0, 0, 0.3 - p.z))
     for s in (-1, 1):
-        a = c0 - d * 3.0 + n0 * 0.8 + X * s * 3.2
-        b = c1 + d * 3.0 + n0 * 0.8 + X * s * 3.2
-        kit.viga(a, b, 0.45, 0.45, kit.quadro)
-    for p in (c0 - d * 3.0 + n0 * 0.8, c1 + d * 3.0 + n0 * 0.8):
+        kit.viga(ext0 + X * s * 3.2, ext1 + X * s * 3.2, 0.45, 0.45, kit.quadro)
+    for p in (ext0, ext1):
         if p.z > 0.4:
             for s in (-1, 1):
                 kit.viga((s * 3.2, p.y, 0.1), (s * 3.2, p.y, p.z), 0.45, 0.45, kit.quadro)
@@ -618,8 +668,17 @@ def _bike(kit, ctx, h, am):
     b = ctx.bike or {"c": am[0]["root"] + Vector((0, -3, -5)), "r": 1.7}
     c, r = b["c"], b["r"]
     a0 = am[0]
-    selim = Vector((0, a0["root"].y + 0.3, a0["root"].z - 0.95))
-    guidao = (a0["gL"] + a0["gR"]) / 2
+    selim = b.get("selim") or Vector((0, a0["root"].y + 0.3, a0["root"].z - 0.95))
+    # o selim fica sob os ísquios (o 2D não conhece a espessura da pelve)
+    h.restaurar(ctx.chaves[0]["est"])
+    P = h.proxy(ctx.chaves[0]["T"])
+    m = h.px_partes["tronco"] & (np.abs(P[:, 0]) < 1.3)
+    if m.any():
+        Q = P[m]
+        zb = Q[:, 2].min()
+        fundo = Q[Q[:, 2] < zb + 0.3]
+        selim = Vector((0, float(fundo[:, 1].mean()), zb - 0.22))
+    guidao = b.get("guidao") or (a0["gL"] + a0["gR"]) / 2
     cx = Vector((0, c.y, c.z))
     y_tras = selim.y + 2.5
     y_fr = min(c.y, guidao.y) - 3.0
@@ -692,6 +751,11 @@ def _polia(kit, ctx, pr, am):
         if abs(d) < 1.5:
             sent = -1.0  # polia sobre a cabeça: torre à frente
         base = Vector((A.x, A.y + sent * 2.0, 0))
+        ys = [p.y for a in am for p in (a["root"], a["pesc"], a["gL"], a["gR"], a["jL"], a["jR"])]
+        if sent < 0:
+            base.y = min(base.y, min(ys) - 2.6)  # a torre não pode atravessar o corpo
+        else:
+            base.y = max(base.y, max(ys) + 2.6)
         if abs(A.x) > 2.0:
             base = Vector((A.x + math.copysign(2.0, A.x), A.y, 0))  # polia lateral (pallof): torre ao lado
         alto = max(A.z + 1.5, 20)
@@ -865,16 +929,16 @@ def _halteres(kit, ctx, h, maos="ambas"):
     kit.moveis.append(upd)
 
 
-def _kettlebell(kit, ctx, h):
+def _kettlebell(kit, ctx, h, maos="ambas"):
     ps = [kit.esfera((0, 0, -1.15), 0.95, kit.preto), kit.toro((0, 0, -0.05), 0.5, 0.12, kit.preto, (1, 0, 0))]
     kb = kit.grupo_movel(ps)
+    lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
 
     def upd(est):
         h.restaurar(est["est"])
         T = est["T"]
-        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
-        c = (gL + gR) / 2
-        ante = T.to_3x3() @ ((h.cabeca("wrist.L") - h.cabeca("lowerarm01.L")) + (h.cabeca("wrist.R") - h.cabeca("lowerarm01.R"))).normalized()
+        c = sum((T @ h.pegada(sf) for sf in lados), Vector()) / len(lados)
+        ante = T.to_3x3() @ sum(((h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)) for sf in lados), Vector()).normalized()
         d = (Vector((0, 0, -1)) * 0.65 + ante * 0.35).normalized()
         kb.matrix_world = Matrix.Translation(c) @ _alinhar(Vector((0, 0, -1)), d)
     kit.moveis.append(upd)

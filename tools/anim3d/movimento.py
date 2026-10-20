@@ -87,11 +87,11 @@ def suave(u, a=0.0, b=1.0):
 
 # ------------------------------------------------------------------ poses
 
-ANGULOS = ("t", "c", "tr", "rol", "inc", "cinc", "cr", "bfa", "bta", "afa", "ata", "pfa", "pta")
+ANGULOS = ("t", "c", "tr", "rol", "inc", "cinc", "cr", "bfa", "bta", "afa", "ata", "pfa", "pta", "cfa", "cta")
 LINEARES = ("x", "z", "ay", "oe")
 LISTAS = {"bf": 2, "bt": 2, "pf": 3, "pt": 3}
 PADRAO = {"x": 0.0, "z": 0.0, "ay": 0.0, "oe": 0.0, "t": 180.0, "c": 180.0, "tr": 0.0, "rol": 0.0, "inc": 0.0, "cinc": 0.0, "cr": 0.0,
-          "bfa": 0.0, "bta": 0.0, "afa": 0.0, "ata": 0.0, "pfa": 0.0, "pta": 0.0, "bf": [0.0, 0.0], "bt": [0.0, 0.0], "pf": [0.0, 0.0, 90.0], "pt": [0.0, 0.0, 90.0]}
+          "bfa": 0.0, "bta": 0.0, "afa": 0.0, "ata": 0.0, "pfa": 0.0, "pta": 0.0, "cfa": 0.0, "cta": 0.0, "bf": [0.0, 0.0], "bt": [0.0, 0.0], "pf": [0.0, 0.0, 90.0], "pt": [0.0, 0.0, 90.0]}
 
 
 def normalizar(p):
@@ -109,6 +109,10 @@ def normalizar(p):
         q["afa"] = q["bfa"]
     if p.get("ata") is None:
         q["ata"] = q["bta"]
+    if p.get("cfa") is None:
+        q["cfa"] = q["pfa"]
+    if p.get("cta") is None:
+        q["cta"] = q["pta"]
     q["y"] = p.get("y")
     return q
 
@@ -148,9 +152,13 @@ class TrilhasPose:
         return out
 
     def instantes(self, fps):
-        """Instantes dos quadros do vídeo (laço: o último não repete o primeiro)."""
-        n = max(2, int(round(self.T * fps)))
-        return [j * self.T / n for j in range(n)]
+        """Instantes dos quadros do vídeo (laço: o último não repete o primeiro). Cada trecho recebe um número inteiro
+        de quadros começando exatamente no seu quadro-chave: nenhuma pose-chave é pulada, mesmo em trechos de 0,1 s."""
+        out = []
+        for i, dt in enumerate(self.tempos):
+            n = max(1, int(round(float(dt) * fps)))
+            out += [float(self.t0[i]) + j * float(dt) / n for j in range(n)]
+        return out
 
 
 def quat_alinhar(qs):

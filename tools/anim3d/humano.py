@@ -5,7 +5,7 @@ Esqueleto: default.mhskel + pesos default_weights.mhw do MakeHuman.
 Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D opcionais (ausentes = 0):
   "bfa"/"bta": abdução do braço da frente/trás (0 = no plano sagital, 90 = aberto para o lado)
   "afa"/"ata": abdução do antebraço (padrão = a do braço)
-  "pfa"/"pta": abdução da perna (coxa)
+  "pfa"/"pta": abdução da perna (coxa); "cfa"/"cta": abdução da canela (padrão = a da coxa; borboleta, figura 4)
   "tr":   rotação do tronco (torção, graus; + gira o peito para o lado da câmera), distribuída pelas vértebras
   "inc":  inclinação lateral do tronco (graus; + inclina para o lado da câmera), distribuída pelas vértebras
   "rol":  rotação do corpo inteiro em torno do eixo frente-trás (graus; 90 = deitado de lado; + levanta o lado da câmera)
@@ -28,7 +28,7 @@ de 2 ossos), nada atravessa o chão, coluna curva distribuída, pescoço/cabeça
 
 Uso (python do ambiente com bpy):
   python tools/anim3d/humano.py --mh <pasta makehuman/data> --anim <dados.json> [--ids a,b] --saida <pasta>
-         [--tam 720] [--amostras 16] [--fps 22] [--video] [--crf 18] [--chaves | --tira N]
+         [--tam 720] [--amostras 12] [--fps 24] [--video] [--crf 18] [--chaves | --tira N]
 """
 import argparse
 import json
@@ -509,8 +509,9 @@ class Humano:
             pa = p["p" + lado + "a"]
             for n in ("upperleg01", "upperleg02"):
                 self.apontar(n + sf, d2(c_, pa, s))
+            ca = p["c" + lado + "a"]
             for n in ("lowerleg01", "lowerleg02"):
-                self.apontar(n + sf, d2(sh, pa, s))
+                self.apontar(n + sf, d2(sh, ca, s))
             # o osso do pé aponta ~27° para baixo com o pé apoiado (pe = 90)
             self.apontar("foot" + sf, d2(pe - 27, pa * 0.3, s))
             self.dedos(sf, (maos or {}).get(sf, 0.0))
@@ -673,14 +674,14 @@ def cena(tam, amostras):
     sc.cycles.use_denoising = True
     sc.cycles.denoiser = "OPENIMAGEDENOISE"
     sc.cycles.denoising_input_passes = "RGB_ALBEDO_NORMAL"
-    sc.cycles.denoising_prefilter = "ACCURATE"
+    sc.cycles.denoising_prefilter = "FAST"
     try:
-        sc.cycles.denoising_quality = "BALANCED"
+        sc.cycles.denoising_quality = "FAST"
     except (AttributeError, TypeError):
         pass
-    sc.cycles.max_bounces = 4
+    sc.cycles.max_bounces = 3
     sc.cycles.diffuse_bounces = 2
-    sc.cycles.glossy_bounces = 2
+    sc.cycles.glossy_bounces = 1
     sc.cycles.transmission_bounces = 0
     sc.cycles.volume_bounces = 0
     sc.cycles.transparent_max_bounces = 2
@@ -832,7 +833,19 @@ class Contexto:
             self.z0 = aparelhos.ALTURA_ESTEIRA
         elif "tapete" in tipos:
             self.z0 = aparelhos.ALTURA_TAPETE
-        self.props_maos = any(pr.get("em") == "maos" or pr.get("de") == "maos" for pr in self.props)
+        ocup = set()
+        for pr in self.props:
+            em = pr.get("em") or pr.get("de")
+            if pr.get("tipo") in ("halter", "kettlebell") and pr.get("maos") in ("f", "t"):
+                em = "mao_" + pr["maos"]
+            if em in ("maos", "costas"):
+                ocup |= {"f", "t"}
+            elif em in ("mao_f", "mao_t"):
+                ocup.add(em[-1])
+        if "corda" in tipos:
+            ocup |= {"f", "t"}
+        self.ocupadas = ocup
+        self.props_maos = bool(ocup)
         self.barra = None
         for pr in self.props:
             if pr.get("tipo") == "barra_fixa":
@@ -934,7 +947,7 @@ def estado_maos(ctx, apoio):
     for lado, sf, _ in LADOS:
         if apoio.get(lado):
             v[sf] = -1.0
-        elif ctx.props_maos or ctx.barra is not None:
+        elif lado in ctx.ocupadas or ctx.barra is not None:
             v[sf] = 1.0
         else:
             v[sf] = 0.0
@@ -952,7 +965,7 @@ def apoios_2d(ctx, p2):
     for lado in ("f", "t"):
         mx, my = p2["mao_" + lado]
         perto_barra = ctx.barra is not None and math.dist((mx, my), ctx.barra) < 1.6
-        out[lado] = (not ctx.props_maos and not perto_barra and any(x0 <= mx <= x1 and abs(my - top) < 0.45 for x0, x1, top in tops))
+        out[lado] = (lado not in ctx.ocupadas and not perto_barra and any(x0 <= mx <= x1 and abs(my - top) < 0.45 for x0, x1, top in tops))
     return out
 
 
@@ -1134,7 +1147,7 @@ def efetores_chave(h, ctx, T, apoio):
                 d = abs(g.z - b3.z) + (0 if ctx.paralelas else abs(g.y - b3.y))
                 if d < 0.5:
                     contato = True
-            elif ctx.props_maos:
+            elif ef[-1] in ctx.ocupadas:
                 contato = False
             else:
                 contato = contato and apoio.get(ef[-1], False)
@@ -1412,7 +1425,6 @@ def compor(png, bg, rng):
     else:
         im /= 255.0
     a = im[..., 3:4]
-    rgb = im[..., :3] + bg * (1 - a)  # cor pré-multiplicada pelo Cycles? (PNG do Blender é reta) -> composição reta
     rgb = im[..., :3] * a + bg * (1 - a)
     ruido = (rng.random(rgb.shape) - rng.random(rgb.shape)) * 0.9
     out = np.clip(rgb * 255.0 + ruido + 0.5, 0, 255).astype(np.uint8)
@@ -1446,8 +1458,8 @@ def main():
     ap_.add_argument("--ids", default="")
     ap_.add_argument("--saida", required=True)
     ap_.add_argument("--tam", type=int, default=720)
-    ap_.add_argument("--amostras", type=int, default=16)
-    ap_.add_argument("--fps", type=float, default=22)
+    ap_.add_argument("--amostras", type=int, default=12)
+    ap_.add_argument("--fps", type=float, default=24)
     ap_.add_argument("--chaves", action="store_true", help="só quadros-chave (revisão)")
     ap_.add_argument("--tira", type=int, default=0, help="revisão: N quadros igualmente espaçados no ciclo, lado a lado")
     ap_.add_argument("--pular-existentes", action="store_true")
@@ -1501,18 +1513,21 @@ def main():
             kit.limpar()
             aparelhos.montar(kit, ctx, h, estados)
             pts = []
+            corpo = []
             for est in estados[:: max(1, len(estados) // 24)] + [estados[-1]]:
                 h.restaurar(est["est"])
-                pts.append(h.proxy(est["T"])[::3])
+                corpo.append(h.proxy(est["T"])[::3])
+                pts.append(corpo[-1])
                 kit.atualizar(est)
                 pts.append(kit.pontos())
             pts = np.concatenate(pts)
             az = azimute_de_cam(anim.get("cam", 64))
             enquadrar(co, pts, az)
-            lo, hi = pts.min(axis=0), pts.max(axis=0)
+            # chão de sombra só em volta do corpo (o custo do Cycles está nos pixels de chão)
+            cp = np.concatenate(corpo)
+            lo, hi = cp.min(axis=0), cp.max(axis=0)
             chao.location = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, 0.0)
-            r_chao = max(hi[0] - lo[0], hi[1] - lo[1]) / 2 + 4.0
-            chao.scale = (r_chao, r_chao, 1)
+            chao.scale = ((hi[0] - lo[0]) / 2 + 3.5, (hi[1] - lo[1]) / 2 + 3.5, 1)
             frames = []
             t_render = time.time()
             for j, est in enumerate(estados):
