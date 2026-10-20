@@ -31,3 +31,26 @@ Testes: `tests/run.sh` (kotlinc+json.jar no scratchpad; se sumiram, rebaixe: ver
 
 ## Aviso de retomada
 trigger_id: trig_01JKc5e2kUUn5BKN3KhkNL8M
+
+## ATUALIZAÇÃO (pedidos novos do usuário, em ordem)
+- "adicione rotina de alongamento e mobilidade por esporte" → FEITO no núcleo (Rotinas.kt, 25 rotinas) e nas telas Android/web/iOS.
+- "versão otimizada para iOS" → EM ANDAMENTO: ios/ForjaCore (núcleo Swift + testes de paridade com ouro.json), ios/Forja/App (SwiftUI). Falta: QuestionarioView.swift, workflow .github/workflows/ios.yml (macos-15: swift test, xcodegen, build simulador, capturas, IPA não assinado).
+- "atualize sem baixar o app de novo" → A FAZER: conteúdo OTA (exercises.json + animações) baixado de raw.githubusercontent (repo público; se ficar privado, usar repo público só de conteúdo). Respondido ao usuário.
+- "modifique os vídeos, subagente para animações demonstrativas" + "quero boneco realista, humano com músculos" + imagem de referência (figura 3D clara, músculos trabalhados em vermelho, aparelho, posições inicial/final) →
+  * Agentes (3, em segundo plano) escrevem poses em tools/anim/dados/lote{1,2,3}.json (formato em tools/anim/esqueleto.py + campos 3D bfa/afa/pfa/tr; instruções em tools/anim/INSTRUCOES.md). Se a sessão reiniciar, relançar agentes para lotes incompletos.
+  * Render 3D: tools/anim3d/humano.py (Blender 5 via `uv` venv em scratchpad/blender-env; MakeHuman CC0 em scratchpad/mh — `git clone --sparse` de makehumancommunity/makehuman, pastas makehuman/data/{3dobjs,rigs,targets/macrodetails}).
+  * Falta: regiões musculares em vermelho, aparelhos 3D, enquadramento fixo por animação, quadros intermediários → sprites WebP + meta; players no Android/iOS/web; OTA.
+
+## RETOMADA — LEIA PRIMEIRO
+Atualizado em 2026-10-20T01:30Z. Ordem de trabalho a partir daqui:
+1. Animações (poses): agentes escrevem tools/anim/dados/lote{1,2,3}.json (lotes em tools/anim/lotes/, instruções em tools/anim/INSTRUCOES.md).
+   Ver quantas existem: `for f in tools/anim/dados/lote*.json; do python3 -c "import json;print('$f',len(json.load(open('$f'))))"; done`
+   Esperado: lote1=56, lote2=56, lote3=63. Se algum lote estiver incompleto e nenhum agente rodando, relançar agente (general-purpose, em segundo plano) com o mesmo pedido: "leia INSTRUCOES.md e complete o loteN.json, sem refazer o que existe".
+2. Render 3D (tools/anim3d/humano.py). Ambiente: `. /tmp/claude-0/-home-user-teste-3/400edce2-80ea-57f6-97f9-c6ff24db5c18/scratchpad/blender-env/bin/activate` (se sumiu: `pip install uv; uv python install 3.11; uv venv -p 3.11 blender-env; uv pip install bpy pillow numpy`). MakeHuman: scratchpad/mh (se sumiu: `git clone --depth 1 --filter=blob:none --sparse https://github.com/makehumancommunity/makehuman.git mh && cd mh && git sparse-checkout set makehuman/data/3dobjs makehuman/data/rigs makehuman/data/targets/macrodetails`).
+   Revisão (quadros-chave): `python tools/anim3d/humano.py --mh <mh>/makehuman/data --anim tools/anim/dados/lote1.json --saida <scratch>/r3dk --tam 300 --amostras 16 --chaves --ids a,b`
+   Produção (sprites): `python tools/anim3d/humano.py --mh <mh>/makehuman/data --anim tools/anim/dados/lote1.json tools/anim/dados/lote2.json tools/anim/dados/lote3.json --saida app/src/main/assets/anim3d --tam 320 --amostras 18 --fps 6 --pular-existentes` (rodar em segundo plano; pula os já feitos; grava meta.json)
+3. Players: Android (ui DemoExercicio → tocar sprite anim3d/<id>.webp quando existir; foto como reserva), iOS (DemoExercicio SwiftUI), web (forja.html). Vídeo do YouTube vira opção secundária.
+4. Conteúdo OTA: pasta conteudo/ (manifesto.json com versão + exercises.json + anim3d/*), app baixa de https://raw.githubusercontent.com/kaiqueguimacuper-bit/teste-3/claude/personalized-workout-app-ou3pc2/conteudo/ (endereço configurável).
+5. iOS: terminar ios/Forja/App/QuestionarioView.swift + .github/workflows/ios.yml; push; revisar capturas.
+6. Build Android (push → Actions), revisar capturas, enviar APK, republicar web, zip, mensagem final.
+Aviso de retomada: trigger_id trig_01JKc5e2kUUn5BKN3KhkNL8M (remarcar com update_trigger a cada etapa; desativar no fim).

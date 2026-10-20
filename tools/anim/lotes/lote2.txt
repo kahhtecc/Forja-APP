@@ -1,0 +1,112 @@
+flexao | Flexão de braço | grupo: Peito | equip: corpo | tipo: forca
+   execução: Mãos um pouco além da largura dos ombros, corpo em prancha. Desça até o peito quase tocar o chão, cotovelos a ~45°. Empurre o chão mantendo abdômen e glúteos firmes.
+flexao-inclinada | Flexão inclinada (mãos elevadas) | grupo: Peito | equip: corpo, banco | tipo: forca
+   execução: Mãos num banco, mesa ou parede firme. Corpo reto da cabeça aos calcanhares. Desça o peito até a borda e empurre. Quanto mais alto o apoio, mais fácil.
+flexao-joelhos | Flexão com joelhos apoiados | grupo: Peito | equip: corpo | tipo: forca
+   execução: Joelhos no chão, quadril alinhado com o tronco. Desça o peito entre as mãos. Empurre sem deixar o quadril subir.
+flexao-declinada | Flexão com pés elevados | grupo: Peito | equip: corpo, banco | tipo: forca
+   execução: Pés num banco ou cadeira, mãos no chão. Corpo reto, desça controlando. Ênfase na parte superior do peito e ombros.
+flexao-diamante | Flexão fechada (tríceps) | grupo: Tríceps | equip: corpo | tipo: forca
+   execução: Mãos próximas sob o peito. Cotovelos rentes ao corpo durante a descida. Empurre estendendo totalmente os braços.
+flexao-pliometrica | Flexão explosiva | grupo: Peito | equip: corpo | tipo: pliometria
+   execução: Desça como numa flexão normal. Empurre com força para as mãos saírem do chão. Aterrisse com cotovelos destravados e emende.
+supino-reto | Supino reto com barra | grupo: Peito | equip: barra, banco | tipo: forca
+   execução: Escápulas retraídas, pés firmes no chão, leve arco natural. Desça a barra até a linha dos mamilos, cotovelos a ~45–70°. Empurre a barra para cima e levemente para trás.
+supino-halteres | Supino com halteres | grupo: Peito | equip: halter, banco | tipo: forca
+   execução: Halteres na linha do peito, escápulas encaixadas. Desça até sentir o alongamento do peitoral. Empurre juntando levemente os halteres no topo.
+supino-inclinado | Supino inclinado com halteres | grupo: Peito | equip: halter, banco | tipo: forca
+   execução: Banco a 30–45°. Desça os halteres na linha da parte alta do peito. Empurre sem bater os halteres.
+supino-inclinado-barra | Supino inclinado com barra | grupo: Peito | equip: barra, banco | tipo: forca
+   execução: Banco a ~30°, escápulas retraídas. Barra desce até a parte alta do peito. Empurre na vertical, controlando a descida.
+supino-maquina | Supino na máquina | grupo: Peito | equip: maquina | tipo: forca
+   execução: Ajuste o banco para as pegadas ficarem na linha do peito. Empurre sem tirar as costas do encosto. Volte devagar até alongar o peitoral.
+crucifixo | Crucifixo com halteres | grupo: Peito | equip: halter, banco | tipo: forca
+   execução: Cotovelos levemente flexionados e fixos. Abra os braços em arco até sentir o alongamento. Feche como se abraçasse uma árvore.
+crossover | Crossover na polia | grupo: Peito | equip: polia | tipo: forca
+   execução: Um passo à frente, tronco levemente inclinado. Traga as mãos à frente do corpo em arco. Volte controlando até alongar o peito.
+peck-deck | Voador (peck deck) | grupo: Peito | equip: maquina | tipo: forca
+   execução: Pegadas na altura do peito, costas apoiadas. Feche os braços contraindo o peitoral. Volte devagar sem passar do alongamento confortável.
+supino-elastico | Supino com elástico | grupo: Peito | equip: elastico | tipo: forca
+   execução: Elástico passado atrás das costas (ou preso atrás de você). Empurre as mãos à frente na altura do peito. Volte controlando a tensão.
+crucifixo-elastico | Crucifixo com elástico | grupo: Peito | equip: elastico | tipo: forca
+   execução: Elástico preso atrás de você na altura do peito. Braços abertos, cotovelos levemente flexionados. Feche à frente e volte devagar.
+paralelas | Mergulho nas paralelas | grupo: Peito | equip: barra_fixa | tipo: forca
+   execução: Corpo inclinado levemente à frente para peito (vertical para tríceps). Desça até os ombros ficarem na linha dos cotovelos. Empurre até estender os braços.
+barra-fixa | Barra fixa (pegada pronada) | grupo: Costas | equip: barra_fixa | tipo: forca
+   execução: Pegada um pouco além dos ombros, braços estendidos. Puxe levando o peito em direção à barra, escápulas para baixo. Desça controlando até estender os braços.
+barra-supinada | Barra fixa supinada (chin-up) | grupo: Costas | equip: barra_fixa | tipo: forca
+   execução: Palmas viradas para você, largura dos ombros. Puxe até o queixo passar a barra. Desça devagar.
+barra-assistida | Barra fixa com elástico (assistida) | grupo: Costas | equip: barra_fixa, elastico | tipo: forca
+   execução: Prenda o elástico na barra e apoie um pé ou joelho nele. Puxe o peito em direção à barra. Use elásticos mais finos conforme evolui.
+puxada-frente | Puxada frontal (pulldown) | grupo: Costas | equip: polia, maquina | tipo: forca
+   execução: Pegada aberta, coxas travadas no apoio. Puxe a barra até a parte alta do peito levando os cotovelos para baixo. Volte devagar, alongando as costas.
+puxada-triangulo | Puxada com triângulo | grupo: Costas | equip: polia | tipo: forca
+   execução: Pegada neutra no triângulo. Puxe até o peito, inclinando levemente o tronco. Estenda os braços controlando.
+remada-baixa | Remada baixa sentada | grupo: Costas | equip: polia | tipo: forca
+   execução: Coluna neutra, joelhos levemente flexionados. Puxe o pegador em direção ao umbigo, juntando as escápulas. Volte estendendo os braços sem curvar as costas.
+remada-curvada | Remada curvada com barra | grupo: Costas | equip: barra | tipo: forca
+   execução: Tronco inclinado ~45°, coluna neutra. Puxe a barra até a parte baixa do abdômen. Desça controlando sem perder a postura.
+remada-unilateral | Remada unilateral com halter | grupo: Costas | equip: halter, banco | tipo: forca
+   execução: Joelho e mão apoiados no banco, costas paralelas ao chão. Puxe o halter em direção ao quadril. Desça alongando sem girar o tronco.
+remada-elastico | Remada com elástico | grupo: Costas | equip: elastico | tipo: forca
+   execução: Elástico preso à frente (porta ou pés). Puxe os cotovelos para trás, juntando as escápulas. Volte devagar mantendo a postura.
+remada-invertida | Remada invertida | grupo: Costas | equip: barra_fixa, corpo | tipo: forca
+   execução: Sob uma barra baixa ou mesa firme, corpo reto. Puxe o peito até a barra. Desça controlando. Pés mais perto = mais fácil.
+pulldown-elastico | Puxada com elástico | grupo: Costas | equip: elastico | tipo: forca
+   execução: Elástico preso no alto (porta). Puxe os cotovelos para baixo em direção às costelas. Volte controlando.
+pullover-polia | Pullover na polia (braços estendidos) | grupo: Costas | equip: polia | tipo: forca
+   execução: Braços quase estendidos, leve inclinação do tronco. Leve a barra até as coxas em arco. Volte devagar até a altura dos olhos.
+face-pull | Face pull | grupo: Ombros | equip: polia, elastico | tipo: forca
+   execução: Corda na altura dos olhos. Puxe em direção ao rosto abrindo os cotovelos. Termine com rotação externa (punhos para trás).
+band-pull-apart | Abertura com elástico (pull apart) | grupo: Ombros | equip: elastico | tipo: forca
+   execução: Braços estendidos à frente segurando o elástico. Abra os braços até o elástico tocar o peito. Volte devagar, escápulas ativas.
+encolhimento | Encolhimento com halteres | grupo: Trapézio | equip: halter | tipo: forca
+   execução: Halteres ao lado do corpo, braços estendidos. Eleve os ombros em direção às orelhas. Segure 1 s e desça devagar.
+desenvolvimento-halteres | Desenvolvimento com halteres | grupo: Ombros | equip: halter | tipo: forca
+   execução: Halteres na altura das orelhas, cotovelos levemente à frente. Empurre para cima sem arquear a lombar. Desça até os cotovelos ~90°.
+desenvolvimento-barra | Desenvolvimento militar com barra | grupo: Ombros | equip: barra | tipo: forca
+   execução: Em pé, barra na frente dos ombros, glúteos e abdômen contraídos. Empurre a barra passando rente ao rosto. Termine com a barra acima da cabeça, braços estendidos.
+desenvolvimento-maquina | Desenvolvimento na máquina | grupo: Ombros | equip: maquina | tipo: forca
+   execução: Pegadas na altura dos ombros. Empurre sem tirar as costas do encosto. Desça controlando.
+desenvolvimento-elastico | Desenvolvimento com elástico | grupo: Ombros | equip: elastico | tipo: forca
+   execução: Pise no elástico e segure as pontas nos ombros. Empurre acima da cabeça. Desça devagar.
+elevacao-lateral | Elevação lateral | grupo: Ombros | equip: halter | tipo: forca
+   execução: Cotovelos levemente flexionados. Eleve os braços até a altura dos ombros, conduzindo pelos cotovelos. Desça em 2–3 segundos.
+elevacao-lateral-elastico | Elevação lateral com elástico | grupo: Ombros | equip: elastico | tipo: forca
+   execução: Pise no elástico e segure as pontas. Eleve os braços lateralmente até os ombros. Volte controlando.
+elevacao-frontal | Elevação frontal | grupo: Ombros | equip: halter | tipo: forca
+   execução: Halteres à frente das coxas. Eleve até a altura dos ombros. Desça devagar sem balançar.
+crucifixo-inverso | Crucifixo inverso | grupo: Ombros | equip: halter | tipo: forca
+   execução: Tronco inclinado à frente, coluna neutra. Abra os braços para os lados, apertando a parte de trás dos ombros. Desça controlando.
+arnold | Desenvolvimento Arnold | grupo: Ombros | equip: halter | tipo: forca
+   execução: Comece com as palmas viradas para você na altura do queixo. Gire as palmas para frente enquanto empurra para cima. Inverta o movimento na descida.
+pike-pushup | Flexão pike (ombros) | grupo: Ombros | equip: corpo | tipo: forca
+   execução: Quadril alto, corpo em 'V' invertido. Desça a cabeça em direção ao chão entre as mãos. Empurre de volta. Avançado: pés na parede.
+rotacao-externa | Rotação externa com elástico | grupo: Ombros | equip: elastico | tipo: forca
+   execução: Cotovelo colado ao corpo a 90°. Gire o antebraço para fora contra o elástico. Volte devagar. Ótimo para saúde do ombro.
+rosca-direta | Rosca direta com barra | grupo: Bíceps | equip: barra | tipo: forca
+   execução: Cotovelos colados ao corpo. Suba a barra sem balançar o tronco. Desça devagar até estender os braços.
+rosca-halteres | Rosca alternada com halteres | grupo: Bíceps | equip: halter | tipo: forca
+   execução: Palmas viradas para frente, cotovelos fixos. Suba um halter por vez. Controle a descida.
+rosca-martelo | Rosca martelo | grupo: Bíceps | equip: halter | tipo: forca
+   execução: Pegada neutra (palmas uma para a outra). Suba sem mexer os cotovelos. Desça devagar.
+rosca-elastico | Rosca com elástico | grupo: Bíceps | equip: elastico | tipo: forca
+   execução: Pise no elástico, palmas para frente. Flexione os cotovelos sem afastá-los do corpo. Volte controlando.
+rosca-scott | Rosca Scott | grupo: Bíceps | equip: barra, maquina | tipo: forca
+   execução: Braços apoiados no banco Scott. Suba até contrair o bíceps. Desça quase estendendo, sem travar o cotovelo.
+triceps-polia | Tríceps na polia (corda) | grupo: Tríceps | equip: polia | tipo: forca
+   execução: Cotovelos colados ao corpo. Empurre a corda para baixo e abra as mãos no final. Volte até ~90° sem mexer os ombros.
+triceps-frances | Tríceps francês com halter | grupo: Tríceps | equip: halter | tipo: forca
+   execução: Halter acima da cabeça seguro com as duas mãos. Desça atrás da cabeça mantendo cotovelos apontados para cima. Estenda os braços.
+triceps-testa | Tríceps testa | grupo: Tríceps | equip: halter, barra, banco | tipo: forca
+   execução: Deitado, braços estendidos acima do peito. Flexione só os cotovelos levando o peso em direção à testa. Estenda de volta.
+triceps-banco | Mergulho no banco | grupo: Tríceps | equip: corpo, banco | tipo: forca
+   execução: Mãos na borda de um banco ou cadeira firme. Desça até os cotovelos ~90°, costas próximas ao banco. Empurre de volta.
+triceps-elastico | Tríceps com elástico acima da cabeça | grupo: Tríceps | equip: elastico | tipo: forca
+   execução: Elástico preso atrás/abaixo, mãos atrás da cabeça. Estenda os braços para cima. Volte devagar.
+triceps-coice | Tríceps coice | grupo: Tríceps | equip: halter | tipo: forca
+   execução: Tronco inclinado, cotovelo alto e fixo junto ao corpo. Estenda o braço para trás. Volte controlando.
+passe-medicine | Passe de peito com medicine ball | grupo: Peito | equip: bola | tipo: potencia
+   execução: Bola na frente do peito. Empurre explosivamente contra a parede. Receba e repita.
+isometria-pescoco | Isometria de pescoço | grupo: Pescoço | equip: corpo | tipo: forca
+   execução: Mão na testa (ou nuca), pescoço neutro. Empurre a cabeça contra a mão sem deixar mover, 10–20 s. Faça frente, trás e lados. Pressão progressiva, sem dor.

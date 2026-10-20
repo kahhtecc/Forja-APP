@@ -1,0 +1,112 @@
+agachamento-livre | Agachamento livre (peso do corpo) | grupo: Pernas | equip: corpo | tipo: forca
+   execução: Pés na largura dos ombros, pontas levemente para fora. Desça levando o quadril para trás, joelhos acompanhando a linha dos pés. Mantenha o peito aberto e o calcanhar no chão; suba empurrando o chão.
+agachamento-elastico | Agachamento com elástico | grupo: Pernas | equip: elastico | tipo: forca
+   execução: Pise no elástico com os pés na largura dos ombros e segure as pontas nos ombros. Desça até a coxa ficar paralela ao chão, coluna neutra. Suba firme, sem deixar os joelhos caírem para dentro.
+agachamento-salto | Agachamento com salto | grupo: Pernas | equip: corpo | tipo: pliometria
+   execução: Agache até a metade e salte explosivamente. Aterrisse macio, na ponta dos pés rolando para o calcanhar. Já absorva o impacto entrando na próxima repetição.
+agachamento-goblet | Agachamento goblet | grupo: Pernas | equip: kettlebell, halter | tipo: forca
+   execução: Segure o peso junto ao peito, cotovelos apontando para baixo. Desça entre as pernas mantendo o tronco ereto. Cotovelos tocam a parte interna dos joelhos no fundo; suba pelo meio do pé.
+agachamento-barra | Agachamento com barra | grupo: Pernas | equip: barra | tipo: forca
+   execução: Barra apoiada no trapézio, mãos firmes, abdômen contraído (respire e trave). Desça controlando até pelo menos a paralela, joelhos na direção dos pés. Suba mantendo o peito alto e a barra sobre o meio do pé.
+agachamento-frontal | Agachamento frontal | grupo: Pernas | equip: barra | tipo: forca
+   execução: Barra apoiada na frente dos ombros, cotovelos altos. Tronco bem vertical durante toda a descida. Suba empurrando com os cotovelos para cima.
+leg-press | Leg press 45° | grupo: Pernas | equip: maquina | tipo: forca
+   execução: Pés no meio da plataforma, na largura do quadril. Desça até ~90° de joelho sem tirar a lombar do encosto. Empurre sem travar totalmente os joelhos no topo.
+hack | Agachamento hack (máquina) | grupo: Pernas | equip: maquina | tipo: forca
+   execução: Costas e ombros firmes no encosto. Desça controlado até a coxa passar da paralela, se a mobilidade permitir. Suba pelo meio do pé, joelhos alinhados.
+cadeira-extensora | Cadeira extensora | grupo: Pernas | equip: maquina | tipo: forca
+   execução: Ajuste o eixo da máquina na linha do joelho. Estenda as pernas e segure 1 segundo no topo. Desça devagar, sem deixar o peso bater.
+mesa-flexora | Mesa flexora | grupo: Posterior de coxa | equip: maquina | tipo: forca
+   execução: Quadril colado no banco durante todo o movimento. Flexione puxando o calcanhar em direção ao glúteo. Volte em 2–3 segundos, controlando.
+cadeira-flexora | Cadeira flexora | grupo: Posterior de coxa | equip: maquina | tipo: forca
+   execução: Trave a coxa com o apoio e alinhe o joelho ao eixo. Puxe os calcanhares para baixo e para trás. Retorne devagar sem estender bruscamente.
+afundo | Afundo (passada parada) | grupo: Pernas | equip: corpo | tipo: forca
+   execução: Um pé à frente e outro atrás, tronco ereto. Desça o joelho de trás em direção ao chão. Suba empurrando com o calcanhar da perna da frente.
+afundo-halteres | Afundo com halteres | grupo: Pernas | equip: halter | tipo: forca
+   execução: Halteres ao lado do corpo, ombros para trás. Dê um passo à frente e desça até os dois joelhos formarem ~90°. Volte à posição inicial e alterne as pernas.
+passada-andando | Passada andando | grupo: Pernas | equip: corpo | tipo: forca
+   execução: Passos longos e controlados, tronco ereto. Joelho de trás quase toca o chão. Empurre com a perna da frente e emende o próximo passo.
+bulgaro | Agachamento búlgaro | grupo: Pernas | equip: halter, banco | tipo: forca
+   execução: Pé de trás apoiado num banco, pé da frente bem à frente. Desça na vertical, joelho da frente acompanhando o pé. Suba pelo calcanhar da frente; termine um lado e troque.
+step-up | Subida no banco (step-up) | grupo: Pernas | equip: banco, halter | tipo: forca
+   execução: Pé inteiro apoiado no banco ou degrau firme. Suba empurrando só com a perna de cima. Desça controlando, sem 'quicar' com a perna de baixo.
+terra | Levantamento terra | grupo: Posterior de coxa | equip: barra | tipo: forca
+   execução: Barra sobre o meio do pé, canelas próximas. Costas neutras, peito aberto, puxe a 'folga' da barra antes de subir. Empurre o chão e estenda quadril e joelhos juntos; desça a barra rente às pernas.
+stiff | Stiff / terra romeno | grupo: Posterior de coxa | equip: barra, halter | tipo: forca
+   execução: Joelhos levemente flexionados e fixos. Leve o quadril para trás com a barra deslizando rente às coxas. Desça até sentir alongar o posterior, coluna neutra; suba contraindo os glúteos.
+stiff-halteres | Stiff com halteres | grupo: Posterior de coxa | equip: halter | tipo: forca
+   execução: Halteres na frente das coxas, joelhos destravados. Dobre no quadril mantendo as costas retas. Volte apertando os glúteos no topo.
+terra-uma-perna | Terra unilateral com kettlebell | grupo: Posterior de coxa | equip: kettlebell, halter | tipo: forca
+   execução: Apoio numa perna, joelho levemente flexionado. Incline o tronco e estenda a perna livre para trás em linha. Volte mantendo o quadril nivelado (sem abrir).
+ponte-gluteo | Ponte de glúteo | grupo: Glúteos | equip: corpo | tipo: forca
+   execução: Deitado, pés apoiados perto do quadril. Eleve o quadril até alinhar joelhos, quadril e ombros. Aperte os glúteos 1 s no topo e desça controlando.
+ponte-unilateral | Ponte de glúteo unilateral | grupo: Glúteos | equip: corpo | tipo: forca
+   execução: Uma perna estendida, outra com o pé no chão. Suba o quadril sem deixá-lo girar. Desça devagar; complete as repetições e troque.
+elevacao-quadril | Elevação de quadril com barra (hip thrust) | grupo: Glúteos | equip: barra, banco | tipo: forca
+   execução: Escápulas apoiadas no banco, barra sobre o quadril (use proteção). Suba até o tronco ficar paralelo ao chão, queixo levemente baixo. Segure 1 s contraindo os glúteos; desça controlado.
+coice-gluteo | Coice de glúteo (4 apoios) | grupo: Glúteos | equip: corpo | tipo: forca
+   execução: Quatro apoios, mãos sob os ombros e joelhos sob o quadril. Empurre um calcanhar em direção ao teto. Não arqueie a lombar; volte devagar.
+abdutora | Cadeira abdutora | grupo: Glúteos | equip: maquina | tipo: forca
+   execução: Sente com a coluna apoiada. Abra as pernas contra a resistência. Volte devagar sem deixar as placas baterem.
+monster-walk | Caminhada lateral com mini-band | grupo: Glúteos | equip: elastico | tipo: forca
+   execução: Elástico acima dos joelhos ou nos tornozelos, semi-agachado. Passos laterais curtos mantendo a tensão no elástico. Joelhos para fora, sem arrastar os pés.
+panturrilha-pe | Elevação de panturrilha em pé | grupo: Panturrilhas | equip: maquina, corpo | tipo: forca
+   execução: Ponta dos pés na borda do degrau ou plataforma. Suba o máximo possível e segure 1 s. Desça até alongar bem o calcanhar abaixo da linha do degrau.
+panturrilha-sentado | Panturrilha sentado | grupo: Panturrilhas | equip: maquina | tipo: forca
+   execução: Apoio sobre os joelhos, ponta dos pés na plataforma. Suba e contraia no topo. Desça devagar até o alongamento completo.
+panturrilha-elastico | Panturrilha com elástico | grupo: Panturrilhas | equip: elastico | tipo: forca
+   execução: Pise no elástico e segure as pontas na altura dos ombros. Suba na ponta dos pés. Desça controlando.
+superman | Superman | grupo: Lombar | equip: corpo | tipo: forca
+   execução: Deitado de barriga para baixo, braços estendidos à frente. Eleve braços e pernas juntos, olhando para o chão. Segure 2 s e desça.
+hiperextensao | Extensão lombar no banco | grupo: Lombar | equip: maquina | tipo: forca
+   execução: Quadril apoiado na borda do banco romano. Desça o tronco com a coluna neutra. Suba até alinhar com as pernas, sem hiperestender.
+prancha | Prancha | grupo: Core | equip: corpo | tipo: forca
+   execução: Antebraços no chão, cotovelos sob os ombros. Corpo reto, glúteos e abdômen contraídos. Respire normalmente; não deixe o quadril cair.
+prancha-lateral | Prancha lateral | grupo: Core | equip: corpo | tipo: forca
+   execução: Apoio no antebraço e na lateral do pé. Quadril alto, corpo em linha reta. Segure o tempo e troque o lado.
+abdominal | Abdominal supra (crunch) | grupo: Core | equip: corpo | tipo: forca
+   execução: Joelhos flexionados, mãos ao lado da cabeça sem puxar o pescoço. Enrole o tronco tirando as escápulas do chão. Desça devagar.
+abdominal-infra | Abdominal infra (elevação de pernas) | grupo: Core | equip: corpo | tipo: forca
+   execução: Deitado, lombar colada ao chão. Eleve as pernas até 90°. Desça devagar sem arquear a lombar.
+dead-bug | Dead bug | grupo: Core | equip: corpo | tipo: forca
+   execução: Deitado, braços para o teto e joelhos a 90°. Estenda braço e perna opostos sem tirar a lombar do chão. Volte e alterne.
+mountain-climber | Escalador (mountain climber) | grupo: Core | equip: corpo | tipo: cardio
+   execução: Posição de prancha alta. Leve os joelhos ao peito alternadamente, rápido. Quadril baixo e estável.
+russian-twist | Giro russo | grupo: Core | equip: corpo | tipo: forca
+   execução: Sentado, tronco inclinado para trás, pés no chão ou elevados. Gire o tronco de um lado ao outro. Movimento vem do tronco, não só dos braços.
+abdominal-bicicleta | Abdominal bicicleta | grupo: Core | equip: corpo | tipo: forca
+   execução: Mãos atrás da cabeça, pernas elevadas. Cotovelo em direção ao joelho oposto, alternando. Ritmo controlado.
+elevacao-pernas-barra | Elevação de pernas na barra | grupo: Core | equip: barra_fixa | tipo: forca
+   execução: Pendurado na barra, sem balanço. Eleve as pernas até a altura do quadril ou mais. Desça devagar.
+roda-abdominal | Roda abdominal | grupo: Core | equip: outro | tipo: forca
+   execução: Ajoelhado, mãos na roda. Role à frente mantendo o abdômen firme e a lombar neutra. Volte contraindo o core.
+pallof | Pallof press (antirrotação) | grupo: Core | equip: polia, elastico | tipo: forca
+   execução: Lateral à polia/elástico, mãos no peito. Estenda os braços à frente sem deixar o tronco girar. Segure 2 s e volte.
+abdominal-polia | Abdominal na polia | grupo: Core | equip: polia | tipo: forca
+   execução: Ajoelhado, corda junto à cabeça. Flexione o tronco levando os cotovelos aos joelhos. Volte devagar.
+canivete | Canivete (V-up) | grupo: Core | equip: corpo | tipo: forca
+   execução: Deitado, braços estendidos atrás da cabeça. Eleve pernas e tronco juntos, tocando as mãos nos pés. Desça controlando.
+box-jump | Salto na caixa | grupo: Pernas | equip: outro | tipo: pliometria
+   execução: De frente para uma caixa firme. Balance os braços e salte com os dois pés. Aterrisse macio, em pé completo; desça caminhando.
+salto-distancia | Salto horizontal | grupo: Pernas | equip: corpo | tipo: pliometria
+   execução: Pés na largura do quadril. Balance os braços e salte o mais longe possível. Aterrisse com joelhos flexionados e estabilize.
+bound-lateral | Salto lateral (skater) | grupo: Pernas | equip: corpo | tipo: pliometria
+   execução: Impulsione com uma perna para o lado. Aterrisse na outra perna e estabilize. Alterne mantendo o controle do joelho.
+salto-tesoura | Salto afundo alternado | grupo: Pernas | equip: corpo | tipo: pliometria
+   execução: Posição de afundo. Salte e troque as pernas no ar. Aterrisse macio e emende.
+tuck-jump | Salto grupado | grupo: Pernas | equip: corpo | tipo: pliometria
+   execução: Salte levando os joelhos ao peito. Aterrisse macio. Emende os saltos mantendo a postura.
+arremesso-rotacional | Arremesso rotacional de medicine ball | grupo: Core | equip: bola | tipo: potencia
+   execução: Lateral à parede. Gire o quadril e o tronco arremessando a bola. Receba e repita; troque o lado.
+ponte-pescoco | Ponte com rolamento de quadril (bridge and roll) | grupo: Core | equip: corpo | tipo: tecnica
+   execução: Deitado, pés perto do quadril. Ponte explosiva sobre um ombro. Use para a fuga de montada (upa).
+fuga-quadril | Fuga de quadril (shrimp) | grupo: Core | equip: corpo | tipo: tecnica
+   execução: Deitado de lado, empurre o chão com o pé. Leve o quadril para trás criando espaço. Alterne os lados deslocando-se pelo tatame.
+nordico | Flexão nórdica (nordic hamstring) | grupo: Posterior de coxa | equip: corpo | tipo: forca
+   execução: Ajoelhado, tornozelos presos por um parceiro ou apoio. Desça o tronco à frente o mais devagar possível, quadril estendido. Amorteça com as mãos e volte empurrando. Prevenção de lesão de posterior.
+educativos-corrida | Educativos de corrida (skipping) | grupo: Pernas | equip: rua, pista | tipo: tecnica
+   execução: Skipping alto, anfersen (calcanhar ao glúteo) e dribling. 20–30 m cada, voltando caminhando. Postura alta e braços coordenados.
+bike-subida | Simulação de subida (força no pedal) | grupo: Pernas | equip: bike | tipo: cardio
+   execução: Marcha pesada, cadência baixa (60–70 rpm). Tronco estável, força vem das pernas. Pode alternar sentado e em pé.
+sentar-levantar | Sentar e levantar da cadeira | grupo: Pernas | equip: corpo | tipo: forca
+   execução: Sente-se na borda de uma cadeira firme. Levante sem usar as mãos, se possível. Sente devagar, controlando.

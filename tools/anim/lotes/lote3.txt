@@ -1,0 +1,126 @@
+burpee | Burpee | grupo: Corpo inteiro | equip: corpo | tipo: cardio
+   execução: Agache e apoie as mãos no chão. Jogue os pés para trás em prancha (opcional: flexão). Volte os pés e salte com os braços para cima.
+polichinelo | Polichinelo | grupo: Corpo inteiro | equip: corpo | tipo: cardio
+   execução: Salte abrindo pernas e braços. Volte fechando. Mantenha ritmo constante e aterrisse macio.
+corda | Pular corda | grupo: Corpo inteiro | equip: corda | tipo: cardio
+   execução: Saltos baixos na ponta dos pés. Gire a corda com os punhos, cotovelos perto do corpo. Respire no ritmo.
+swing | Kettlebell swing | grupo: Corpo inteiro | equip: kettlebell | tipo: potencia
+   execução: Movimento de quadril (dobradiça), não de agachamento. Projete o quadril à frente com força; o sino sobe até a altura do peito. Deixe o sino descer entre as pernas e repita.
+thruster | Thruster com kettlebell | grupo: Corpo inteiro | equip: kettlebell, halter | tipo: potencia
+   execução: Peso na altura dos ombros. Agache e, na subida, use o impulso para empurrar acima da cabeça. Desça o peso aos ombros já entrando no próximo agachamento.
+power-clean | Power clean | grupo: Corpo inteiro | equip: barra | tipo: potencia
+   execução: Posição de terra, costas neutras. Puxe explosivamente estendendo quadril, joelhos e tornozelos. Receba a barra nos ombros em meio agachamento.
+arremesso-medicine | Arremesso de medicine ball no chão | grupo: Corpo inteiro | equip: bola | tipo: potencia
+   execução: Bola acima da cabeça, braços estendidos. Arremesse com força contra o chão usando o corpo todo. Pegue a bola e repita.
+battle-rope | Corda naval | grupo: Corpo inteiro | equip: outro | tipo: cardio
+   execução: Semi-agachado, uma ponta em cada mão. Faça ondas alternadas rápidas. Mantenha o core firme.
+farmer-walk | Caminhada do fazendeiro | grupo: Corpo inteiro | equip: halter, kettlebell | tipo: forca
+   execução: Pesos pesados ao lado do corpo. Caminhe com passos curtos, peito aberto e ombros para trás. Não deixe o tronco inclinar.
+sled-push | Empurrar trenó | grupo: Corpo inteiro | equip: outro | tipo: potencia
+   execução: Mãos no trenó, corpo inclinado. Empurre com passos curtos e fortes. Mantenha a coluna neutra.
+turkish-getup | Levantamento turco (Turkish get-up) | grupo: Corpo inteiro | equip: kettlebell | tipo: forca
+   execução: Deitado, peso acima do ombro com braço estendido. Levante-se em etapas mantendo o olhar no peso. Inverta as etapas para voltar.
+inchworm | Inchworm (minhoca) | grupo: Corpo inteiro | equip: corpo | tipo: mobilidade
+   execução: Em pé, dobre-se e apoie as mãos no chão. Caminhe com as mãos até a prancha. Volte com as mãos até os pés e levante.
+sombra | Boxe de sombra (shadow boxing) | grupo: Corpo inteiro | equip: corpo | tipo: tecnica
+   execução: Guarda alta, queixo baixo, base firme. Combine jab, direto, cruzado e esquivas em movimento. Volte sempre à guarda após cada golpe.
+saco-combinacoes | Combinações no saco de pancada | grupo: Corpo inteiro | equip: saco | tipo: tecnica
+   execução: Use bandagem e luvas. Golpeie em rounds com combinações de 2–4 golpes. Gire o quadril e o pé no golpe; volte à guarda.
+sprawl | Sprawl | grupo: Corpo inteiro | equip: corpo | tipo: cardio
+   execução: Da guarda, jogue as pernas para trás e o quadril ao chão. Peito pesado, quadril baixo (defesa de queda). Volte rápido à base.
+bear-crawl | Caminhada do urso | grupo: Corpo inteiro | equip: corpo | tipo: cardio
+   execução: Quatro apoios com joelhos fora do chão. Ande movendo mão e pé opostos. Quadril baixo e costas estáveis.
+corrida-leve | Corrida leve (zona 2) | grupo: Cardio | equip: rua, esteira | tipo: cardio
+   execução: Ritmo de conversa: você consegue falar frases inteiras. Passos curtos e cadência alta (~170–180/min). Tronco levemente inclinado à frente, braços relaxados.
+caminhada-corrida | Caminhada + corrida intercalada | grupo: Cardio | equip: rua, esteira | tipo: cardio
+   execução: Alterne blocos de caminhada rápida e trote leve. Aumente os blocos de corrida a cada semana. Se ficar sem fôlego para falar, desacelere.
+tiros | Tiros (intervalado) | grupo: Cardio | equip: rua, esteira, pista | tipo: cardio
+   execução: Aqueça bem antes (10–15 min). Corra os tiros em ritmo forte, mas sustentável até o último. Recupere trotando ou caminhando entre os tiros.
+tempo-run | Corrida de limiar (tempo run) | grupo: Cardio | equip: rua, esteira | tipo: cardio
+   execução: Ritmo 'confortavelmente difícil': frases curtas apenas. Mantenha o ritmo constante do início ao fim. Sempre com aquecimento e desaquecimento.
+longao | Longão (corrida longa) | grupo: Cardio | equip: rua | tipo: cardio
+   execução: Ritmo bem leve, mais lento que o de prova. Leve água para treinos acima de 60 min. O objetivo é tempo em movimento, não velocidade.
+bike-leve | Pedal contínuo leve (zona 2) | grupo: Cardio | equip: bike | tipo: cardio
+   execução: Cadência confortável de 80–95 rpm. Esforço em que dá para conversar. Ajuste o banco: joelho levemente flexionado no ponto mais baixo.
+bike-intervalado | Bike intervalado | grupo: Cardio | equip: bike | tipo: cardio
+   execução: Aqueça 10 min. Blocos fortes com carga/marcha mais pesada. Recupere pedalando leve entre os blocos.
+bike-cadencia | Drills de cadência | grupo: Cardio | equip: bike | tipo: tecnica
+   execução: Carga leve, aumente a rotação até 110+ rpm por 30 s. Quadril parado no selim (sem quicar). Recupere 1–2 min entre as repetições.
+eliptico | Elíptico / transport | grupo: Cardio | equip: maquina | tipo: cardio
+   execução: Postura ereta, mãos leves nas alças. Ritmo constante. Ótima opção de baixo impacto.
+remo-ergometro | Remo ergômetro | grupo: Corpo inteiro | equip: maquina | tipo: cardio
+   execução: Sequência: pernas, tronco, braços na puxada. Volte na ordem inversa: braços, tronco, pernas. 60% da força vem das pernas.
+escada | Escada / stair climber | grupo: Cardio | equip: maquina | tipo: cardio
+   execução: Não se apoie com força no corrimão. Pé inteiro no degrau. Ritmo em que você ainda consegue falar.
+prova | Prova ou teste de distância | grupo: Cardio | equip: rua, pista, esteira | tipo: cardio
+   execução: Aqueça 10–15 min com trote leve e 3–4 acelerações curtas. Comece um pouco mais devagar do que acha que aguenta; acelere na segunda metade. Hidrate-se e anote o tempo: ele recalibra seus ritmos.
+caminhada | Caminhada rápida | grupo: Cardio | equip: rua, esteira | tipo: cardio
+   execução: Passos rápidos, braços acompanhando. Postura alta. Intensidade moderada: respiração acelerada, mas dá para conversar.
+maior-alongamento | Alongamento do mundo (world's greatest stretch) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Afundo longo, mão no chão por dentro do pé da frente. Gire o tronco levando o braço ao teto. Volte e troque o lado.
+gato-camelo | Gato-camelo | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Quatro apoios. Arredonde a coluna para cima, depois afunde suavemente. Movimento lento acompanhando a respiração.
+postura-crianca | Postura da criança | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Ajoelhado, sente nos calcanhares. Estenda os braços à frente e relaxe o tronco. Respire fundo por 30–60 s.
+flexor-quadril | Alongamento de flexor do quadril | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Ajoelhado em afundo, joelho de trás no chão. Contraia o glúteo de trás e leve o quadril à frente. Segure 30 s cada lado.
+alongamento-posterior | Alongamento de posterior de coxa | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Perna estendida apoiada, coluna reta. Incline o tronco a partir do quadril. Segure 30 s sem 'balançar'.
+alongamento-quadriceps | Alongamento de quadríceps | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Em pé, segure o pé atrás do corpo. Joelhos juntos, quadril levemente à frente. 30 s cada lado.
+alongamento-panturrilha | Alongamento de panturrilha na parede | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Mãos na parede, uma perna atrás estendida. Calcanhar de trás no chão. 30 s cada lado.
+circulos-braco | Círculos de braço | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Braços estendidos para os lados. Círculos pequenos aumentando para grandes. Inverta o sentido.
+circulos-quadril | Círculos de quadril | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Mãos na cintura, pés afastados. Faça círculos amplos com o quadril. 10 para cada lado.
+rolo-quadriceps | Liberação com rolo (quadríceps) | grupo: Mobilidade | equip: rolo | tipo: mobilidade
+   execução: Rolo sob as coxas, apoio nos antebraços. Role devagar do quadril ao joelho. Pare 20–30 s nos pontos mais sensíveis.
+rolo-panturrilha | Liberação com rolo (panturrilha) | grupo: Mobilidade | equip: rolo | tipo: mobilidade
+   execução: Rolo sob a panturrilha, quadril elevado. Role do tornozelo ao joelho. Cruze a outra perna por cima para aumentar a pressão.
+rolo-it | Liberação com rolo (lateral da coxa) | grupo: Mobilidade | equip: rolo | tipo: mobilidade
+   execução: Deitado de lado sobre o rolo. Role do quadril até perto do joelho. Apoie a perna de cima no chão para dosar a pressão.
+alongamento-peito | Alongamento de peitoral | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Antebraço apoiado num batente ou parede. Gire o tronco para o lado oposto. 30 s cada lado.
+rotacao-toracica | Rotação torácica deitado | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Deitado de lado, joelhos flexionados a 90°. Abra o braço de cima girando o tronco. Acompanhe com o olhar; 8–10 cada lado.
+alongamento-adutores | Alongamento de adutores (borboleta) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Sentado, solas dos pés juntas. Coluna alta, joelhos caindo para os lados. 30–60 s respirando.
+equilibrio-unipodal | Equilíbrio em uma perna | grupo: Equilíbrio | equip: corpo | tipo: mobilidade
+   execução: Fique numa perna perto de um apoio. Mantenha 30 s com o joelho levemente flexionado. Avance fechando os olhos ou em superfície instável.
+balanco-pernas | Balanço de pernas (leg swing) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Apoie uma mão na parede, tronco ereto. Balance a perna para frente e para trás, aumentando a amplitude aos poucos. Depois balance de lado a lado, cruzando à frente do corpo. Troque a perna.
+circulos-tornozelo | Círculos de tornozelo | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Apoie a ponta do pé no chão (ou eleve o pé). Desenhe círculos amplos com o tornozelo. 10 para cada lado, nos dois pés.
+circulos-punho | Círculos de punho | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Entrelace os dedos ou deixe as mãos soltas. Gire os punhos em círculos amplos. Inverta o sentido. Ótimo antes de flexões, socos e raquete.
+circulos-ombro | Rotação de ombros | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Braços relaxados ao lado do corpo. Leve os ombros para cima, para trás e para baixo em círculos. 10 para trás e 10 para frente.
+circulos-joelho | Círculos de joelho | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Pés juntos, mãos apoiadas nos joelhos levemente flexionados. Faça círculos pequenos e controlados. Inverta o sentido. Sem dor.
+chute-gluteo | Calcanhar ao glúteo | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Trote no lugar ou deslocando-se. Leve o calcanhar em direção ao glúteo alternando as pernas. Ritmo leve, tronco alto.
+carioca | Carioca (deslocamento cruzado) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Desloque-se de lado cruzando a perna de trás pela frente e por trás. Gire o quadril, ombros voltados para frente. Volte para o outro lado.
+abertura-peito-dinamica | Abertura dinâmica de peito | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Braços estendidos à frente na altura dos ombros. Abra os braços para trás com ritmo, sentindo o peito abrir. Volte e repita 10–15 vezes.
+spider | Afundo do homem-aranha | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Da prancha, leve um pé ao lado da mão. Afunde o quadril e segure 2 s; opcional: gire o tronco abrindo o braço. Volte e troque o lado.
+alongamento-gluteo | Alongamento de glúteo (figura 4) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Deitado ou sentado, cruze o tornozelo sobre o joelho oposto. Puxe a perna de baixo em direção ao peito (ou incline o tronco). 30 s cada lado, respirando.
+abraco-joelhos | Abraço dos joelhos (lombar) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Deitado de barriga para cima. Abrace os joelhos e traga-os ao peito. Balance suavemente de um lado ao outro, relaxando a lombar.
+alongamento-triceps | Alongamento de tríceps | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Leve uma mão atrás da cabeça, cotovelo apontado para cima. Com a outra mão, empurre levemente o cotovelo. 30 s cada lado.
+alongamento-antebraco | Alongamento de punho e antebraço | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Ajoelhado, apoie as mãos no chão com os dedos virados para você. Leve o quadril para trás devagar até sentir o antebraço. Segure 20–30 s; depois vire o dorso das mãos.
+alongamento-pescoco | Alongamento lateral de pescoço | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Sentado ou em pé, ombros relaxados. Incline a orelha em direção ao ombro, sem girar. Segure 20–30 s cada lado, sem puxar com força.
+alongamento-lateral | Alongamento lateral de tronco | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Em pé, braço elevado acima da cabeça. Incline o tronco para o lado oposto. Segure 20–30 s cada lado.
+torcao-coluna | Torção de coluna sentado | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Sentado, cruze uma perna sobre a outra. Gire o tronco para o lado da perna de cima, coluna alta. Segure 30 s cada lado respirando fundo.
+alongamento-dorsal | Alongamento de dorsal | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Entrelace os dedos à frente e empurre as mãos para longe. Arredonde as costas afastando as escápulas. Segure 20–30 s.
+moinho | Moinho (rotação de tronco em pé) | grupo: Mobilidade | equip: corpo | tipo: mobilidade
+   execução: Pés afastados, braços abertos. Gire o tronco levando a mão ao pé oposto. Alterne os lados em ritmo controlado.
