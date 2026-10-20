@@ -43,8 +43,24 @@ final class Animacoes3D {
     }
 }
 
+/// Quadro inteiro na altura do espaço (corpo todo visível), laterais esfumadas no fundo.
+struct QuadroAnim: View {
+    let imagem: UIImage
+    var body: some View {
+        GeometryReader { g in
+            let lado = g.size.height * 1.12
+            Image(uiImage: imagem).resizable().frame(width: lado, height: lado)
+                .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.1),
+                                             .init(color: .black, location: 0.9), .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
+                .position(x: g.size.width / 2, y: g.size.height / 2)
+        }
+        .clipped()
+    }
+}
+
 /// Toca a animação 3D em loop (ou mostra o quadro do meio, se animar = false).
 struct Animacao3DView: View {
+    static let fundo = Color(red: 27 / 255, green: 23 / 255, blue: 19 / 255)
     let id: String
     var animar = true
     @State private var lista: [UIImage]?
@@ -52,15 +68,15 @@ struct Animacao3DView: View {
     var body: some View {
         let m = Animacoes3D.shared.metaDe(id)
         ZStack {
-            Cor.sup2
+            Animacao3DView.fundo
             if let lista, !lista.isEmpty, let m {
                 if animar {
                     TimelineView(.animation(minimumInterval: 1 / m.fps, paused: false)) { ctx in
                         let i = Int(ctx.date.timeIntervalSinceReferenceDate * m.fps) % lista.count
-                        Preencher(imagem: lista[i])
+                        QuadroAnim(imagem: lista[i])
                     }
                 } else {
-                    Preencher(imagem: lista[lista.count / 2])
+                    QuadroAnim(imagem: lista[lista.count / 2])
                 }
             }
         }

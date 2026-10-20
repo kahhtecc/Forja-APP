@@ -38,6 +38,8 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -111,8 +113,8 @@ fun Animacao3D(id: String, modifier: Modifier = Modifier, animar: Boolean = true
         val capa by produceState<ImageBitmap?>(null, id) {
             value = withContext(Dispatchers.IO) { Animacoes3D.capa(ctx, id, quadroFixo ?: (m.quadros / 2)) }
         }
-        Box(modifier.background(Cor.Sup2)) {
-            capa?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+        Box(modifier.clipToBounds().background(FundoAnim), contentAlignment = Alignment.Center) {
+            capa?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize().graphicsLayer(scaleX = 1.12f, scaleY = 1.12f), contentScale = ContentScale.Fit) }
         }
         return true
     }
@@ -128,29 +130,36 @@ fun Animacao3D(id: String, modifier: Modifier = Modifier, animar: Boolean = true
             }
         }
     }
-    Box(modifier.background(Cor.Sup2)) {
+    Box(modifier.clipToBounds().background(FundoAnim)) {
         val f = folha
         if (f != null) {
             Canvas(Modifier.fillMaxSize()) { desenharQuadro(f, m, quadro) }
         } else {
             val capa by produceState<ImageBitmap?>(null, id) { value = withContext(Dispatchers.IO) { Animacoes3D.capa(ctx, id, 0) } }
-            capa?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+            capa?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize().graphicsLayer(scaleX = 1.12f, scaleY = 1.12f), contentScale = ContentScale.Fit) }
         }
     }
     return true
 }
 
+private val FundoAnim = androidx.compose.ui.graphics.Color(0xFF1B1713)
+
+/** Quadro inteiro na altura do espaço (corpo todo visível), com as laterais esfumadas no fundo. */
 private fun DrawScope.desenharQuadro(f: ImageBitmap, m: Animacoes3D.Meta, q: Int) {
     val x = (q % m.colunas) * m.lado
     val y = (q / m.colunas) * m.lado
-    // recorte central (preenche o espaço, mantendo proporção)
-    val alvoW = size.width; val alvoH = size.height
-    val escala = maxOf(alvoW / m.lado, alvoH / m.lado)
-    val srcW = (alvoW / escala).toInt().coerceAtMost(m.lado)
-    val srcH = (alvoH / escala).toInt().coerceAtMost(m.lado)
-    val sx = x + (m.lado - srcW) / 2
-    val sy = y + (m.lado - srcH) / 2
-    drawImage(f, srcOffset = IntOffset(sx, sy), srcSize = IntSize(srcW, srcH), dstSize = IntSize(alvoW.toInt(), alvoH.toInt()))
+    val lado = size.height * 1.12f
+    val esq = (size.width - lado) / 2f
+    val topo = (size.height - lado) / 2f
+    drawImage(f, srcOffset = IntOffset(x, y), srcSize = IntSize(m.lado, m.lado),
+        dstOffset = IntOffset(esq.toInt(), topo.toInt()), dstSize = IntSize(lado.toInt(), lado.toInt()))
+    if (esq > 0f) {
+        val faixa = lado * 0.12f
+        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(FundoAnim, FundoAnim.copy(alpha = 0f)), startX = esq, endX = esq + faixa),
+            topLeft = androidx.compose.ui.geometry.Offset(esq, 0f), size = androidx.compose.ui.geometry.Size(faixa, size.height))
+        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(FundoAnim.copy(alpha = 0f), FundoAnim), startX = esq + lado - faixa, endX = esq + lado),
+            topLeft = androidx.compose.ui.geometry.Offset(esq + lado - faixa, 0f), size = androidx.compose.ui.geometry.Size(faixa, size.height))
+    }
 }
 
 /** Aviso que aparece por alguns segundos no topo (ex.: conteúdo atualizado). */
