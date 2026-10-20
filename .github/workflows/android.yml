@@ -27,12 +27,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Chave de assinatura (se configurada nos secrets)
+        env:
+          KS: ${{ secrets.FORJA_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$RUNNER_TEMP/forja.jks"; echo "FORJA_KEYSTORE=$RUNNER_TEMP/forja.jks" >> "$GITHUB_ENV"; echo "assinando com a chave própria"; else echo "::warning::Sem FORJA_KEYSTORE_BASE64: release assinado com a chave de depuração"; fi
+
       - name: Compilar APKs
+        env:
+          FORJA_KEYSTORE_SENHA: ${{ secrets.FORJA_KEYSTORE_SENHA }}
+          FORJA_CHAVE_ALIAS: ${{ secrets.FORJA_CHAVE_ALIAS }}
+          FORJA_CHAVE_SENHA: ${{ secrets.FORJA_CHAVE_SENHA }}
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           chmod +x gradlew
           set -o pipefail
           ./gradlew assembleDebug assembleRelease --stacktrace 2>&1 | tee build.log
+          # pacote para a Play Store (AAB, sem o aviso de APK novo)
+          ./gradlew bundleRelease -Pplay --stacktrace 2>&1 | tee -a build.log
 
       - name: Mostrar erros de compilação
         if: failure()
@@ -68,8 +80,9 @@ jobs:
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/Forja-${{ github.run_number }}.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "dist/Forja-${{ github.run_number }}-debug.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "dist/Forja-${{ github.run_number }}-play.aab"
           files=$(find shots -type f -size +0 2>/dev/null | tr '\n' ' ')
-          gh release create "build-${{ github.run_number }}" dist/*.apk $files \
+          gh release create "build-${{ github.run_number }}" dist/* $files \
             --target "${{ github.sha }}" --prerelease \
             --title "Forja · build ${{ github.run_number }}" \
             --notes "APK do Forja (commit ${{ github.sha }}). Instale o Forja-${{ github.run_number }}.apk. Capturas automáticas do emulador anexadas."

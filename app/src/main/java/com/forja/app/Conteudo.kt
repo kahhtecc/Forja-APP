@@ -96,6 +96,7 @@ object Conteudo {
 
     /** Verifica se há APK mais novo publicado (GitHub Releases). */
     fun novaVersaoDoApp(): NovaVersao? {
+        if (BuildConfig.LOJA_PLAY) return null // na Play Store, as atualizações vêm da própria loja
         val b = baixar(RELEASES) ?: return null
         return runCatching {
             val lista = JSONArray(String(b))

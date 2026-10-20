@@ -55,14 +55,14 @@ jobs:
           xcrun simctl install "$dev" "$app"
           mkdir -p ../shots-ios
           for t in hoje plano sessao treino mobilidade exercicios exercicio:agachamento-barra progresso perfil quiz rotina:pre-corrida; do
-            xcrun simctl terminate "$dev" com.forja.app || true
-            xcrun simctl launch "$dev" com.forja.app -demo 1 -tela "$t"
+            xcrun simctl terminate "$dev" com.kaiquecupertino.forja || true
+            xcrun simctl launch "$dev" com.kaiquecupertino.forja -demo 1 -tela "$t"
             sleep 6
             xcrun simctl io "$dev" screenshot "../shots-ios/ios-${t//:/_}.png"
           done
           # primeira abertura (sem plano): questionário
-          xcrun simctl terminate "$dev" com.forja.app || true
-          xcrun simctl launch "$dev" com.forja.app
+          xcrun simctl terminate "$dev" com.kaiquecupertino.forja || true
+          xcrun simctl launch "$dev" com.kaiquecupertino.forja
           sleep 5
           xcrun simctl io "$dev" screenshot ../shots-ios/ios-boasvindas.png
           xcrun simctl spawn "$dev" log show --last 5m --predicate 'process == "Forja"' --style compact | grep -iE "fatal|crash" | head -20 || true

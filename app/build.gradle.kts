@@ -6,16 +6,29 @@ plugins {
 
 android {
     namespace = "com.forja.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.forja.app"
+        applicationId = "com.kaiquecupertino.forja"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         // No GitHub Actions o número da compilação vira a versão (usado no aviso de "nova versão disponível")
         val numero = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionCode = numero
         versionName = "1.$numero"
+        // Build da Play Store (-Pplay): sem aviso de APK novo (a Play proíbe app que se atualiza por fora dela)
+        buildConfigField("boolean", "LOJA_PLAY", if (project.hasProperty("play")) "true" else "false")
+    }
+
+    // Chave de assinatura própria (secrets do GitHub). Sem ela, assina com a chave de depuração.
+    val chave = System.getenv("FORJA_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (chave != null) create("forja") {
+            storeFile = chave
+            storePassword = System.getenv("FORJA_KEYSTORE_SENHA")
+            keyAlias = System.getenv("FORJA_CHAVE_ALIAS") ?: "forja"
+            keyPassword = System.getenv("FORJA_CHAVE_SENHA") ?: System.getenv("FORJA_KEYSTORE_SENHA")
+        }
     }
 
     buildTypes {
@@ -23,7 +36,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("forja") ?: signingConfigs.getByName("debug")
         }
     }
     compileOptions {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Instala o APK no emulador, abre cada tela em modo demo, tira capturas e testa interações reais.
 set -u
-PKG=com.forja.app
+PKG=com.kaiquecupertino.forja
 mkdir -p shots
 R=shots/resultado.txt
 : > "$R"
@@ -22,7 +22,7 @@ fecharAvisos() { # fecha diálogos de "não está respondendo" do sistema tocand
 shot() { fecharAvisos; adb exec-out screencap -p > "shots/$1.png"; }
 vivo() { adb shell pidof $PKG > /dev/null; }
 abrir() { # $1 nome  $2 tela  $3 demo(true/false)
-  adb shell am start -S -W -n $PKG/.MainActivity --ez demo "${3:-true}" --es screen "$2" > /dev/null 2>&1
+  adb shell am start -S -W -n $PKG/com.forja.app.MainActivity --ez demo "${3:-true}" --es screen "$2" > /dev/null 2>&1
   sleep "${4:-4}"
   if vivo; then shot "$1"; echo "OK $1" >> "$R"; else echo "CRASH $1" >> "$R"; fi
 }
