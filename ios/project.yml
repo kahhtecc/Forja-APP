@@ -20,10 +20,10 @@ targets:
       - path: ../app/src/main/assets/img
         type: folder
         buildPhase: resources
-      - path: ../app/src/main/assets/anim3d
+      - path: ../app/src/main/assets/video3d
         type: folder
         buildPhase: resources
-      - path: ../app/src/main/assets/conteudo_manifesto.json
+      - path: ../app/src/main/assets/conteudo2.json
         buildPhase: resources
       - path: ../app/src/main/assets/exercises.json
         buildPhase: resources

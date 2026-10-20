@@ -180,7 +180,9 @@ struct DetalheSessao<Extra: View>: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ZStack(alignment: .bottomLeading) {
-                        if let c = capaSessao(sessao).flatMap({ app.catalogo[$0] }), c.temImagem { FotoAsset(nome: "\(c.id)_0") } else { Cor.sup2 }
+                        if let c = capaSessao(sessao).flatMap({ app.catalogo[$0] }), Animacoes3D.shared.tem(c.id) {
+                            Animacao3DView(id: c.id)
+                        } else if let c = capaSessao(sessao).flatMap({ app.catalogo[$0] }), c.temImagem { FotoAsset(nome: "\(c.id)_0") } else { Cor.sup2 }
                         LinearGradient(stops: [.init(color: .black.opacity(0.35), location: 0), .init(color: .clear, location: 0.4), .init(color: Cor.fundo, location: 1)], startPoint: .top, endPoint: .bottom)
                         VStack(alignment: .leading, spacing: 4) {
                             Rotulo(cabecalho, cor)

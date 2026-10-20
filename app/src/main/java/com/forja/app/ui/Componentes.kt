@@ -111,7 +111,7 @@ fun DemoExercicio(ex: Exercicio, modifier: Modifier = Modifier, cor: Color = Cor
     val ctx = LocalContext.current
     val tem3d = remember(ex.id) { Animacoes3D.tem(ctx, ex.id) }
     if (tem3d) {
-        Box(modifier.clip(RoundedCornerShape(cantos)).background(Cor.Sup2).semantics { contentDescription = "Animação de ${ex.nome}" }) {
+        Box(modifier.clip(RoundedCornerShape(cantos)).background(Cor.Sup2).semantics { contentDescription = "Animação 3D de ${ex.nome}" }) {
             Animacao3D(ex.id, Modifier.fillMaxSize(), animar)
         }
         return

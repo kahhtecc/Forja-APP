@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -184,10 +185,11 @@ fun capaSessao(s: Sessao): String? =
 private fun Hero(vm: AppViewModel, s: Sessao, w: Int, fase: String, corM: Color, ehHoje: Boolean, onComecar: () -> Unit, onDetalhes: () -> Unit) {
     val cor = Cor.tipoSessao(s.tipo, corM)
     val capa = capaSessao(s)?.let { vm.catalogo[it] }
-    val img = imagemAsset(capa?.takeIf { it.temImagem }?.let { "img/${it.id}_1.webp" })
+    val img = imagemAsset(capa?.takeIf { it.temImagem && !Animacoes3D.tem(LocalContext.current, it.id) }?.let { "img/${it.id}_1.webp" })
     val forma = RoundedCornerShape(28.dp)
     Box(Modifier.fillMaxWidth().height(380.dp).clip(forma).background(Cor.Sup2).border(1.dp, Cor.Borda, forma).toque("Detalhes do treino ${s.titulo}", onDetalhes)) {
-        if (img != null) Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        val tem3d = capa != null && Animacao3D(capa.id, Modifier.fillMaxWidth().height(290.dp))
+        if (!tem3d && img != null) Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to Color.Black.copy(alpha = 0.45f), 0.38f to Color.Black.copy(alpha = 0.2f), 0.7f to Cor.Fundo.copy(alpha = 0.85f), 1f to Cor.Fundo)))
         Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(cor.copy(alpha = 0.22f), Color.Transparent))))
         Row(Modifier.padding(18.dp)) {

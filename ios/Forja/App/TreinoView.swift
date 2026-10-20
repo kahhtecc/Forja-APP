@@ -187,7 +187,7 @@ struct TreinoView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Rotulo("A seguir")
                     HStack(spacing: 14) {
-                        DemoExercicio(ex: prox.ex, cor: cor, cantos: 14).frame(width: 70, height: 70)
+                        DemoExercicio(ex: prox.ex, cor: cor, animar: false, cantos: 14).frame(width: 70, height: 70)
                         VStack(alignment: .leading) {
                             Text(prox.ex.nome).font(Tipo.corpoForte).lineLimit(2)
                             Text("\(prox.rotulo) · \(Roteiro.prescricao(prox.item).components(separatedBy: "× ").last ?? "")").font(Tipo.pequeno).foregroundStyle(Cor.texto2)

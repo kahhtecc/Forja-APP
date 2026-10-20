@@ -336,7 +336,7 @@ private fun Descanso(vm: AppViewModel, t: EstadoTreino, restante: Int, total: In
             Rotulo("A seguir")
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Cor.Sup1).border(1.dp, Cor.Borda, RoundedCornerShape(20.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                DemoExercicio(prox.ex, Modifier.size(70.dp), cor = cor, cantos = 14.dp)
+                DemoExercicio(prox.ex, Modifier.size(70.dp), cor = cor, animar = false, cantos = 14.dp)
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text(prox.ex.nome, style = Tipo.CorpoForte, color = Cor.Texto, maxLines = 2, overflow = TextOverflow.Ellipsis)

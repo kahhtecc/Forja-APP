@@ -1,6 +1,7 @@
 import SwiftUI
 import ForjaCore
 import UserNotifications
+import AVFoundation
 
 final class Preferencias: Armazenamento {
     private let d: UserDefaults
@@ -122,6 +123,8 @@ struct TreinoAlvo: Identifiable, Equatable {
 struct ForjaApp: App {
     @StateObject private var app = AppEstado()
     init() {
+        // vídeos das demonstrações não têm som: não interrompem a música de quem está treinando
+        try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor(Cor.texto)]
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor(Cor.texto), .font: UIFont(name: "Manrope-ExtraBold", size: 16) ?? .boldSystemFont(ofSize: 16)]
     }

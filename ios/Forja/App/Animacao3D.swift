@@ -1,88 +1,100 @@
 import SwiftUI
+import AVFoundation
 
-/// Animações 3D pré-renderizadas: folha de quadros (grade) por exercício em anim3d/<id>.webp + meta.json.
+/// Vídeos 3D (humano com os músculos trabalhados em destaque): video3d/<id>.mp4 + pôster video3d/<id>.webp + meta.json.
 final class Animacoes3D {
-    struct Meta { let quadros: Int, colunas: Int, lado: Int, fps: Double }
     static let shared = Animacoes3D()
-    private var meta: [String: Meta]?
-    private let quadros = NSCache<NSString, NSArray>()
+    private var ids: Set<String>?
+    private let posters = NSCache<NSString, UIImage>()
     private let trava = NSLock()
 
-    init() { quadros.countLimit = 4 }
+    init() { posters.countLimit = 80 }
 
-    func limpar() { trava.lock(); meta = nil; trava.unlock(); quadros.removeAllObjects() }
+    func limpar() { trava.lock(); ids = nil; trava.unlock(); posters.removeAllObjects() }
 
-    func metaDe(_ id: String) -> Meta? {
+    func tem(_ id: String) -> Bool {
         trava.lock(); defer { trava.unlock() }
-        if meta == nil {
-            var m: [String: Meta] = [:]
-            if let d = Conteudo.dados("anim3d/meta.json"), let o = try? JSONSerialization.jsonObject(with: d) as? [String: [String: Any]] {
-                for (k, x) in o {
-                    guard let f = x["f"] as? Int, let c = x["c"] as? Int, let s = x["s"] as? Int else { continue }
-                    m[k] = Meta(quadros: f, colunas: c, lado: s, fps: (x["fps"] as? NSNumber)?.doubleValue ?? 6)
-                }
-            }
-            meta = m
+        if ids == nil {
+            if let d = Conteudo.dados("video3d/meta.json"), let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] {
+                ids = Set(o.keys)
+            } else { ids = [] }
         }
-        return meta?[id]
+        return ids!.contains(id)
     }
 
-    func tem(_ id: String) -> Bool { metaDe(id) != nil }
-
-    /// Recorta a folha em quadros (feito uma vez por exercício, fora da thread principal).
-    func quadrosDe(_ id: String) -> [UIImage]? {
-        if let a = quadros.object(forKey: id as NSString) as? [UIImage] { return a }
-        guard let m = metaDe(id), let d = Conteudo.dados("anim3d/\(id).webp"), let folha = UIImage(data: d)?.cgImage else { return nil }
-        var lista: [UIImage] = []
-        for q in 0..<m.quadros {
-            let r = CGRect(x: (q % m.colunas) * m.lado, y: (q / m.colunas) * m.lado, width: m.lado, height: m.lado)
-            if let c = folha.cropping(to: r) { lista.append(UIImage(cgImage: c)) }
-        }
-        quadros.setObject(lista as NSArray, forKey: id as NSString)
-        return lista
+    func poster(_ id: String) -> UIImage? {
+        if let i = posters.object(forKey: id as NSString) { return i }
+        guard let d = Conteudo.dados("video3d/\(id).webp"), let i = UIImage(data: d) else { return nil }
+        posters.setObject(i, forKey: id as NSString)
+        return i
     }
 }
 
-/// Quadro inteiro na altura do espaço (corpo todo visível), laterais esfumadas no fundo.
-struct QuadroAnim: View {
-    let imagem: UIImage
-    var body: some View {
-        GeometryReader { g in
-            let lado = g.size.height * 1.12
-            Image(uiImage: imagem).resizable().frame(width: lado, height: lado)
-                .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.1),
-                                             .init(color: .black, location: 0.9), .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
-                .position(x: g.size.width / 2, y: g.size.height / 2)
-        }
-        .clipped()
-    }
-}
-
-/// Toca a animação 3D em loop (ou mostra o quadro do meio, se animar = false).
+/// Vídeo 3D em loop (ou só o pôster, se animar = false). O quadro ocupa a altura toda (corpo inteiro visível),
+/// com as laterais esfumadas no fundo.
 struct Animacao3DView: View {
     static let fundo = Color(red: 27 / 255, green: 23 / 255, blue: 19 / 255)
     let id: String
     var animar = true
-    @State private var lista: [UIImage]?
+    @State private var poster: UIImage?
 
     var body: some View {
-        let m = Animacoes3D.shared.metaDe(id)
-        ZStack {
-            Animacao3DView.fundo
-            if let lista, !lista.isEmpty, let m {
-                if animar {
-                    TimelineView(.animation(minimumInterval: 1 / m.fps, paused: false)) { ctx in
-                        let i = Int(ctx.date.timeIntervalSinceReferenceDate * m.fps) % lista.count
-                        QuadroAnim(imagem: lista[i])
-                    }
-                } else {
-                    QuadroAnim(imagem: lista[lista.count / 2])
+        GeometryReader { g in
+            let lado = g.size.height * 1.12
+            ZStack {
+                Animacao3DView.fundo
+                ZStack {
+                    if let p = poster { Image(uiImage: p).resizable() }
+                    if animar, let u = Conteudo.url("video3d/\(id).mp4") { VideoLoop(url: u) }
                 }
+                .frame(width: lado, height: lado)
+                .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.1),
+                                             .init(color: .black, location: 0.9), .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
+                .position(x: g.size.width / 2, y: g.size.height / 2)
             }
         }
+        .clipped()
         .task(id: id) {
             let alvo = id
-            lista = await Task.detached(priority: .userInitiated) { Animacoes3D.shared.quadrosDe(alvo) }.value
+            poster = await Task.detached(priority: .userInitiated) { Animacoes3D.shared.poster(alvo) }.value
         }
+    }
+}
+
+/// AVQueuePlayer + AVPlayerLooper: loop sem emenda, sem som e sem interromper a música do usuário.
+struct VideoLoop: UIViewRepresentable {
+    let url: URL
+
+    final class Vista: UIView {
+        override class var layerClass: AnyClass { AVPlayerLayer.self }
+        var camada: AVPlayerLayer { layer as! AVPlayerLayer }
+        var looper: AVPlayerLooper?
+        var observador: NSKeyValueObservation?
+    }
+
+    func makeUIView(context: Context) -> Vista {
+        let v = Vista()
+        v.backgroundColor = .clear
+        v.camada.videoGravity = .resizeAspect
+        v.alpha = 0
+        let player = AVQueuePlayer()
+        player.isMuted = true
+        player.preventsDisplaySleepDuringVideoPlayback = false
+        v.looper = AVPlayerLooper(player: player, templateItem: AVPlayerItem(url: url))
+        v.camada.player = player
+        v.observador = v.camada.observe(\.isReadyForDisplay, options: [.new]) { camada, _ in
+            if camada.isReadyForDisplay { DispatchQueue.main.async { UIView.animate(withDuration: 0.15) { v.alpha = 1 } } }
+        }
+        player.play()
+        return v
+    }
+
+    func updateUIView(_ v: Vista, context: Context) {}
+
+    static func dismantleUIView(_ v: Vista, coordinator: ()) {
+        v.camada.player?.pause()
+        v.looper?.disableLooping()
+        v.observador?.invalidate()
+        v.camada.player = nil
     }
 }

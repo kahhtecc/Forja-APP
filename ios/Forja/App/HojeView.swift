@@ -135,7 +135,9 @@ struct Heroi: View {
         let cor = Cor.tipoSessao(sessao.tipo, corM)
         let capa = capaSessao(sessao).flatMap { app.catalogo[$0] }
         ZStack(alignment: .bottomLeading) {
-            if let c = capa, c.temImagem { FotoAsset(nome: "\(c.id)_1") } else { Cor.sup2 }
+            if let c = capa, Animacoes3D.shared.tem(c.id) {
+                VStack(spacing: 0) { Animacao3DView(id: c.id).frame(height: 290); Animacao3DView.fundo }
+            } else if let c = capa, c.temImagem { FotoAsset(nome: "\(c.id)_1") } else { Cor.sup2 }
             LinearGradient(stops: [.init(color: .black.opacity(0.45), location: 0), .init(color: .black.opacity(0.2), location: 0.38),
                                    .init(color: Cor.fundo.opacity(0.85), location: 0.7), .init(color: Cor.fundo, location: 1)], startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {

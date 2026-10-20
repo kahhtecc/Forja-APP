@@ -45,7 +45,7 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
-    androidResources { noCompress += listOf("webp", "json") }
+    androidResources { noCompress += listOf("webp", "json", "mp4") }
 }
 
 dependencies {
@@ -60,4 +60,5 @@ dependencies {
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
 }

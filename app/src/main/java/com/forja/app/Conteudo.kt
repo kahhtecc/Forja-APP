@@ -18,7 +18,7 @@ import java.net.URL
  */
 object Conteudo {
     const val BASE = "https://raw.githubusercontent.com/kaiqueguimacuper-bit/teste-3/claude/personalized-workout-app-ou3pc2/app/src/main/assets/"
-    const val MANIFESTO = "conteudo_manifesto.json"
+    const val MANIFESTO = "conteudo2.json"
     private const val RELEASES = "https://api.github.com/repos/kaiqueguimacuper-bit/teste-3/releases?per_page=15"
 
     data class Manifesto(val versao: Int, val arquivos: Map<String, String>)
@@ -31,11 +31,20 @@ object Conteudo {
         return Manifesto(o.optInt("versao", 0), a.keys().asSequence().associateWith { a.getString(it) })
     }
 
-    fun embutido(ctx: Context): Manifesto =
-        runCatching { ler(ctx.assets.open(MANIFESTO).bufferedReader().use { it.readText() }) }.getOrDefault(Manifesto(0, emptyMap()))
+    @Volatile private var cacheEmb: Manifesto? = null
+    @Volatile private var cacheLoc: Pair<Long, Manifesto?>? = null
 
-    fun local(ctx: Context): Manifesto? =
-        File(pasta(ctx), MANIFESTO).takeIf { it.exists() }?.let { f -> runCatching { ler(f.readText()) }.getOrNull() }
+    fun embutido(ctx: Context): Manifesto = cacheEmb ?: runCatching { ler(ctx.assets.open(MANIFESTO).bufferedReader().use { it.readText() }) }
+        .getOrDefault(Manifesto(0, emptyMap())).also { cacheEmb = it }
+
+    fun local(ctx: Context): Manifesto? {
+        val f = File(pasta(ctx), MANIFESTO)
+        val marca = if (f.exists()) f.lastModified() else -1L
+        cacheLoc?.let { (m, v) -> if (m == marca) return v }
+        val v = if (marca < 0) null else runCatching { ler(f.readText()) }.getOrNull()
+        cacheLoc = marca to v
+        return v
+    }
 
     fun versaoAtual(ctx: Context): Int = maxOf(embutido(ctx).versao, local(ctx)?.versao ?: 0)
 
@@ -49,6 +58,15 @@ object Conteudo {
         }
         return runCatching { ctx.assets.open(caminho) }.getOrNull()
             ?: if (f.exists()) runCatching { f.inputStream() }.getOrNull() else null
+    }
+
+    /** Endereço para tocadores de mídia: o arquivo baixado, se for o mais novo, senão o embutido (asset:///). */
+    fun uri(ctx: Context, caminho: String): android.net.Uri {
+        val loc = local(ctx)
+        val emb = embutido(ctx)
+        val f = File(pasta(ctx), caminho)
+        val baixado = loc != null && loc.versao > emb.versao && f.exists() && loc.arquivos.containsKey(caminho) && loc.arquivos[caminho] != emb.arquivos[caminho]
+        return if (baixado || (!emb.arquivos.containsKey(caminho) && f.exists())) android.net.Uri.fromFile(f) else android.net.Uri.parse("asset:///$caminho")
     }
 
     fun existe(ctx: Context, caminho: String): Boolean = abrir(ctx, caminho)?.use { true } ?: false

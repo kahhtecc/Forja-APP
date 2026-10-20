@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -202,12 +203,14 @@ fun DetalheSessao(
     subtituloOverride: String? = null, extra: @Composable () -> Unit = {},
 ) {
     val capa = capaSessao(s)?.let { vm.catalogo[it] }
-    val img = imagemAsset(capa?.takeIf { it.temImagem }?.let { "img/${it.id}_0.webp" })
+    val img = imagemAsset(capa?.takeIf { it.temImagem && !Animacoes3D.tem(LocalContext.current, it.id) }?.let { "img/${it.id}_0.webp" })
     Box(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 120.dp)) {
             item {
                 Box(Modifier.fillMaxWidth().height(300.dp)) {
-                    if (img != null) Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    if (capa == null || !Animacao3D(capa.id, Modifier.fillMaxSize())) {
+                        if (img != null) Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    }
                     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to Color.Black.copy(alpha = 0.35f), 0.4f to Color.Transparent, 1f to Cor.Fundo)))
                     BotaoIcone(Icons.AutoMirrored.Rounded.ArrowBack, "Voltar", Modifier.padding(16.dp), fundo = Cor.Fundo.copy(alpha = 0.6f)) { nav.voltar() }
                     Column(Modifier.align(Alignment.BottomStart).padding(horizontal = 20.dp, vertical = 8.dp)) {

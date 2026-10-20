@@ -6,7 +6,7 @@ import CryptoKit
 /// Ao abrir, baixa o manifesto publicado; se a versão for maior, baixa só os arquivos que mudaram.
 enum Conteudo {
     static let base = URL(string: "https://raw.githubusercontent.com/kaiqueguimacuper-bit/teste-3/claude/personalized-workout-app-ou3pc2/app/src/main/assets/")!
-    static let manifesto = "conteudo_manifesto.json"
+    static let manifesto = "conteudo2.json"
 
     struct Manifesto: Decodable { let versao: Int; let arquivos: [String: String] }
 
@@ -34,6 +34,16 @@ enum Conteudo {
            let d = try? Data(contentsOf: f) { return d }
         if let u = embutidoURL(caminho), let d = try? Data(contentsOf: u) { return d }
         return try? Data(contentsOf: f)
+    }
+
+    /// Endereço do arquivo para tocadores de mídia: a cópia baixada, se for a mais nova, senão a embutida.
+    static func url(_ caminho: String) -> URL? {
+        let f = pasta.appendingPathComponent(caminho)
+        let emb = embutido
+        if let loc = local, loc.versao > emb.versao, let h = loc.arquivos[caminho], h != emb.arquivos[caminho],
+           FileManager.default.fileExists(atPath: f.path) { return f }
+        if let u = embutidoURL(caminho) { return u }
+        return FileManager.default.fileExists(atPath: f.path) ? f : nil
     }
 
     private static func sha1(_ d: Data) -> String { Insecure.SHA1.hash(data: d).map { String(format: "%02x", $0) }.joined() }
