@@ -1,0 +1,100 @@
+name: Animações 3D (render)
+
+# Renderiza as animações do boneco 3D em paralelo (Blender + MakeHuman CC0) e grava em app/src/main/assets/anim3d.
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "Só estes exercícios (vírgulas). Vazio = todos"
+        required: false
+        default: ""
+  push:
+    branches: [ "claude/**" ]
+    paths: [ "tools/anim3d/RENDER" ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: anim3d
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        parte: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Dependências
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libxi6 libxxf86vm1 libxfixes3 libxrender1 libgl1 libxkbcommon0 libsm6 libegl1 > /dev/null
+          pip install -q bpy==5.0.1 numpy pillow
+      - name: MakeHuman (CC0)
+        run: |
+          git clone -q --depth 1 --filter=blob:none --sparse https://github.com/makehumancommunity/makehuman.git "$RUNNER_TEMP/mh"
+          cd "$RUNNER_TEMP/mh" && git sparse-checkout set makehuman/apps makehuman/data/3dobjs makehuman/data/modifiers makehuman/data/rigs \
+            makehuman/data/targets/armslegs makehuman/data/targets/bodyshapes makehuman/data/targets/buttocks makehuman/data/targets/hip \
+            makehuman/data/targets/macrodetails makehuman/data/targets/measure makehuman/data/targets/neck makehuman/data/targets/pelvis \
+            makehuman/data/targets/stomach makehuman/data/targets/torso
+      - name: Renderizar parte ${{ matrix.parte }}
+        env:
+          IDS: ${{ github.event.inputs.ids }}
+        run: |
+          ids=$(python3 - <<PY
+          import json, os
+          todos = [a["id"] for f in ("lote1", "lote2", "lote3") for a in json.load(open(f"tools/anim/dados/{f}.json"))]
+          pedidos = [x for x in os.environ.get("IDS", "").split(",") if x]
+          if pedidos: todos = [x for x in todos if x in pedidos]
+          print(",".join(todos[${{ matrix.parte }}::16]))
+          PY
+          )
+          echo "ids: $ids"
+          [ -z "$ids" ] && exit 0
+          python tools/anim3d/humano.py --mh "$RUNNER_TEMP/mh/makehuman/data" \
+            --anim tools/anim/dados/lote1.json tools/anim/dados/lote2.json tools/anim/dados/lote3.json \
+            --ids "$ids" --saida saida --tam 320 --amostras 18 --fps 6 2>&1 | grep -E "pronto|Erro|Error|Traceback|^  File" || true
+          ls saida
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anim3d-${{ matrix.parte }}
+          path: saida/
+          if-no-files-found: ignore
+
+  juntar:
+    needs: render
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          path: partes
+      - name: Juntar e gravar no repositório
+        run: |
+          mkdir -p app/src/main/assets/anim3d
+          python3 - <<'PY'
+          import json, glob, os, shutil
+          destino = "app/src/main/assets/anim3d"
+          meta_p = os.path.join(destino, "meta.json")
+          meta = json.load(open(meta_p)) if os.path.exists(meta_p) else {}
+          for m in glob.glob("partes/*/meta.json"):
+              meta.update(json.load(open(m)))
+          for w in glob.glob("partes/*/*.webp"):
+              shutil.copy(w, destino)
+          meta = {k: v for k, v in meta.items() if os.path.exists(os.path.join(destino, f"{k}.webp"))}
+          json.dump(meta, open(meta_p, "w"), sort_keys=True)
+          print(len(meta), "animações")
+          PY
+          python3 tools/build_conteudo.py
+          du -sh app/src/main/assets/anim3d
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets
+          git commit -m "Animações 3D renderizadas (run ${{ github.run_number }})" || exit 0
+          for i in 1 2 3 4; do git pull --rebase -q && git push && break; sleep $((i*5)); done
