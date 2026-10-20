@@ -79,6 +79,21 @@ struct RaizView: View {
                 .environmentObject(app)
                 .presentationDetents([.large])
         }
+        .overlay(alignment: .top) {
+            if let t = app.aviso {
+                HStack(spacing: 12) {
+                    Image(systemName: "sparkles").foregroundStyle(Cor.brasa)
+                    Text(t).font(Tipo.pequenoForte).foregroundStyle(Cor.texto)
+                }
+                .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Cor.sup3, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Cor.brasa.opacity(0.5), lineWidth: 1))
+                .padding(.horizontal, 20).padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .task { try? await Task.sleep(nanoseconds: 4_500_000_000); withAnimation { app.aviso = nil } }
+            }
+        }
+        .animation(.spring(response: 0.4), value: app.aviso)
         .onAppear(perform: telaDeCaptura)
     }
 

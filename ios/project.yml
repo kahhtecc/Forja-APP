@@ -19,6 +19,11 @@ targets:
       - path: ../app/src/main/assets/img
         type: folder
         buildPhase: resources
+      - path: ../app/src/main/assets/anim3d
+        type: folder
+        buildPhase: resources
+      - path: ../app/src/main/assets/conteudo_manifesto.json
+        buildPhase: resources
       - path: ../app/src/main/assets/exercises.json
         buildPhase: resources
       - path: ../app/src/main/assets/fontes.json
@@ -30,7 +35,7 @@ targets:
       properties:
         CFBundleDisplayName: Forja
         CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen:
           UIColorName: Fundo
         UIAppFonts:

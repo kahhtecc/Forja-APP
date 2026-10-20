@@ -11,8 +11,17 @@ import com.forja.app.core.Questionario
 import com.forja.app.core.Registro
 import com.forja.app.core.Roteiro
 import com.forja.app.core.SerieFeita
+import com.forja.app.ui.Animacoes3D
 import org.json.JSONArray
 import java.time.LocalDate
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class Preferencias(ctx: Context, nome: String) : Armazenamento {
     private val sp = ctx.getSharedPreferences(nome, Context.MODE_PRIVATE)
@@ -25,11 +34,41 @@ class Preferencias(ctx: Context, nome: String) : Armazenamento {
 data class Fonte(val id: String, val titulo: String, val ano: Int, val url: String)
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
-    val catalogo: Catalogo = Catalogo.deJson(app.assets.open("exercises.json").bufferedReader().use { it.readText() })
-    val fontes: List<Fonte> = runCatching {
-        val a = JSONArray(app.assets.open("fontes.json").bufferedReader().use { it.readText() })
+    var catalogo: Catalogo = carregarCatalogo()
+        private set
+    var fontes: List<Fonte> = carregarFontes()
+        private set
+
+    /** Muda quando chega conteúdo novo pela internet — a interface é recriada com ele. */
+    var versaoConteudo by mutableIntStateOf(Conteudo.versaoAtual(app))
+        private set
+    var aviso by mutableStateOf<String?>(null)
+    var novaVersao by mutableStateOf<Conteudo.NovaVersao?>(null)
+        private set
+
+    private fun carregarCatalogo(): Catalogo =
+        Catalogo.deJson((Conteudo.abrir(getApplication(), "exercises.json") ?: getApplication<Application>().assets.open("exercises.json")).bufferedReader().use { it.readText() })
+
+    private fun carregarFontes(): List<Fonte> = runCatching {
+        val a = JSONArray(Conteudo.abrir(getApplication(), "fontes.json")!!.bufferedReader().use { it.readText() })
         (0 until a.length()).map { a.getJSONObject(it).let { o -> Fonte(o.optString("id"), o.optString("titulo"), o.optInt("ano"), o.optString("url")) } }
     }.getOrDefault(emptyList())
+
+    /** Procura exercícios/animações novos e versão nova do app, em segundo plano. */
+    fun verificarAtualizacoes() {
+        viewModelScope.launch {
+            val n = withContext(Dispatchers.IO) { runCatching { Conteudo.atualizar(getApplication()) }.getOrDefault(0) }
+            if (n > 0) {
+                catalogo = carregarCatalogo()
+                fontes = carregarFontes()
+                Animacoes3D.limpar()
+                loja = Loja(catalogo, Preferencias(getApplication(), if (demo) "forja_demo" else "forja")) { LocalDate.now().toEpochDay() }
+                versaoConteudo = Conteudo.versaoAtual(getApplication())
+                aviso = "Conteúdo atualizado: novos exercícios e animações já disponíveis."
+            }
+            novaVersao = withContext(Dispatchers.IO) { Conteudo.novaVersaoDoApp() }
+        }
+    }
 
     /** Treino em andamento (EstadoTreino), mantido ao abrir o vídeo ou girar a tela. */
     var treino: Any? = null
@@ -44,7 +83,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         this.demo = demo
         val arm = Preferencias(getApplication(), if (demo) "forja_demo" else "forja")
         loja = Loja(catalogo, arm) { LocalDate.now().toEpochDay() }
-        if (demo) semearDemo()
+        if (demo) semearDemo() else verificarAtualizacoes()
     }
 
     /** Perfil e histórico de exemplo para o modo demonstração (capturas e apresentação). */

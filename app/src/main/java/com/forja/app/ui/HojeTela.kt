@@ -84,6 +84,21 @@ fun TelaHoje(vm: AppViewModel, estado: Estado, nav: Navegador, onAba: (Aba) -> U
                 ) { Text(nome.take(1).uppercase().ifBlank { "F" }, style = Tipo.Titulo3, color = Color.White) }
             }
             Spacer(Modifier.height(14.dp))
+            vm.novaVersao?.let { nv ->
+                val ctxNv = androidx.compose.ui.platform.LocalContext.current
+                Cartao(Modifier.fillMaxWidth().padding(bottom = 14.dp), cor = Cor.Brasa.copy(alpha = 0.08f), borda = Cor.Brasa.copy(alpha = 0.4f), padding = PaddingValues(14.dp),
+                    onClick = { runCatching { ctxNv.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(nv.apk ?: nv.pagina)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } },
+                    descricao = "Baixar nova versão do app") {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconeRedondo(Icons.Rounded.Lightbulb, Cor.Brasa, 40.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("Nova versão do Forja disponível", style = Tipo.CorpoForte, color = Cor.Texto)
+                            Text("Toque para baixar a versão 1.${nv.numero}. Seus dados são mantidos.", style = Tipo.Pequeno, color = Cor.Texto2)
+                        }
+                    }
+                }
+            }
         }
         item {
             val (idx, ses) = when {

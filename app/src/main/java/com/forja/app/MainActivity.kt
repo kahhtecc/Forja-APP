@@ -8,6 +8,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
+import com.forja.app.ui.AvisoFlutuante
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.toArgb
 import com.forja.app.ui.App
@@ -30,10 +32,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             TemaForja {
                 CompositionLocalProvider(LocalContentColor provides Cor.Texto) {
-                    App(vm, telaInicial = tela, manterTela = { ligar ->
-                        if (ligar) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    })
+                    key(vm.versaoConteudo) {
+                        App(vm, telaInicial = tela, manterTela = { ligar ->
+                            if (ligar) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                            else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        })
+                    }
+                    AvisoFlutuante(vm.aviso) { vm.aviso = null }
                 }
             }
         }

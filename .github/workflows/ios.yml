@@ -1,0 +1,85 @@
+name: iOS
+
+on:
+  push:
+    branches: [ "claude/**", "main" ]
+    paths: [ "ios/**", "app/src/main/assets/**", ".github/workflows/ios.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Testes do núcleo (paridade com o Android)
+        working-directory: ios/ForjaCore
+        run: swift test 2>&1 | tail -40
+
+      - name: Gerar projeto (XcodeGen)
+        working-directory: ios
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Compilar para o simulador
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild -project Forja.xcodeproj -scheme Forja -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD" || true
+          grep -q "BUILD SUCCEEDED" build.log || { grep -E "error:" -A3 build.log | head -80 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
+
+      - name: Capturas no simulador
+        continue-on-error: true
+        working-directory: ios
+        run: |
+          set -x
+          dev=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone 16 Pro' in x['name']))")
+          xcrun simctl boot "$dev"; xcrun simctl bootstatus "$dev" -b
+          app=$(find build/Build/Products -name "Forja.app" -maxdepth 3 | head -1)
+          xcrun simctl install "$dev" "$app"
+          mkdir -p ../shots-ios
+          for t in hoje plano sessao treino mobilidade exercicios exercicio:agachamento-barra progresso perfil quiz rotina:pre-corrida; do
+            xcrun simctl terminate "$dev" com.forja.app || true
+            xcrun simctl launch "$dev" com.forja.app -demo 1 -tela "$t"
+            sleep 6
+            xcrun simctl io "$dev" screenshot "../shots-ios/ios-${t//:/_}.png"
+          done
+          # primeira abertura (sem plano): questionário
+          xcrun simctl terminate "$dev" com.forja.app || true
+          xcrun simctl launch "$dev" com.forja.app
+          sleep 5
+          xcrun simctl io "$dev" screenshot ../shots-ios/ios-boasvindas.png
+          xcrun simctl spawn "$dev" log show --last 5m --predicate 'process == "Forja"' --style compact | grep -iE "fatal|crash" | head -20 || true
+
+      - name: IPA (não assinado)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild -project Forja.xcodeproj -scheme Forja -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath build-dev \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build 2>&1 | tail -5
+          mkdir -p Payload
+          cp -R build-dev/Build/Products/Release-iphoneos/Forja.app Payload/
+          zip -qry "../Forja-ios-${{ github.run_number }}.ipa" Payload
+
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          files=$(find shots-ios -type f -size +0 2>/dev/null | tr '\n' ' ')
+          gh release create "ios-${{ github.run_number }}" Forja-ios-*.ipa $files \
+            --target "${{ github.sha }}" --prerelease \
+            --title "Forja iOS · build ${{ github.run_number }}" \
+            --notes "IPA não assinado do Forja para iPhone (commit ${{ github.sha }}). Instale com Sideloadly ou AltStore (assina com seu Apple ID). Capturas do simulador anexadas."

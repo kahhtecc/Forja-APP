@@ -54,3 +54,5 @@ Atualizado em 2026-10-20T01:30Z. Ordem de trabalho a partir daqui:
 5. iOS: terminar ios/Forja/App/QuestionarioView.swift + .github/workflows/ios.yml; push; revisar capturas.
 6. Build Android (push → Actions), revisar capturas, enviar APK, republicar web, zip, mensagem final.
 Aviso de retomada: trigger_id trig_01JKc5e2kUUn5BKN3KhkNL8M (remarcar com update_trigger a cada etapa; desativar no fim).
+- 01:35Z: usuário pediu animação MAIS REALISTA anatomicamente, com mais agentes → agente "anatomia" (em segundo plano) é dono de tools/anim3d/ (não editar humano.py enquanto ele roda); resultado esperado em scratchpad/anat_final.jpg. Se a sessão reiniciar e não houver anat_final.jpg, relançar agente com o mesmo objetivo.
+- Android: player de sprites 3D (ui/Animacao3D.kt) e conteúdo OTA (Conteudo.kt + tools/build_conteudo.py → assets/conteudo_manifesto.json) já escritos, ainda não compilados.

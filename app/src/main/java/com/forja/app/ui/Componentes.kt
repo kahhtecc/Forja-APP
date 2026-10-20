@@ -107,6 +107,15 @@ fun imagemAsset(caminho: String?): ImageBitmap? {
 /** Demonstração animada: alterna as fotos de início e fim do movimento em loop. */
 @Composable
 fun DemoExercicio(ex: Exercicio, modifier: Modifier = Modifier, cor: Color = Cor.Brasa, animar: Boolean = true, cantos: Dp = 20.dp) {
+    // Animação 3D (humano com os músculos trabalhados em destaque), quando existir para o exercício
+    val ctx = LocalContext.current
+    val tem3d = remember(ex.id) { Animacoes3D.tem(ctx, ex.id) }
+    if (tem3d) {
+        Box(modifier.clip(RoundedCornerShape(cantos)).background(Cor.Sup2).semantics { contentDescription = "Animação de ${ex.nome}" }) {
+            Animacao3D(ex.id, Modifier.fillMaxSize(), animar)
+        }
+        return
+    }
     val a = imagemAsset(if (ex.temImagem) "img/${ex.id}_0.webp" else null)
     val b = imagemAsset(if (ex.temImagem) "img/${ex.id}_1.webp" else null)
     val trans = rememberInfiniteTransition(label = "demo")

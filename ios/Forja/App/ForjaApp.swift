@@ -28,9 +28,9 @@ final class AppEstado: ObservableObject {
         func arg(_ nome: String) -> String? { args.firstIndex(of: "-" + nome).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
         demo = arg("demo") == "1"
         telaInicial = arg("tela")
-        let dados = try! Data(contentsOf: Bundle.main.url(forResource: "exercises", withExtension: "json")!)
+        let dados = Conteudo.dados("exercises.json") ?? (try! Data(contentsOf: Bundle.main.url(forResource: "exercises", withExtension: "json")!))
         catalogo = try! Catalogo.deJson(dados)
-        if let u = Bundle.main.url(forResource: "fontes", withExtension: "json"), let d = try? Data(contentsOf: u),
+        if let d = Conteudo.dados("fontes.json"),
            let a = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] {
             fontes = a.map { Fonte(id: $0["id"] as? String ?? UUID().uuidString, titulo: $0["titulo"] as? String ?? "", ano: $0["ano"] as? Int ?? 0, url: $0["url"] as? String ?? "") }
         } else { fontes = [] }
@@ -38,6 +38,19 @@ final class AppEstado: ObservableObject {
         e = loja.estado
         loja.aoMudar = { [weak self] novo in self?.e = novo }
         if demo { semearDemo() }
+        Task { await buscarConteudo() }
+    }
+
+    @Published var aviso: String?
+
+    /// Conteúdo novo (exercícios, animações) baixado em segundo plano; vale já para as animações e,
+    /// para o catálogo, na próxima abertura.
+    func buscarConteudo() async {
+        let n = await Conteudo.atualizar()
+        guard n > 0 else { return }
+        Animacoes3D.shared.limpar()
+        aviso = "Conteúdo atualizado: novas demonstrações disponíveis"
+        objectWillChange.send()
     }
 
     // Atalhos

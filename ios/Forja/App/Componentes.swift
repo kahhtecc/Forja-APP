@@ -25,7 +25,9 @@ struct DemoExercicio: View {
     var body: some View {
         ZStack {
             Cor.sup2
-            if ex.temImagem, let a = CacheImagens.shared.imagem("\(ex.id)_0"), let b = CacheImagens.shared.imagem("\(ex.id)_1") {
+            if Animacoes3D.shared.tem(ex.id) {
+                Animacao3DView(id: ex.id, animar: animar)
+            } else if ex.temImagem, let a = CacheImagens.shared.imagem("\(ex.id)_0"), let b = CacheImagens.shared.imagem("\(ex.id)_1") {
                 if animar {
                     TimelineView(.animation(minimumInterval: 1 / 30, paused: false)) { ctx in
                         let t = ctx.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 2.6) / 2.6
