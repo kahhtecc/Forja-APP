@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forja · Instalar</title>
+<meta name="theme-color" content="#0E0D0C">
+<link rel="icon" href="icone-192.png">
+<style>
+:root { --fundo: #0E0D0C; --sup: #161412; --borda: #35302A; --texto: #F2EBE0; --texto2: #A89E90; --brasa: #FF5B22; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --fundo: #FAF7F2; --sup: #FFFFFF; --borda: #E4DDD2; --texto: #1C1814; --texto2: #5E554B; --brasa: #D9471A; } }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 30px; line-height: 1.15; margin: 0 0 4px; } h2 { font-size: 19px; margin: 32px 0 8px; }
+p, li { color: var(--texto2); } strong { color: var(--texto); } a { color: var(--brasa); }
+.marca { color: var(--brasa); font-weight: 800; letter-spacing: .12em; font-size: 13px; }
+.caixa { background: var(--sup); border: 1px solid var(--borda); border-radius: 14px; padding: 4px 18px; margin-top: 20px; }
+
+ol li { margin: 6px 0; } .passo { background: var(--sup); border: 1px solid var(--borda); border-radius: 14px; padding: 6px 18px 12px; margin-top: 16px; }
+.etq { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .06em; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--brasa) 16%, transparent); color: var(--brasa); }
+.botao { display: inline-block; background: var(--brasa); color: #fff; text-decoration: none; font-weight: 800; padding: 12px 18px; border-radius: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<main>
+<div class="marca">FORJA</div>
+<h1>Instalar o Forja</h1>
+<p>Escolha o seu aparelho.</p>
+
+<h2>iPhone e iPad</h2>
+<div class="passo">
+<p><span class="etq">RECOMENDADO · GRÁTIS · SEM COMPUTADOR</span></p>
+<p><strong>App da Tela de Início.</strong> Fica com ícone próprio, abre em tela cheia, funciona offline depois da primeira abertura e se atualiza sozinho.</p>
+<ol>
+<li>Abra <a href="./">esta página do Forja</a> no <strong>Safari</strong>.</li>
+<li>Toque em <strong>Compartilhar</strong> (o quadrado com a seta para cima).</li>
+<li>Escolha <strong>Adicionar à Tela de Início</strong> e toque em <strong>Adicionar</strong>.</li>
+</ol>
+<a class="botao" href="./">Abrir o Forja</a>
+</div>
+<div class="passo">
+<p><span class="etq">APP NATIVO · PRECISA DE UM COMPUTADOR</span></p>
+<p><strong>Arquivo IPA com Sideloadly ou AltStore</strong>, assinado com o seu próprio Apple ID (gratuito). Com conta gratuita, a Apple exige reassinar a cada 7 dias. O Sideloadly e o AltStore fazem isso automaticamente com o computador na mesma rede Wi-Fi.</p>
+<ol>
+<li>Baixe o arquivo <strong>Forja-ios-N.ipa</strong> mais recente em <a href="https://github.com/kaiqueguimacuper-bit/teste-3/releases">Releases</a>.</li>
+<li>Instale o <a href="https://sideloadly.io">Sideloadly</a> (Windows ou Mac) e conecte o iPhone no cabo.</li>
+<li>Arraste o IPA para o Sideloadly, digite o seu Apple ID e clique em <strong>Start</strong>.</li>
+<li>No iPhone: <strong>Ajustes › Geral › VPN e Gerenciamento de Dispositivo</strong> › confie no seu Apple ID. No iOS 16 ou mais novo, ative também <strong>Ajustes › Privacidade e Segurança › Modo de Desenvolvedor</strong>.</li>
+</ol>
+</div>
+
+<h2>Android</h2>
+<div class="passo">
+<ol>
+<li>Baixe o <strong>Forja-N.apk</strong> mais recente em <a href="https://github.com/kaiqueguimacuper-bit/teste-3/releases">Releases</a> (o arquivo sem "debug").</li>
+<li>Abra o arquivo e permita a instalação quando o Android pedir.</li>
+</ol>
+<p>Quando o Forja estiver na Google Play, é só instalar por lá.</p>
+</div>
+
+<p style="margin-top:32px"><a href="privacidade.html">Política de privacidade</a></p>
+</main>
+</body>
+</html>

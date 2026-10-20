@@ -1,0 +1,40 @@
+name: Site (app web + privacidade)
+
+on:
+  push:
+    branches: [ "claude/**", "main" ]
+    paths: [ "web/**", "app/src/main/assets/anim3d/**", ".github/workflows/pages.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Montar o site
+        run: |
+          mkdir -p _site
+          cp -r web/. _site/
+          mkdir -p _site/anim3d
+          cp app/src/main/assets/anim3d/*.webp app/src/main/assets/anim3d/meta.json _site/anim3d/ 2>/dev/null || echo '{}' > _site/anim3d/meta.json
+          sed -i "s/forja-dev/forja-${{ github.run_number }}/" _site/sw.js
+          touch _site/.nojekyll
+          du -sh _site
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+      - id: deploy
+        uses: actions/deploy-pages@v4
