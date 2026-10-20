@@ -1,0 +1,2129 @@
+{
+ "_meta": {
+  "versao": "1.0",
+  "data": "2026-10-20",
+  "idioma": "pt-BR",
+  "nota": "Valores com 'convencao' em 'origem' são prática de treinadores dentro dos limites das fontes; os demais vêm diretamente das fontes citadas. Ver diretrizes.md."
+ },
+ "escala_rir_rpe": {
+  "mapa": {
+   "10": 0,
+   "9.5": 0.5,
+   "9": 1,
+   "8": 2,
+   "7": 3,
+   "6": 4,
+   "5": 5
+  },
+  "obs": "RPE baseada em RIR; iniciantes estimam RIR com menos precisão, usar RIR>=2.",
+  "fontes": [
+   "zourdos2016",
+   "helms2016"
+  ]
+ },
+ "musculacao": {
+  "hipertrofia": {
+   "iniciante": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     8,
+     12
+    ],
+    "descanso_s": [
+     60,
+     120
+    ],
+    "rir": [
+     2,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     6,
+     10
+    ],
+    "fontes": [
+     "acsm2009",
+     "schoenfeld2017",
+     "acsm2026"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     60,
+     75
+    ]
+   },
+   "intermediario": {
+    "series_por_exercicio": [
+     3,
+     4
+    ],
+    "reps": [
+     6,
+     12
+    ],
+    "descanso_s": [
+     60,
+     180
+    ],
+    "rir": [
+     1,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     10,
+     16
+    ],
+    "fontes": [
+     "nsca2016",
+     "schoenfeld2017",
+     "schoenfeld2019",
+     "schoenfeld2016rest"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     67,
+     85
+    ]
+   },
+   "avancado": {
+    "series_por_exercicio": [
+     3,
+     5
+    ],
+    "reps": [
+     6,
+     15
+    ],
+    "descanso_s": [
+     60,
+     180
+    ],
+    "rir": [
+     0,
+     2
+    ],
+    "series_semanais_por_grupo": [
+     12,
+     20
+    ],
+    "fontes": [
+     "nsca2016",
+     "schoenfeld2017",
+     "schoenfeld2021",
+     "robinson2024"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     60,
+     85
+    ],
+    "obs": "Compostos pesados: 2-3 min de descanso; isoladores 60-90 s."
+   }
+  },
+  "forca": {
+   "iniciante": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     6,
+     10
+    ],
+    "descanso_s": [
+     90,
+     180
+    ],
+    "rir": [
+     2,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     6,
+     10
+    ],
+    "fontes": [
+     "acsm2009"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     60,
+     80
+    ],
+    "obs": "ACSM: iniciantes 8-12 RM; usar 6-10 nos compostos."
+   },
+   "intermediario": {
+    "series_por_exercicio": [
+     3,
+     5
+    ],
+    "reps": [
+     3,
+     6
+    ],
+    "descanso_s": [
+     120,
+     300
+    ],
+    "rir": [
+     1,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     8,
+     14
+    ],
+    "fontes": [
+     "acsm2009",
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     80,
+     90
+    ]
+   },
+   "avancado": {
+    "series_por_exercicio": [
+     3,
+     6
+    ],
+    "reps": [
+     1,
+     6
+    ],
+    "descanso_s": [
+     180,
+     300
+    ],
+    "rir": [
+     1,
+     2
+    ],
+    "series_semanais_por_grupo": [
+     10,
+     16
+    ],
+    "fontes": [
+     "acsm2009",
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     4
+    ],
+    "carga_pct_1rm": [
+     85,
+     95
+    ],
+    "obs": "Periodizar; evitar falha em agachamento/terra."
+   }
+  },
+  "resistencia": {
+   "iniciante": {
+    "series_por_exercicio": [
+     1,
+     2
+    ],
+    "reps": [
+     12,
+     20
+    ],
+    "descanso_s": [
+     30,
+     60
+    ],
+    "rir": [
+     2,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     4,
+     8
+    ],
+    "fontes": [
+     "nsca2016",
+     "acsm2009"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     40,
+     67
+    ]
+   },
+   "intermediario": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     12,
+     25
+    ],
+    "descanso_s": [
+     30,
+     60
+    ],
+    "rir": [
+     1,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     6,
+     12
+    ],
+    "fontes": [
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     40,
+     67
+    ]
+   },
+   "avancado": {
+    "series_por_exercicio": [
+     2,
+     4
+    ],
+    "reps": [
+     15,
+     25
+    ],
+    "descanso_s": [
+     20,
+     45
+    ],
+    "rir": [
+     0,
+     2
+    ],
+    "series_semanais_por_grupo": [
+     8,
+     14
+    ],
+    "fontes": [
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     4
+    ],
+    "carga_pct_1rm": [
+     30,
+     67
+    ]
+   }
+  },
+  "emagrecimento": {
+   "iniciante": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     10,
+     15
+    ],
+    "descanso_s": [
+     45,
+     90
+    ],
+    "rir": [
+     2,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     6,
+     10
+    ],
+    "fontes": [
+     "bull2020",
+     "donnelly2009",
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "obs": "Circuitos permitidos; manter força para preservar massa magra."
+   },
+   "intermediario": {
+    "series_por_exercicio": [
+     3,
+     4
+    ],
+    "reps": [
+     8,
+     15
+    ],
+    "descanso_s": [
+     45,
+     90
+    ],
+    "rir": [
+     1,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     8,
+     14
+    ],
+    "fontes": [
+     "bull2020",
+     "donnelly2009",
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ]
+   },
+   "avancado": {
+    "series_por_exercicio": [
+     3,
+     4
+    ],
+    "reps": [
+     6,
+     15
+    ],
+    "descanso_s": [
+     60,
+     120
+    ],
+    "rir": [
+     1,
+     2
+    ],
+    "series_semanais_por_grupo": [
+     10,
+     16
+    ],
+    "fontes": [
+     "bull2020",
+     "donnelly2009",
+     "nsca2016"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ]
+   },
+   "cardio_min_semana": {
+    "manter_peso": [
+     150,
+     250
+    ],
+    "perda_significativa_min": 250,
+    "fontes": [
+     "donnelly2009"
+    ]
+   }
+  },
+  "saude": {
+   "iniciante": {
+    "series_por_exercicio": [
+     1,
+     2
+    ],
+    "reps": [
+     8,
+     15
+    ],
+    "descanso_s": [
+     60,
+     90
+    ],
+    "rir": [
+     2,
+     4
+    ],
+    "series_semanais_por_grupo": [
+     4,
+     6
+    ],
+    "fontes": [
+     "garber2011",
+     "bull2020"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     2
+    ]
+   },
+   "intermediario": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     8,
+     12
+    ],
+    "descanso_s": [
+     60,
+     90
+    ],
+    "rir": [
+     2,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     6,
+     10
+    ],
+    "fontes": [
+     "garber2011",
+     "bull2020"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ]
+   },
+   "avancado": {
+    "series_por_exercicio": [
+     2,
+     3
+    ],
+    "reps": [
+     8,
+     12
+    ],
+    "descanso_s": [
+     60,
+     120
+    ],
+    "rir": [
+     1,
+     3
+    ],
+    "series_semanais_por_grupo": [
+     8,
+     12
+    ],
+    "fontes": [
+     "garber2011",
+     "bull2020"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ]
+   }
+  },
+  "idosos_50mais": {
+   "todos": {
+    "series_por_exercicio": [
+     1,
+     3
+    ],
+    "reps": [
+     8,
+     12
+    ],
+    "descanso_s": [
+     60,
+     120
+    ],
+    "rir": [
+     2,
+     4
+    ],
+    "series_semanais_por_grupo": [
+     4,
+     10
+    ],
+    "fontes": [
+     "fragala2019",
+     "bull2020"
+    ],
+    "frequencia_semanal_por_grupo": [
+     2,
+     3
+    ],
+    "carga_pct_1rm": [
+     70,
+     85
+    ],
+    "obs": "Começar leve (40-60% ou RPE 5-6) e progredir até 70-85%; incluir potência (concêntrica rápida) e equilíbrio >=3 dias/sem."
+   }
+  },
+  "progressao": {
+   "tipo": "dupla_progressao",
+   "incremento_carga_pct": [
+    2,
+    10
+   ],
+   "gatilho": "completar topo da faixa de reps em todas as séries com RIR-alvo (ou +1-2 reps acima da faixa)",
+   "fontes": [
+    "acsm2009"
+   ]
+  },
+  "deload": {
+   "a_cada_semanas": [
+    4,
+    8
+   ],
+   "duracao_dias": [
+    5,
+    7
+   ],
+   "reducao_series_pct": [
+    40,
+    50
+   ],
+   "manter_frequencia": true,
+   "dados_survey": {
+    "duracao_media_dias": 6.4,
+    "intervalo_medio_semanas": 5.6
+   },
+   "iniciante_opcional": true,
+   "origem": "convencao (survey como referência)",
+   "fontes": [
+    "bell2023",
+    "rogerson2024"
+   ]
+  },
+  "frequencia_sessoes_por_nivel": {
+   "iniciante": [
+    2,
+    3
+   ],
+   "intermediario": [
+    3,
+    4
+   ],
+   "avancado": [
+    4,
+    5
+   ],
+   "fontes": [
+    "acsm2009"
+   ]
+  },
+  "max_series_duras_por_grupo_por_sessao": 10,
+  "max_series_origem": "convencao"
+ },
+ "divisoes": {
+  "2": {
+   "nome": "Full body A/B",
+   "dias": [
+    [
+     "full_a"
+    ],
+    [
+     "full_b"
+    ]
+   ]
+  },
+  "3": {
+   "nome": "Full body A/B/A (iniciante) ou Full body x3 com ênfases",
+   "dias": [
+    [
+     "full_a"
+    ],
+    [
+     "full_b"
+    ],
+    [
+     "full_a"
+    ]
+   ]
+  },
+  "4": {
+   "nome": "Upper/Lower x2",
+   "dias": [
+    [
+     "upper"
+    ],
+    [
+     "lower"
+    ],
+    [
+     "upper"
+    ],
+    [
+     "lower"
+    ]
+   ]
+  },
+  "5": {
+   "nome": "Upper/Lower/Push/Pull/Legs",
+   "dias": [
+    [
+     "upper"
+    ],
+    [
+     "lower"
+    ],
+    [
+     "push"
+    ],
+    [
+     "pull"
+    ],
+    [
+     "legs"
+    ]
+   ]
+  },
+  "6": {
+   "nome": "Push/Pull/Legs x2",
+   "dias": [
+    [
+     "push"
+    ],
+    [
+     "pull"
+    ],
+    [
+     "legs"
+    ],
+    [
+     "push"
+    ],
+    [
+     "pull"
+    ],
+    [
+     "legs"
+    ]
+   ]
+  },
+  "regra": "cada grupo >=2x/semana",
+  "origem": "convencao",
+  "fontes": [
+   "schoenfeld2019",
+   "acsm2026"
+  ]
+ },
+ "aquecimento": {
+  "modelo": "RAMP",
+  "fases": [
+   "Raise: 3-5 min cardio leve",
+   "Activate/Mobilise: mobilidade dinâmica + ativação",
+   "Potentiate: séries de aproximação/acelerações"
+  ],
+  "duracao_min": [
+   5,
+   10
+  ],
+  "duracao_min_atletas": [
+   15,
+   20
+  ],
+  "alongamento_estatico_max_s_por_grupo": 60,
+  "desaquecimento_min": 5,
+  "fontes": [
+   "jeffreys2007",
+   "behm2016",
+   "nhsc25k"
+  ]
+ },
+ "corrida": {
+  "distribuicao_intensidade": {
+   "leve_pct": 80,
+   "moderado_forte_pct": 20,
+   "fontes": [
+    "seiler2010"
+   ]
+  },
+  "zonas": [
+   {
+    "zona": 1,
+    "nome": "Muito leve / recuperação",
+    "teste_fala": "conversa fácil",
+    "rpe": [
+     2,
+     3
+    ]
+   },
+   {
+    "zona": 2,
+    "nome": "Leve / aeróbio",
+    "teste_fala": "frases completas",
+    "rpe": [
+     3,
+     4
+    ]
+   },
+   {
+    "zona": 3,
+    "nome": "Moderado / limiar (tempo run)",
+    "teste_fala": "frases curtas",
+    "rpe": [
+     5,
+     7
+    ]
+   },
+   {
+    "zona": 4,
+    "nome": "Forte / VO2",
+    "teste_fala": "poucas palavras",
+    "rpe": [
+     8,
+     9
+    ]
+   },
+   {
+    "zona": 5,
+    "nome": "Máximo / sprint",
+    "teste_fala": "não fala",
+    "rpe": [
+     9,
+     10
+    ]
+   }
+  ],
+  "zonas_fontes": [
+   "seiler2010",
+   "reedpipe2014"
+  ],
+  "zonas_origem": "convencao (mapeamento RPE)",
+  "progressao_volume": {
+   "aumento_semanal_max_pct": 20,
+   "aumento_conservador_pct": 10,
+   "semana_leve_a_cada": [
+    3,
+    4
+   ],
+   "alerta": ">30% em 2 semanas associado a mais lesões (tendência)",
+   "regra_10pct_comprovada": false,
+   "origem": "convencao",
+   "fontes": [
+    "buist2008",
+    "nielsen2014"
+   ]
+  },
+  "caminhada_corrida_iniciante": {
+   "nome": "estilo Couch to 5K",
+   "semanas": 9,
+   "sessoes_semana": 3,
+   "semana1": {
+    "aquecimento_caminhada_min": 5,
+    "correr_s": 60,
+    "caminhar_s": 90,
+    "duracao_bloco_min": 20,
+    "desaquecimento_min": 5
+   },
+   "meta_final_corrida_continua_min": 30,
+   "fontes": [
+    "nhsc25k"
+   ]
+  },
+  "taper": {
+   "reducao_volume_pct": [
+    41,
+    60
+   ],
+   "duracao_dias": [
+    8,
+    14
+   ],
+   "manter_intensidade": true,
+   "maratona_dias_convencao": [
+    14,
+    21
+   ],
+   "fontes": [
+    "bosquet2007"
+   ]
+  },
+  "planos": {
+   "5k": {
+    "iniciante": {
+     "semanas": 9,
+     "sessoes": 3,
+     "modelo": "caminhada_corrida_iniciante",
+     "estrutura_semana": [
+      "intervalado caminhada/corrida",
+      "descanso",
+      "intervalado caminhada/corrida",
+      "descanso",
+      "intervalado caminhada/corrida (mais longo)"
+     ]
+    },
+    "intermediario": {
+     "semanas": [
+      6,
+      8
+     ],
+     "sessoes": [
+      3,
+      4
+     ],
+     "longao_km": [
+      6,
+      10
+     ],
+     "estrutura_semana": [
+      "tiros 6-8x400m Z4 (rec 90s)",
+      "rodagem Z2 30-40min",
+      "tempo run 15-20min Z3",
+      "longão Z2"
+     ]
+    },
+    "avancado": {
+     "semanas": [
+      6,
+      8
+     ],
+     "sessoes": [
+      4,
+      6
+     ],
+     "longao_km": [
+      8,
+      12
+     ],
+     "estrutura_semana": [
+      "tiros 5x1km Z4",
+      "rodagem Z2",
+      "tempo run 20-25min Z3",
+      "rodagem Z2 + educativos/strides",
+      "longão Z2",
+      "regenerativo Z1 opcional"
+     ]
+    }
+   },
+   "10k": {
+    "iniciante": {
+     "semanas": [
+      8,
+      10
+     ],
+     "sessoes": 3,
+     "prerequisito": "correr 30 min contínuos",
+     "longao_km": [
+      6,
+      10
+     ],
+     "estrutura_semana": [
+      "rodagem Z2 + 4-6 strides",
+      "fartlek leve 6x1min Z3-4",
+      "longão Z2"
+     ]
+    },
+    "intermediario": {
+     "semanas": [
+      8,
+      10
+     ],
+     "sessoes": 4,
+     "longao_km": [
+      10,
+      14
+     ],
+     "estrutura_semana": [
+      "tiros 5-6x800m-1km Z4",
+      "rodagem Z2",
+      "tempo run 20-30min Z3",
+      "longão Z2"
+     ]
+    },
+    "avancado": {
+     "semanas": [
+      8,
+      10
+     ],
+     "sessoes": [
+      5,
+      6
+     ],
+     "longao_km": [
+      12,
+      16
+     ],
+     "estrutura_semana": [
+      "tiros 6x1km Z4",
+      "rodagem Z2",
+      "tempo run 30min Z3",
+      "rodagem Z2",
+      "longão Z2",
+      "regenerativo Z1"
+     ]
+    }
+   },
+   "21k": {
+    "iniciante": {
+     "semanas": 12,
+     "sessoes": [
+      3,
+      4
+     ],
+     "prerequisito": "correr ~10 km",
+     "longao_km": [
+      16,
+      18
+     ],
+     "estrutura_semana": [
+      "rodagem Z2",
+      "tempo run 15-25min Z3",
+      "rodagem Z2 (opcional)",
+      "longão Z2 progressivo"
+     ]
+    },
+    "intermediario": {
+     "semanas": 12,
+     "sessoes": [
+      4,
+      5
+     ],
+     "longao_km": [
+      18,
+      20
+     ],
+     "estrutura_semana": [
+      "tiros 5x1-2km Z4",
+      "rodagem Z2",
+      "tempo run 30-40min Z3 / ritmo de prova",
+      "rodagem Z2",
+      "longão Z2"
+     ]
+    },
+    "avancado": {
+     "semanas": [
+      12,
+      14
+     ],
+     "sessoes": [
+      5,
+      6
+     ],
+     "longao_km": [
+      18,
+      22
+     ],
+     "estrutura_semana": [
+      "tiros Z4",
+      "rodagem Z2",
+      "tempo/ritmo de prova",
+      "rodagem Z2",
+      "longão com trecho em ritmo de prova",
+      "regenerativo Z1"
+     ]
+    }
+   },
+   "42k": {
+    "iniciante": {
+     "semanas": [
+      16,
+      20
+     ],
+     "sessoes": 4,
+     "prerequisito": "~30 km/semana e já ter completado 21k",
+     "longao_km": [
+      30,
+      32
+     ],
+     "estrutura_semana": [
+      "rodagem Z2",
+      "tempo run Z3 / ritmo de maratona",
+      "rodagem Z2",
+      "longão Z2"
+     ]
+    },
+    "intermediario": {
+     "semanas": [
+      16,
+      18
+     ],
+     "sessoes": [
+      4,
+      5
+     ],
+     "longao_km": [
+      30,
+      35
+     ],
+     "estrutura_semana": [
+      "tiros/limiar",
+      "rodagem Z2",
+      "ritmo de maratona 8-16km",
+      "rodagem Z2",
+      "longão Z2"
+     ]
+    },
+    "avancado": {
+     "semanas": [
+      16,
+      18
+     ],
+     "sessoes": [
+      5,
+      6
+     ],
+     "longao_km": [
+      32,
+      35
+     ],
+     "estrutura_semana": [
+      "tiros Z4",
+      "rodagem Z2",
+      "ritmo de maratona",
+      "rodagem Z2",
+      "longão com blocos em ritmo de maratona",
+      "regenerativo Z1"
+     ]
+    }
+   },
+   "origem": "convencao (estrutura por treinadores, respeitando 80/20, progressão gradual e taper)",
+   "fontes": [
+    "seiler2010",
+    "nielsen2014",
+    "bosquet2007",
+    "nhsc25k"
+   ]
+  }
+ },
+ "ciclismo": {
+  "zonas_coggan": [
+   {
+    "zona": 1,
+    "nome": "Recuperação ativa",
+    "ftp_pct": [
+     0,
+     55
+    ],
+    "rpe": [
+     1,
+     2
+    ]
+   },
+   {
+    "zona": 2,
+    "nome": "Endurance",
+    "ftp_pct": [
+     56,
+     75
+    ],
+    "rpe": [
+     2,
+     3
+    ]
+   },
+   {
+    "zona": 3,
+    "nome": "Tempo",
+    "ftp_pct": [
+     76,
+     90
+    ],
+    "rpe": [
+     3,
+     4
+    ]
+   },
+   {
+    "zona": 4,
+    "nome": "Limiar de lactato",
+    "ftp_pct": [
+     91,
+     105
+    ],
+    "rpe": [
+     4,
+     5
+    ]
+   },
+   {
+    "zona": 5,
+    "nome": "VO2máx",
+    "ftp_pct": [
+     106,
+     120
+    ],
+    "rpe": [
+     6,
+     7
+    ]
+   },
+   {
+    "zona": 6,
+    "nome": "Capacidade anaeróbia",
+    "ftp_pct": [
+     121,
+     150
+    ],
+    "rpe": [
+     7,
+     9
+    ]
+   },
+   {
+    "zona": 7,
+    "nome": "Neuromuscular",
+    "ftp_pct": [
+     151,
+     300
+    ],
+    "rpe": [
+     9,
+     10
+    ]
+   }
+  ],
+  "rpe_obs": "RPE na escala 0-10 de Allen & Coggan aproximada (z1-z7); usar teste da fala quando sem potenciômetro.",
+  "sweet_spot_ftp_pct": [
+   88,
+   94
+  ],
+  "teste_ftp": {
+   "tipo": "20min",
+   "fator": 0.95,
+   "obs": "aquecer 15-20 min; pode superestimar o limiar em alguns ciclistas"
+  },
+  "treinos": [
+   {
+    "id": "endurance",
+    "nome": "Endurance Z2",
+    "blocos": [
+     {
+      "reps": 1,
+      "min": [
+       45,
+       180
+      ],
+      "ftp_pct": [
+       56,
+       75
+      ]
+     }
+    ]
+   },
+   {
+    "id": "sweet_spot",
+    "nome": "Sweet spot",
+    "blocos": [
+     {
+      "reps": [
+       2,
+       3
+      ],
+      "min": [
+       10,
+       20
+      ],
+      "ftp_pct": [
+       88,
+       94
+      ],
+      "rec_min": 5
+     }
+    ]
+   },
+   {
+    "id": "limiar",
+    "nome": "Limiar",
+    "blocos": [
+     {
+      "reps": [
+       2,
+       3
+      ],
+      "min": [
+       10,
+       20
+      ],
+      "ftp_pct": [
+       95,
+       105
+      ],
+      "rec_min": 5
+     }
+    ]
+   },
+   {
+    "id": "vo2max",
+    "nome": "VO2máx 5x3-5",
+    "blocos": [
+     {
+      "reps": 5,
+      "min": [
+       3,
+       5
+      ],
+      "ftp_pct": [
+       106,
+       120
+      ],
+      "rec_igual_trabalho": true
+     }
+    ]
+   },
+   {
+    "id": "anaerobio",
+    "nome": "Sprints/anaeróbio",
+    "blocos": [
+     {
+      "reps": [
+       6,
+       10
+      ],
+      "s": 30,
+      "ftp_pct": [
+       121,
+       150
+      ],
+      "rec_min": 4
+     }
+    ]
+   },
+   {
+    "id": "cadencia",
+    "nome": "Drills de cadência",
+    "blocos": [
+     {
+      "reps": [
+       4,
+       6
+      ],
+      "min": 1,
+      "rpm": [
+       100,
+       110
+      ],
+      "ftp_pct": [
+       56,
+       75
+      ],
+      "rec_min": 2
+     }
+    ]
+   },
+   {
+    "id": "forca_subida",
+    "nome": "Força no pedal (subida)",
+    "blocos": [
+     {
+      "reps": [
+       4,
+       6
+      ],
+      "min": [
+       3,
+       5
+      ],
+      "rpm": [
+       55,
+       70
+      ],
+      "ftp_pct": [
+       80,
+       95
+      ],
+      "rec_min": 3
+     }
+    ]
+   }
+  ],
+  "estrutura_semanal": {
+   "iniciante": {
+    "sessoes": [
+     2,
+     3
+    ],
+    "qualidade": 1,
+    "composicao": [
+     "sweet_spot ou tempo",
+     "endurance",
+     "endurance (opcional)"
+    ]
+   },
+   "intermediario": {
+    "sessoes": [
+     3,
+     4
+    ],
+    "qualidade": 2,
+    "composicao": [
+     "sweet_spot/limiar",
+     "vo2max",
+     "endurance longo",
+     "endurance"
+    ]
+   },
+   "avancado": {
+    "sessoes": [
+     5,
+     6
+    ],
+    "qualidade": 2,
+    "composicao": [
+     "limiar",
+     "vo2max",
+     "endurance longo",
+     "endurance",
+     "recuperação",
+     "cadência/força"
+    ]
+   }
+  },
+  "treinos_origem": "convencao",
+  "fontes": [
+   "allencoggan2019",
+   "seiler2010"
+  ]
+ },
+ "luta": {
+  "rounds_especificos": {
+   "boxe": {
+    "trabalho_s": 180,
+    "descanso_s": 60,
+    "rounds_amador": 3
+   },
+   "muay_thai": {
+    "trabalho_s": 180,
+    "descanso_s": 60,
+    "rounds": [
+     3,
+     5
+    ]
+   },
+   "mma": {
+    "trabalho_s": 300,
+    "descanso_s": 60,
+    "rounds": [
+     3,
+     5
+    ]
+   },
+   "jiu_jitsu": {
+    "trabalho_s": [
+     300,
+     600
+    ],
+    "descanso_s": 60,
+    "obs": "duração da luta varia por faixa/federação"
+   },
+   "judo": {
+    "trabalho_s": 240,
+    "descanso_s": 60
+   },
+   "wrestling": {
+    "trabalho_s": 180,
+    "descanso_s": 30,
+    "obs": "2 períodos de 3 min (estilo olímpico)"
+   },
+   "origem": "regras usuais das modalidades; conferir regra da federação"
+  },
+  "forca": {
+   "sessoes_semana": [
+    2,
+    3
+   ],
+   "series": [
+    3,
+    5
+   ],
+   "reps": [
+    3,
+    6
+   ],
+   "rir": [
+    1,
+    3
+   ],
+   "descanso_s": [
+    120,
+    240
+   ]
+  },
+  "potencia": {
+   "series": [
+    3,
+    5
+   ],
+   "reps": [
+    3,
+    5
+   ],
+   "descanso_s": [
+    120,
+    180
+   ],
+   "exemplos": [
+    "arremesso-medicine",
+    "passe-medicine",
+    "arremesso-rotacional",
+    "box-jump",
+    "salto-distancia"
+   ]
+  },
+  "base_aerobia_sessoes": [
+   1,
+   2
+  ],
+  "pescoco": {
+   "sessoes_semana": [
+    2,
+    3
+   ],
+   "tipo": "isométricos progressivos",
+   "evidencia": "associativa",
+   "fontes": [
+    "collins2014"
+   ]
+  },
+  "pre_luta": {
+   "reducao_volume_dias": [
+    7,
+    14
+   ],
+   "manter_intensidade": true,
+   "sem_exercicios_novos_semana_da_luta": true,
+   "fontes": [
+    "bosquet2007"
+   ]
+  },
+  "origem": "convencao",
+  "fontes": [
+   "james2016",
+   "chaabene2015",
+   "turner2009",
+   "labounty2011",
+   "nsca2016"
+  ]
+ },
+ "atleta": {
+  "periodizacao": {
+   "modelos": [
+    "linear",
+    "ondulatoria",
+    "blocos"
+   ],
+   "efeito_vs_nao_periodizado": "moderado (maior em não treinados)",
+   "fontes": [
+    "williams2017"
+   ]
+  },
+  "pliometria_contatos_por_sessao": {
+   "iniciante": [
+    80,
+    100
+   ],
+   "intermediario": [
+    100,
+    120
+   ],
+   "avancado": [
+    120,
+    140
+   ],
+   "avancado_max_alta_intensidade": 200,
+   "obs": "volume ótimo não definido por pesquisa",
+   "fontes": [
+    "potachchu2008",
+    "chumyer2013"
+   ]
+  },
+  "velocidade": {
+   "distancia_m": [
+    10,
+    40
+   ],
+   "reps": [
+    6,
+    10
+   ],
+   "recuperacao": "completa",
+   "origem": "convencao"
+  },
+  "prevencao": {
+   "fifa11plus": {
+    "sessoes_semana": [
+     2,
+     3
+    ],
+    "min": 20,
+    "fontes": [
+     "soligard2008"
+    ]
+   },
+   "nordic_hamstring": {
+    "reducao_lesao_ate_pct": 51,
+    "fontes": [
+     "vandyk2019"
+    ]
+   }
+  },
+  "fontes": [
+   "williams2017",
+   "potachchu2008",
+   "chumyer2013",
+   "soligard2008",
+   "vandyk2019",
+   "nsca2016"
+  ]
+ },
+ "hiit": {
+  "tabata_original": {
+   "trabalho_s": 20,
+   "pausa_s": 10,
+   "esforcos": [
+    7,
+    8
+   ],
+   "intensidade_vo2max_pct": 170,
+   "modalidade": "cicloergômetro"
+  },
+  "frequencia_semana": [
+   2,
+   3
+  ],
+  "nao_consecutivo_iniciante": true,
+  "parte_principal_min": [
+   10,
+   25
+  ],
+  "progressao_razao_trabalho_pausa": {
+   "iniciante": "1:2",
+   "intermediario": "1:1",
+   "avancado": "2:1"
+  },
+  "vs_continuo": "perda de gordura semelhante com ~40% menos tempo",
+  "origem_frequencia": "convencao",
+  "fontes": [
+   "tabata1996",
+   "wewege2017"
+  ]
+ },
+ "mobilidade": {
+  "estatico": {
+   "duracao_s": [
+    10,
+    30
+   ],
+   "repeticoes": [
+    2,
+    4
+   ],
+   "total_s_por_exercicio": 60,
+   "dias_semana_min": 2,
+   "fontes": [
+    "garber2011"
+   ]
+  },
+  "aquecimento": {
+   "preferir": "dinâmico",
+   "estatico_max_s_por_grupo": 60,
+   "fontes": [
+    "behm2016"
+   ]
+  },
+  "neuromotor": {
+   "dias_semana": [
+    2,
+    3
+   ],
+   "min": [
+    20,
+    30
+   ],
+   "fontes": [
+    "garber2011"
+   ]
+  }
+ },
+ "saude_geral": {
+  "adultos": {
+   "aerobio_moderado_min_semana": [
+    150,
+    300
+   ],
+   "aerobio_vigoroso_min_semana": [
+    75,
+    150
+   ],
+   "forca_dias_semana_min": 2,
+   "fontes": [
+    "bull2020"
+   ]
+  },
+  "idosos": {
+   "aerobio_moderado_min_semana": [
+    150,
+    300
+   ],
+   "aerobio_vigoroso_min_semana": [
+    75,
+    150
+   ],
+   "forca_dias_semana_min": 2,
+   "multicomponente_equilibrio_dias_semana_min": 3,
+   "reducao_quedas_pct": 23,
+   "fontes": [
+    "bull2020",
+    "sherrington2019",
+    "fragala2019",
+    "chodzkozajko2009"
+   ]
+  },
+  "parq": {
+   "perguntas": [
+    "Algum médico já disse que você tem um problema no coração ou pressão alta?",
+    "Você sente dor no peito em repouso, nas atividades do dia a dia ou quando faz atividade física?",
+    "Você perde o equilíbrio por causa de tontura ou perdeu a consciência nos últimos 12 meses? (Responda NÃO se a tontura foi por respirar rápido demais, inclusive em exercício intenso.)",
+    "Você já foi diagnosticado(a) com outra doença crônica (além de doença cardíaca ou pressão alta)?",
+    "Você toma atualmente remédios prescritos para alguma doença crônica?",
+    "Você tem atualmente (ou teve nos últimos 12 meses) problema em osso, articulação ou tecido mole (músculo, ligamento ou tendão) que poderia piorar se você ficasse mais ativo(a)? (Responda NÃO se o problema foi no passado e não limita sua atividade atual.)",
+    "Algum médico já disse que você só deve fazer atividade física com supervisão médica?"
+   ],
+   "traducao": "livre, a partir do PAR-Q+ 2023 oficial (inglês); há versão brasileira validada (schwartz2021)",
+   "regra": {
+    "todas_nao": "liberado, começar gradualmente",
+    "algum_sim": "recomendar avaliação médica antes de atividade vigorosa; oferecer apenas plano leve com aviso"
+   },
+   "adiar_se": [
+    "doença aguda/febre",
+    "gestação sem liberação médica",
+    "mudança recente no estado de saúde"
+   ],
+   "fontes": [
+    "parq2023",
+    "schwartz2021"
+   ]
+  },
+  "sinais_parar": [
+   "dor ou aperto no peito",
+   "falta de ar desproporcional",
+   "tontura ou quase desmaio",
+   "palpitações/batimento irregular",
+   "náusea intensa",
+   "confusão",
+   "palidez/suor frio",
+   "dor articular aguda"
+  ],
+  "sinais_parar_fontes": [
+   "acsmgetp2021"
+  ],
+  "gestacao": {
+   "gera_plano": false,
+   "mensagem": "Atividade física na gestação sem complicações é segura e recomendada, mas exige liberação do obstetra.",
+   "meta_referencia_min_semana": 150,
+   "sinais_parar": [
+    "sangramento vaginal",
+    "contrações dolorosas regulares",
+    "perda de líquido amniótico",
+    "falta de ar antes de começar",
+    "tontura",
+    "dor de cabeça",
+    "dor no peito",
+    "fraqueza muscular que afete o equilíbrio",
+    "dor ou inchaço na panturrilha"
+   ],
+   "fontes": [
+    "acog2020",
+    "bull2020"
+   ]
+  }
+ },
+ "limitacoes": {
+  "regra_dor": {
+   "max_dor_0a10": 5,
+   "voltar_ao_basal_h": 24,
+   "parar_se": [
+    "dor aguda",
+    "inchaço",
+    "travamento",
+    "falseio",
+    "dor irradiada com formigamento/fraqueza"
+   ],
+   "fontes": [
+    "silbernagel2007"
+   ]
+  },
+  "joelho": {
+   "evitar": [
+    "agachamento-salto",
+    "box-jump",
+    "tuck-jump",
+    "salto-tesoura",
+    "bound-lateral",
+    "burpee",
+    "passada-andando",
+    "afundo",
+    "afundo-halteres",
+    "agachamento-barra",
+    "agachamento-frontal",
+    "hack",
+    "cadeira-extensora",
+    "corda"
+   ],
+   "substituir_por": [
+    "sentar-levantar",
+    "leg-press",
+    "ponte-gluteo",
+    "elevacao-quadril",
+    "step-up",
+    "mesa-flexora",
+    "cadeira-flexora",
+    "bike-leve",
+    "eliptico",
+    "caminhada"
+   ]
+  },
+  "lombar": {
+   "evitar": [
+    "terra",
+    "stiff",
+    "remada-curvada",
+    "abdominal",
+    "canivete",
+    "russian-twist",
+    "power-clean",
+    "hiperextensao",
+    "superman",
+    "elevacao-pernas-barra",
+    "roda-abdominal"
+   ],
+   "substituir_por": [
+    "ponte-gluteo",
+    "elevacao-quadril",
+    "dead-bug",
+    "prancha",
+    "prancha-lateral",
+    "pallof",
+    "remada-unilateral",
+    "remada-baixa",
+    "leg-press",
+    "caminhada",
+    "gato-camelo"
+   ]
+  },
+  "ombro": {
+   "evitar": [
+    "desenvolvimento-barra",
+    "paralelas",
+    "triceps-banco",
+    "pike-pushup",
+    "supino-reto",
+    "elevacao-frontal",
+    "barra-fixa",
+    "arnold",
+    "flexao-pliometrica"
+   ],
+   "substituir_por": [
+    "supino-halteres",
+    "flexao-inclinada",
+    "remada-baixa",
+    "remada-unilateral",
+    "face-pull",
+    "rotacao-externa",
+    "band-pull-apart",
+    "elevacao-lateral-elastico"
+   ]
+  },
+  "origem": "convencao clínica conservadora",
+  "fontes": [
+   "nice_ng226",
+   "nice_ng59",
+   "silbernagel2007"
+  ]
+ },
+ "fontes": [
+  {
+   "id": "acsm2009",
+   "titulo": "Ratamess NA et al. (ACSM). Progression models in resistance training for healthy adults. Med Sci Sports Exerc 2009;41(3):687–708",
+   "ano": 2009,
+   "url": "https://doi.org/10.1249/MSS.0b013e3181915670"
+  },
+  {
+   "id": "acsm2026",
+   "titulo": "ACSM. Position Stand on resistance training (Phillips SM, autor principal), 2026 — cobertura de imprensa",
+   "ano": 2026,
+   "url": "https://www.newswise.com/articles/acsm-unveils-landmark-2026-resistance-training-guidelines-first-update-in-17-years"
+  },
+  {
+   "id": "nsca2016",
+   "titulo": "Haff GG, Triplett NT (eds). Essentials of Strength Training and Conditioning, 4ª ed. NSCA/Human Kinetics, 2016",
+   "ano": 2016,
+   "url": "https://www.nsca.com/store/product-detail/INV/9781492501626/9781492501626"
+  },
+  {
+   "id": "schoenfeld2017",
+   "titulo": "Schoenfeld BJ, Ogborn D, Krieger JW. Dose-response relationship between weekly resistance training volume and increases in muscle mass. J Sports Sci 2017;35(11):1073–1082",
+   "ano": 2017,
+   "url": "https://doi.org/10.1080/02640414.2016.1210197"
+  },
+  {
+   "id": "schoenfeld2019",
+   "titulo": "Schoenfeld BJ, Grgic J, Krieger J. How many times per week should a muscle be trained to maximize muscle hypertrophy? J Sports Sci 2019;37(11):1286–1295",
+   "ano": 2019,
+   "url": "https://doi.org/10.1080/02640414.2018.1555906"
+  },
+  {
+   "id": "schoenfeld2021",
+   "titulo": "Schoenfeld BJ, Grgic J, Van Every DW, Plotkin DL. Loading recommendations for muscle strength, hypertrophy, and local endurance: a re-examination of the repetition continuum. Sports 2021;9(2):32",
+   "ano": 2021,
+   "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7927075/"
+  },
+  {
+   "id": "schoenfeld2016rest",
+   "titulo": "Schoenfeld BJ et al. Longer interset rest periods enhance muscle strength and hypertrophy in resistance-trained men. J Strength Cond Res 2016;30(7):1805–1812",
+   "ano": 2016,
+   "url": "https://doi.org/10.1519/JSC.0000000000001272"
+  },
+  {
+   "id": "robinson2024",
+   "titulo": "Robinson ZP et al. Exploring the dose–response relationship between estimated resistance training proximity to failure, strength gain, and muscle hypertrophy. Sports Med 2024",
+   "ano": 2024,
+   "url": "https://doi.org/10.1007/s40279-024-02069-2"
+  },
+  {
+   "id": "zourdos2016",
+   "titulo": "Zourdos MC et al. Novel resistance training-specific RPE scale measuring repetitions in reserve. J Strength Cond Res 2016;30(1):267–275",
+   "ano": 2016,
+   "url": "https://doi.org/10.1519/JSC.0000000000001049"
+  },
+  {
+   "id": "helms2016",
+   "titulo": "Helms ER, Cronin J, Storey A, Zourdos MC. Application of the repetitions in reserve-based RPE scale for resistance training. Strength Cond J 2016;38(4):42–49",
+   "ano": 2016,
+   "url": "https://doi.org/10.1519/SSC.0000000000000218"
+  },
+  {
+   "id": "williams2017",
+   "titulo": "Williams TD et al. Comparison of periodized and non-periodized resistance training on maximal strength: a meta-analysis. Sports Med 2017;47:2083–2100",
+   "ano": 2017,
+   "url": "https://doi.org/10.1007/s40279-017-0734-y"
+  },
+  {
+   "id": "bell2023",
+   "titulo": "Bell L et al. Integrating deloading into strength and physique sports training programmes: an international Delphi consensus approach. Sports Med Open 2023",
+   "ano": 2023,
+   "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10511399/"
+  },
+  {
+   "id": "rogerson2024",
+   "titulo": "Rogerson D, ..., Bell L. Deloading practices in strength and physique sports: a cross-sectional survey. Sports Med Open 2024",
+   "ano": 2024,
+   "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10948666/"
+  },
+  {
+   "id": "bull2020",
+   "titulo": "Bull FC et al. World Health Organization 2020 guidelines on physical activity and sedentary behaviour. Br J Sports Med 2020;54(24):1451–1462",
+   "ano": 2020,
+   "url": "https://doi.org/10.1136/bjsports-2020-102955"
+  },
+  {
+   "id": "garber2011",
+   "titulo": "Garber CE et al. (ACSM). Quantity and quality of exercise for developing and maintaining cardiorespiratory, musculoskeletal, and neuromotor fitness in apparently healthy adults. Med Sci Sports Exerc 2011;43(7):1334–1359",
+   "ano": 2011,
+   "url": "https://doi.org/10.1249/MSS.0b013e318213fefb"
+  },
+  {
+   "id": "donnelly2009",
+   "titulo": "Donnelly JE et al. (ACSM). Appropriate physical activity intervention strategies for weight loss and prevention of weight regain for adults. Med Sci Sports Exerc 2009;41(2):459–471",
+   "ano": 2009,
+   "url": "https://doi.org/10.1249/MSS.0b013e3181949333"
+  },
+  {
+   "id": "wewege2017",
+   "titulo": "Wewege M et al. The effects of HIIT vs. moderate-intensity continuous training on body composition in overweight and obese adults: a systematic review and meta-analysis. Obes Rev 2017;18(6):635–646",
+   "ano": 2017,
+   "url": "https://doi.org/10.1111/obr.12532"
+  },
+  {
+   "id": "sherrington2019",
+   "titulo": "Sherrington C et al. Exercise for preventing falls in older people living in the community. Cochrane Database Syst Rev 2019;(1):CD012424",
+   "ano": 2019,
+   "url": "https://doi.org/10.1002/14651858.CD012424.pub2"
+  },
+  {
+   "id": "fragala2019",
+   "titulo": "Fragala MS et al. Resistance training for older adults: position statement from the NSCA. J Strength Cond Res 2019;33(8):2019–2052",
+   "ano": 2019,
+   "url": "https://doi.org/10.1519/JSC.0000000000003230"
+  },
+  {
+   "id": "chodzkozajko2009",
+   "titulo": "Chodzko-Zajko WJ et al. (ACSM). Exercise and physical activity for older adults. Med Sci Sports Exerc 2009;41(7):1510–1530",
+   "ano": 2009,
+   "url": "https://doi.org/10.1249/MSS.0b013e3181a0c95c"
+  },
+  {
+   "id": "seiler2010",
+   "titulo": "Seiler S. What is best practice for training intensity and duration distribution in endurance athletes? Int J Sports Physiol Perform 2010;5(3):276–291",
+   "ano": 2010,
+   "url": "https://pubmed.ncbi.nlm.nih.gov/20861519/"
+  },
+  {
+   "id": "reedpipe2014",
+   "titulo": "Reed JL, Pipe AL. The talk test: a useful tool for prescribing and monitoring exercise intensity. Curr Opin Cardiol 2014;29(5):475–480",
+   "ano": 2014,
+   "url": "https://doi.org/10.1097/HCO.0000000000000097"
+  },
+  {
+   "id": "buist2008",
+   "titulo": "Buist I et al. No effect of a graded training program on the number of running-related injuries in novice runners: a randomized controlled trial. Am J Sports Med 2008;36(1):33–39",
+   "ano": 2008,
+   "url": "https://doi.org/10.1177/0363546507307505"
+  },
+  {
+   "id": "nielsen2014",
+   "titulo": "Nielsen RO et al. Excessive progression in weekly running distance and risk of running-related injuries. J Orthop Sports Phys Ther 2014;44(10):739–747",
+   "ano": 2014,
+   "url": "https://doi.org/10.2519/jospt.2014.5164"
+  },
+  {
+   "id": "nhsc25k",
+   "titulo": "NHS. Couch to 5K running plan",
+   "ano": null,
+   "url": "https://www.nhs.uk/better-health/get-active/get-running-with-couch-to-5k/couch-to-5k-running-plan/",
+   "obs": "página web sem data fixa"
+  },
+  {
+   "id": "bosquet2007",
+   "titulo": "Bosquet L, Montpetit J, Arvisais D, Mujika I. Effects of tapering on performance: a meta-analysis. Med Sci Sports Exerc 2007;39(8):1358–1365",
+   "ano": 2007,
+   "url": "https://doi.org/10.1249/mss.0b013e31806010e0"
+  },
+  {
+   "id": "allencoggan2019",
+   "titulo": "Allen H, Coggan AR, McGregor S. Training and Racing with a Power Meter, 3ª ed. VeloPress, 2019 (níveis de potência)",
+   "ano": 2019,
+   "url": "https://www.trainingpeaks.com/learn/articles/power-training-levels/"
+  },
+  {
+   "id": "james2016",
+   "titulo": "James LP, Haff GG, Kelly VG, Beckman EM. Towards a determination of the physiological characteristics distinguishing successful mixed martial arts athletes: a systematic review of combat sport literature. Sports Med 2016;46(10):1525–1551",
+   "ano": 2016,
+   "url": "https://doi.org/10.1007/s40279-016-0493-1"
+  },
+  {
+   "id": "chaabene2015",
+   "titulo": "Chaabène H et al. Amateur boxing: physical and physiological attributes. Sports Med 2015;45(3):337–352",
+   "ano": 2015,
+   "url": "https://doi.org/10.1007/s40279-014-0274-7"
+  },
+  {
+   "id": "turner2009",
+   "titulo": "Turner AN. Strength and conditioning for Muay Thai athletes. Strength Cond J 2009;31(6):78–92",
+   "ano": 2009,
+   "url": "https://doi.org/10.1519/SSC.0b013e3181b99603"
+  },
+  {
+   "id": "labounty2011",
+   "titulo": "La Bounty P, Campbell BI, Galvan E, Cooke M, Antonio J. Strength and conditioning considerations for mixed martial arts. Strength Cond J 2011;33(1):56–67",
+   "ano": 2011,
+   "url": "https://latech.elsevierpure.com/en/publications/strength-and-conditioning-considerations-for-mixed-martial-arts/"
+  },
+  {
+   "id": "collins2014",
+   "titulo": "Collins CL et al. Neck strength: a protective factor reducing risk for concussion in high school sports. J Prim Prev 2014;35(5):309–319",
+   "ano": 2014,
+   "url": "https://doi.org/10.1007/s10935-014-0355-2"
+  },
+  {
+   "id": "potachchu2008",
+   "titulo": "Potach DH, Chu DA. Plyometric training. In: Baechle TR, Earle RW (eds). Essentials of Strength Training and Conditioning, 3ª ed. 2008 (citado em revisão)",
+   "ano": 2008,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/6015/5496"
+  },
+  {
+   "id": "chumyer2013",
+   "titulo": "Chu DA, Myer GD. Plyometrics. Human Kinetics, 2013",
+   "ano": 2013,
+   "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/6015/5496"
+  },
+  {
+   "id": "soligard2008",
+   "titulo": "Soligard T et al. Comprehensive warm-up programme to prevent injuries in young female footballers: cluster randomised controlled trial. BMJ 2008;337:a2469",
+   "ano": 2008,
+   "url": "https://doi.org/10.1136/bmj.a2469"
+  },
+  {
+   "id": "vandyk2019",
+   "titulo": "van Dyk N, Behan FP, Whiteley R. Including the Nordic hamstring exercise in injury prevention programmes halves the rate of hamstring injuries: a systematic review and meta-analysis of 8459 athletes. Br J Sports Med 2019;53(21):1362–1370",
+   "ano": 2019,
+   "url": "https://bjsm.bmj.com/content/53/21/1362"
+  },
+  {
+   "id": "tabata1996",
+   "titulo": "Tabata I et al. Effects of moderate-intensity endurance and high-intensity intermittent training on anaerobic capacity and VO2max. Med Sci Sports Exerc 1996;28(10):1327–1330",
+   "ano": 1996,
+   "url": "https://doi.org/10.1097/00005768-199610000-00018"
+  },
+  {
+   "id": "behm2016",
+   "titulo": "Behm DG et al. Acute effects of muscle stretching on physical performance, range of motion, and injury incidence in healthy active individuals. Appl Physiol Nutr Metab 2016;41(1):1–11",
+   "ano": 2016,
+   "url": "https://doi.org/10.1139/apnm-2015-0235"
+  },
+  {
+   "id": "jeffreys2007",
+   "titulo": "Jeffreys I. Warm-up revisited: the RAMP method of optimizing warm-ups. Professional Strength and Conditioning 2007;(6):12–18",
+   "ano": 2007,
+   "url": "https://www.scienceforsport.com/warm-ups/"
+  },
+  {
+   "id": "parq2023",
+   "titulo": "PAR-Q+ Collaboration. The Physical Activity Readiness Questionnaire for Everyone (PAR-Q+), 2023",
+   "ano": 2023,
+   "url": "https://eparmedx.com/"
+  },
+  {
+   "id": "schwartz2021",
+   "titulo": "Schwartz J et al. Translation, cultural adaptation, and reproducibility of the PAR-Q+ for Brazilian Portuguese. Front Cardiovasc Med 2021;8:712696",
+   "ano": 2021,
+   "url": "https://doi.org/10.3389/fcvm.2021.712696"
+  },
+  {
+   "id": "acsmgetp2021",
+   "titulo": "ACSM's Guidelines for Exercise Testing and Prescription, 11ª ed. Wolters Kluwer, 2021",
+   "ano": 2021,
+   "url": "https://www.acsm.org/education-resources/books/guidelines-exercise-testing-prescription"
+  },
+  {
+   "id": "acog2020",
+   "titulo": "ACOG Committee Opinion No. 804: Physical activity and exercise during pregnancy and the postpartum period. Obstet Gynecol 2020;135(4):e178–e188",
+   "ano": 2020,
+   "url": "https://doi.org/10.1097/AOG.0000000000003772"
+  },
+  {
+   "id": "nice_ng226",
+   "titulo": "NICE NG226. Osteoarthritis in over 16s: diagnosis and management (2022)",
+   "ano": 2022,
+   "url": "https://www.nice.org.uk/guidance/ng226/chapter/Recommendations"
+  },
+  {
+   "id": "nice_ng59",
+   "titulo": "NICE NG59. Low back pain and sciatica in over 16s: assessment and management",
+   "ano": 2016,
+   "url": "https://www.nice.org.uk/guidance/ng59"
+  },
+  {
+   "id": "silbernagel2007",
+   "titulo": "Silbernagel KG et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. Am J Sports Med 2007;35(6):897–906",
+   "ano": 2007,
+   "url": "https://doi.org/10.1177/0363546506298279"
+  }
+ ]
+}

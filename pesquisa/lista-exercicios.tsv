@@ -1,0 +1,155 @@
+slug	nome_pt	nome_en(free-exercise-db)
+agachamento-livre	Agachamento livre (peso do corpo)	Bodyweight Squat
+agachamento-elastico	Agachamento com elástico	Squats - With Bands
+agachamento-salto	Agachamento com salto	Freehand Jump Squat
+agachamento-goblet	Agachamento goblet	Goblet Squat
+agachamento-barra	Agachamento com barra	Barbell Full Squat
+agachamento-frontal	Agachamento frontal	Front Barbell Squat
+leg-press	Leg press 45°	Leg Press
+hack	Agachamento hack (máquina)	Hack Squat
+cadeira-extensora	Cadeira extensora	Leg Extensions
+mesa-flexora	Mesa flexora	Lying Leg Curls
+cadeira-flexora	Cadeira flexora	Seated Leg Curl
+afundo	Afundo (passada parada)	Split Squats
+afundo-halteres	Afundo com halteres	Dumbbell Lunges
+passada-andando	Passada andando	Bodyweight Walking Lunge
+bulgaro	Agachamento búlgaro	Split Squat with Dumbbells
+step-up	Subida no banco (step-up)	Dumbbell Step Ups
+terra	Levantamento terra	Barbell Deadlift
+stiff	Stiff / terra romeno	Romanian Deadlift
+stiff-halteres	Stiff com halteres	Stiff-Legged Dumbbell Deadlift
+terra-uma-perna	Terra unilateral com kettlebell	Kettlebell One-Legged Deadlift
+ponte-gluteo	Ponte de glúteo	Butt Lift Bridge
+ponte-unilateral	Ponte de glúteo unilateral	Single Leg Glute Bridge
+elevacao-quadril	Elevação de quadril com barra (hip thrust)	Barbell Hip Thrust
+coice-gluteo	Coice de glúteo (4 apoios)	Glute Kickback
+abdutora	Cadeira abdutora	Thigh Abductor
+monster-walk	Caminhada lateral com mini-band	Monster Walk
+panturrilha-pe	Elevação de panturrilha em pé	Standing Calf Raises
+panturrilha-sentado	Panturrilha sentado	Seated Calf Raise
+panturrilha-elastico	Panturrilha com elástico	Calf Raises - With Bands
+flexao	Flexão de braço	Pushups
+flexao-inclinada	Flexão inclinada (mãos elevadas)	Incline Push-Up
+flexao-joelhos	Flexão com joelhos apoiados	Pushups Close and Wide Hand Positions
+flexao-declinada	Flexão com pés elevados	Push-Ups With Feet Elevated
+flexao-diamante	Flexão fechada (tríceps)	Push-Ups - Close Triceps Position
+flexao-pliometrica	Flexão explosiva	Plyo Push-up
+supino-reto	Supino reto com barra	Barbell Bench Press - Medium Grip
+supino-halteres	Supino com halteres	Dumbbell Bench Press
+supino-inclinado	Supino inclinado com halteres	Incline Dumbbell Press
+supino-inclinado-barra	Supino inclinado com barra	Barbell Incline Bench Press - Medium Grip
+supino-maquina	Supino na máquina	Machine Bench Press
+crucifixo	Crucifixo com halteres	Dumbbell Flyes
+crossover	Crossover na polia	Cable Crossover
+peck-deck	Voador (peck deck)	Butterfly
+supino-elastico	Supino com elástico	Bench Press - With Bands
+crucifixo-elastico	Crucifixo com elástico	Cross Over - With Bands
+paralelas	Mergulho nas paralelas	Dips - Chest Version
+barra-fixa	Barra fixa (pegada pronada)	Pullups
+barra-supinada	Barra fixa supinada (chin-up)	Chin-Up
+barra-assistida	Barra fixa com elástico (assistida)	Band Assisted Pull-Up
+puxada-frente	Puxada frontal (pulldown)	Wide-Grip Lat Pulldown
+puxada-triangulo	Puxada com triângulo	V-Bar Pulldown
+remada-baixa	Remada baixa sentada	Seated Cable Rows
+remada-curvada	Remada curvada com barra	Bent Over Barbell Row
+remada-unilateral	Remada unilateral com halter	One-Arm Dumbbell Row
+remada-elastico	Remada com elástico	Seated One-arm Cable Pulley Rows
+remada-invertida	Remada invertida	Inverted Row
+pulldown-elastico	Puxada com elástico	Rope Straight-Arm Pulldown
+pullover-polia	Pullover na polia (braços estendidos)	Straight-Arm Pulldown
+superman	Superman	Superman
+hiperextensao	Extensão lombar no banco	Hyperextensions Back Extensions
+face-pull	Face pull	Face Pull
+band-pull-apart	Abertura com elástico (pull apart)	Band Pull Apart
+encolhimento	Encolhimento com halteres	Dumbbell Shrug
+desenvolvimento-halteres	Desenvolvimento com halteres	Dumbbell Shoulder Press
+desenvolvimento-barra	Desenvolvimento militar com barra	Standing Military Press
+desenvolvimento-maquina	Desenvolvimento na máquina	Machine Shoulder Military Press
+desenvolvimento-elastico	Desenvolvimento com elástico	Shoulder Press - With Bands
+elevacao-lateral	Elevação lateral	Side Lateral Raise
+elevacao-lateral-elastico	Elevação lateral com elástico	Lateral Raise - With Bands
+elevacao-frontal	Elevação frontal	Front Dumbbell Raise
+crucifixo-inverso	Crucifixo inverso	Reverse Flyes
+arnold	Desenvolvimento Arnold	Arnold Dumbbell Press
+pike-pushup	Flexão pike (ombros)	Handstand Push-Ups
+rotacao-externa	Rotação externa com elástico	External Rotation with Band
+rosca-direta	Rosca direta com barra	Barbell Curl
+rosca-halteres	Rosca alternada com halteres	Dumbbell Alternate Bicep Curl
+rosca-martelo	Rosca martelo	Hammer Curls
+rosca-elastico	Rosca com elástico	Standing Biceps Cable Curl
+rosca-scott	Rosca Scott	Preacher Curl
+triceps-polia	Tríceps na polia (corda)	Triceps Pushdown - Rope Attachment
+triceps-frances	Tríceps francês com halter	Standing Dumbbell Triceps Extension
+triceps-testa	Tríceps testa	Lying Dumbbell Tricep Extension
+triceps-banco	Mergulho no banco	Bench Dips
+triceps-elastico	Tríceps com elástico acima da cabeça	Speed Band Overhead Triceps
+triceps-coice	Tríceps coice	Tricep Dumbbell Kickback
+prancha	Prancha	Plank
+prancha-lateral	Prancha lateral	Side Bridge
+abdominal	Abdominal supra (crunch)	Crunches
+abdominal-infra	Abdominal infra (elevação de pernas)	Flat Bench Lying Leg Raise
+dead-bug	Dead bug	Dead Bug
+mountain-climber	Escalador (mountain climber)	Mountain Climbers
+russian-twist	Giro russo	Russian Twist
+abdominal-bicicleta	Abdominal bicicleta	Air Bike
+elevacao-pernas-barra	Elevação de pernas na barra	Hanging Leg Raise
+roda-abdominal	Roda abdominal	Ab Roller
+pallof	Pallof press (antirrotação)	Pallof Press
+abdominal-polia	Abdominal na polia	Cable Crunch
+canivete	Canivete (V-up)	Jackknife Sit-Up
+burpee	Burpee	
+polichinelo	Polichinelo	Star Jump
+corda	Pular corda	Rope Jumping
+swing	Kettlebell swing	One-Arm Kettlebell Swings
+thruster	Thruster com kettlebell	Kettlebell Thruster
+power-clean	Power clean	Power Clean
+box-jump	Salto na caixa	Front Box Jump
+salto-distancia	Salto horizontal	Standing Long Jump
+bound-lateral	Salto lateral (skater)	Lateral Bound
+salto-tesoura	Salto afundo alternado	Split Jump
+tuck-jump	Salto grupado	Knee Tuck Jump
+arremesso-medicine	Arremesso de medicine ball no chão	Overhead Slam
+passe-medicine	Passe de peito com medicine ball	Medicine Ball Chest Pass
+arremesso-rotacional	Arremesso rotacional de medicine ball	Medicine Ball Full Twist
+battle-rope	Corda naval	Battling Ropes
+farmer-walk	Caminhada do fazendeiro	Farmers Walk
+sled-push	Empurrar trenó	Sled Push
+turkish-getup	Levantamento turco (Turkish get-up)	Kettlebell Turkish Get-Up Squat style
+inchworm	Inchworm (minhoca)	Inchworm
+sombra	Boxe de sombra (shadow boxing)	
+saco-combinacoes	Combinações no saco de pancada	Heavy Bag Thrust
+sprawl	Sprawl	
+ponte-pescoco	Ponte com rolamento de quadril (bridge and roll)	Pelvic Tilt Into Bridge
+fuga-quadril	Fuga de quadril (shrimp)	
+bear-crawl	Caminhada do urso	
+corrida-leve	Corrida leve (zona 2)	Jogging Treadmill
+caminhada-corrida	Caminhada + corrida intercalada	Walking Treadmill
+tiros	Tiros (intervalado)	Wind Sprints
+tempo-run	Corrida de limiar (tempo run)	Running Treadmill
+longao	Longão (corrida longa)	Trail Running Walking
+educativos-corrida	Educativos de corrida (skipping)	Fast Skipping
+bike-leve	Pedal contínuo leve (zona 2)	Bicycling Stationary
+bike-intervalado	Bike intervalado	Bicycling Stationary
+bike-subida	Simulação de subida (força no pedal)	Bicycling
+bike-cadencia	Drills de cadência	Recumbent Bike
+eliptico	Elíptico / transport	Elliptical Trainer
+remo-ergometro	Remo ergômetro	Rowing Stationary
+escada	Escada / stair climber	Stairmaster
+caminhada	Caminhada rápida	Walking Treadmill
+maior-alongamento	Alongamento do mundo (world's greatest stretch)	Worlds Greatest Stretch
+gato-camelo	Gato-camelo	Cat Stretch
+postura-crianca	Postura da criança	Childs Pose
+flexor-quadril	Alongamento de flexor do quadril	Kneeling Hip Flexor
+alongamento-posterior	Alongamento de posterior de coxa	Hamstring Stretch
+alongamento-quadriceps	Alongamento de quadríceps	Quad Stretch
+alongamento-panturrilha	Alongamento de panturrilha na parede	Calf Stretch Hands Against Wall
+circulos-braco	Círculos de braço	Arm Circles
+circulos-quadril	Círculos de quadril	Standing Hip Circles
+rolo-quadriceps	Liberação com rolo (quadríceps)	Quadriceps-SMR
+rolo-panturrilha	Liberação com rolo (panturrilha)	Calves-SMR
+rolo-it	Liberação com rolo (lateral da coxa)	Iliotibial Tract-SMR
+alongamento-peito	Alongamento de peitoral	Chest And Front Of Shoulder Stretch
+rotacao-toracica	Rotação torácica deitado	Side-Lying Floor Stretch
+alongamento-adutores	Alongamento de adutores (borboleta)	Groin and Back Stretch
+equilibrio-unipodal	Equilíbrio em uma perna	Balance Board
+sentar-levantar	Sentar e levantar da cadeira	Chair Squat
