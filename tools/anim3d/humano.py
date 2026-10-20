@@ -17,6 +17,7 @@ import json
 import math
 import os
 import sys
+import time
 
 import bpy
 import numpy as np
@@ -44,9 +45,13 @@ ALVOS = [
     ("measure/measure-neck-circ-incr.target", 0.25),
     ("buttocks/buttocks-volume-incr.target", 0.2),
     ("measure/measure-upperarm-circ-incr.target", 0.35),
+    ("armslegs/l-lowerarm-muscle-incr.target", 0.6), ("armslegs/r-lowerarm-muscle-incr.target", 0.6),
+    ("armslegs/l-upperarm-muscle-incr.target", 0.4), ("armslegs/r-upperarm-muscle-incr.target", 0.4),
+    ("armslegs/l-lowerleg-muscle-incr.target", 0.3), ("armslegs/r-lowerleg-muscle-incr.target", 0.3),
     ("measure/measure-thigh-circ-incr.target", 0.2),
     ("measure/measure-calf-circ-incr.target", 0.25),
 ]
+RELEVO = 1.2  # intensidade do relevo muscular (1 = alturas de anatomia.py)
 NIVEL_SUB = 2  # subdivisão da malha em repouso (relevo muscular precisa de densidade)
 
 
@@ -154,7 +159,7 @@ class Humano:
         self.W = W
         self.E, self.deg = anatomia.arestas_vizinhos(E, n)
         J = lambda osso, cauda=False: self.juntas[self.ossos[osso]["tail" if cauda else "head"]]  # noqa: E731
-        V2, self.musculos, self.cavidade, self.domos = anatomia.esculpir(V, N, W, J, self.E, self.deg)
+        V2, self.musculos, self.cavidade, self.domos = anatomia.esculpir(V, N, W, J, self.E, self.deg, RELEVO)
         me.vertices.foreach_set("co", V2.ravel())
         me.update()
         me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
@@ -191,7 +196,14 @@ class Humano:
         pb.matrix = m
         bpy.context.view_layer.update()
 
+    def _deformar(self, ligado):
+        """Desliga a deformação da malha enquanto os ossos são orientados (cada update avaliaria 200 mil vértices)."""
+        m = self.obj.modifiers["arm"]
+        if m.show_viewport != ligado:
+            m.show_viewport = ligado
+
     def posar(self, pose):
+        self._deformar(False)
         p = completar(pose)
         for pb in self.rig.pose.bones:
             pb.matrix_basis = Matrix()
@@ -219,7 +231,7 @@ class Humano:
                 pb = self.rig.pose.bones["clavicle" + sf]
                 eixo = (pb.bone.matrix_local.to_3x3().inverted() @ FRENTE).normalized()
                 pb.rotation_mode = "QUATERNION"
-                pb.rotation_quaternion = Quaternion(eixo, math.radians(17 * oe * sx))
+                pb.rotation_quaternion = Quaternion(eixo, math.radians(24 * oe * sx))
             bpy.context.view_layer.update()
         for lado, s, sufixo in (("f", 1, ".L"), ("t", -1, ".R")):
             b, a = p["b" + lado]
@@ -293,6 +305,8 @@ class Humano:
 
     def pontos_mundo(self):
         """Malha avaliada (posada) em coordenadas do mundo."""
+        self._deformar(True)
+        bpy.context.view_layer.update()
         dg = bpy.context.evaluated_depsgraph_get()
         ev = self.obj.evaluated_get(dg)
         me = ev.to_mesh()
@@ -304,6 +318,7 @@ class Humano:
 
     def ik_braco(self, sf, alvo):
         """Reorienta braço/antebraço (espaço da armadura, rig na identidade) para a pegada chegar em 'alvo'."""
+        self._deformar(False)
         S = np.array(self.junta_mundo("upperarm01" + sf))
         E = np.array(self.junta_mundo("lowerarm01" + sf))
         W = np.array(self.junta_mundo("wrist" + sf))
@@ -407,10 +422,10 @@ def calcular_regioes(h):
     pesc = soma(PESCOCO_OSSOS)
     pe = soma(["foot.L", "foot.R"]) + soma([b for b in W if b.startswith("toe")])
     R = {k: v.copy() for k, v in h.musculos.items()}
-    R["pescoco"] = np.clip((pesc - 0.4) * 2, 0, 1) * (V[:, 1] > -0.75 + 0 * z)
+    R["pescoco"] = np.clip((pesc - 0.4) * 2, 0, 1)
     # short: bainha levemente mais baixa atrás, cintura reta
     yb = np.clip(V[:, 1], -1, 1)
-    lo, hi = hipz - 1.45 + 0.12 * yb, hipz + 0.92
+    lo, hi = hipz - 1.2 + 0.12 * yb, hipz + 0.92
     R["_short"] = (anatomia._smooth(lo - 0.025, lo + 0.025, z) * (1 - anatomia._smooth(hi - 0.025, hi + 0.025, z))
                    * anatomia._smooth(0.3, 0.6, coxa + tronco) * (1 - anatomia._smooth(0.1, 0.3, braco + antebr)))
     R["_tenis"] = ((pe > 0.5) | (z < az + 0.25)).astype(float)
@@ -685,7 +700,12 @@ def montar_aparelhos(ap, anim, h, ref, fase):
             elif tp in ("elastico", "cabo"):
                 ate = pr.get("ate")
                 if ate == "maos":
-                    ap.cilindro(mf, mt, 0.09, ap.brasa, 12)
+                    meio_b = (mf + mt) / 2
+                    frente_peito = h.junta_mundo("neck01").y - 1.7
+                    if meio_b.y > frente_peito:
+                        meio_b.y = frente_peito
+                    ap.cilindro(mf, meio_b, 0.09, ap.brasa, 12)
+                    ap.cilindro(meio_b, mt, 0.09, ap.brasa, 12)
                 elif ate == "pes":
                     for m, pe in ((mf, h.junta_mundo("foot.L")), (mt, h.junta_mundo("foot.R"))):
                         ap.cilindro(m, pe, 0.07, ap.brasa, 8)
@@ -870,6 +890,7 @@ def posicionar(h, anim, pose, k, ref):
     gx = max(abs(_aplicar(T, h.pegada_mundo(sf)[None])[0][0]) for sf in (".L", ".R"))
     ref["xmax_maos"] = max(ref.get("xmax_maos", 0.0), gx)
     h.rig.matrix_world = Matrix(T.tolist())
+    h._deformar(True)
     bpy.context.view_layer.update()
     if "quad" not in ref:
         ref["quad"] = (p2["quadril"][0], np.array(h.junta_mundo("root")))
@@ -929,6 +950,7 @@ def main():
                 continue
             if a.pular_existentes and not a.chaves and os.path.exists(os.path.join(a.saida, f"{aid}.webp")):
                 continue
+            t_anim = time.time()
             ex = grupos.get(aid, {})
             prim, sec = GRUPOS.get(ex.get("grupo", ""), ([], []))
             prim, sec = list(prim), list(sec)
@@ -1001,7 +1023,7 @@ def main():
                 folha.save(os.path.join(a.saida, f"{aid}.webp"), "WEBP", quality=70, method=6)
                 meta[aid] = {"f": len(frames), "c": cols, "s": a.tam, "fps": a.fps}
                 json.dump(meta, open(meta_path, "w"), separators=(",", ":"))
-            print("pronto", aid, len(frames), flush=True)
+            print("pronto", aid, len(frames), f"{(time.time() - t_anim) / max(1, len(frames)):.2f}s/quadro", flush=True)
 
 
 if __name__ == "__main__":

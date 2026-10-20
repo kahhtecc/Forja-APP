@@ -61,9 +61,9 @@ for i, z in enumerate((4.62, 4.25, 3.90)):
 mus("trap_sup_f", "trapezio", "frente", 0.85, 6.30, 0.42, 0.22, -28, 0.05, 2.0)
 
 # --- tronco, costas
-mus("trap_sup", "trapezio", "costas", 0.70, 6.20, 0.62, 0.36, -22, 0.08, 2.0)
-mus("trap_med", "trapezio", "costas", 0.42, 5.35, 0.42, 0.62, 0, 0.06, 2.0, af=0.3)
-mus("trap_inf", "trapezio", "costas", 0.22, 4.45, 0.22, 0.55, 0, 0.04, 2.0, af=0.4)
+mus("trap_sup", "trapezio", "costas", 0.62, 6.15, 0.74, 0.40, -20, 0.08, 2.0)
+mus("trap_med", "trapezio", "costas", 0.36, 5.30, 0.44, 0.70, 0, 0.06, 2.2, af=0.45)
+mus("trap_inf", "trapezio", "costas", 0.20, 4.40, 0.24, 0.62, 0, 0.04, 2.0, af=0.5)
 mus("infraespinhal", "dorsal", "costas", 1.02, 5.15, 0.40, 0.38, -18, 0.07, 2.0)
 mus("redondo", "dorsal", "costas", 1.38, 4.92, 0.30, 0.20, -35, 0.06, 2.0)
 mus("dorsal", "dorsal", "costas", 1.02, 3.95, 0.50, 1.25, -24, 0.10, 2.2, af=0.35)
@@ -182,6 +182,6 @@ def esculpir(V, N, W, J, E, deg, intensidade=1.0):
     cav = np.clip((media - desloc) / 0.03, 0, 1)
     regioes = {}
     for nome, (d, m) in domos.items():
-        mask = np.clip(d * 2.2, 0, 1)
+        mask = _smooth(0.0, 0.14, d)
         regioes[m["reg"]] = np.maximum(regioes.get(m["reg"], zero), mask)
     return V2, regioes, cav, domos
