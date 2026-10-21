@@ -1,0 +1,45 @@
+name: Sonda de bibliotecas (temporária)
+on:
+  push:
+    paths: [ ".github/workflows/sonda.yml" ]
+  workflow_dispatch:
+jobs:
+  sonda:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Versões e APIs
+        run: |
+          G=https://dl.google.com/dl/android/maven2
+          mkdir w && cd w
+          pega() { # grupo/artefato tipo(aar|jar) [versão]
+            a=$1; t=$2
+            vs=$(curl -s $G/$a/maven-metadata.xml | grep -o '<version>[^<]*' | sed 's/<version>//')
+            echo "== $a: $(echo "$vs" | tail -12 | tr '\n' ' ')"
+            v=${3:-$(echo "$vs" | grep -v -E 'alpha|beta|rc|dev' | tail -1)}
+            n=$(basename $a)
+            curl -s -o $n.$t $G/$a/$v/$n-$v.$t
+            echo "   usando $v"
+            mkdir -p x/$n; (cd x/$n; unzip -o -q ../../$n.$t 2>/dev/null; [ -f classes.jar ] && unzip -o -q classes.jar; grep -o 'minSdkVersion="[0-9]*"' AndroidManifest.xml 2>/dev/null)
+            curl -s $G/$a/$v/$n-$v.pom | grep -E '<(artifactId|version)>' | paste - - | head -30
+          }
+          pega androidx/wear/compose/compose-material aar
+          pega androidx/wear/compose/compose-material3 aar
+          pega androidx/wear/compose/compose-foundation aar
+          pega androidx/wear/compose/compose-navigation aar
+          pega androidx/health/health-services-client aar
+          pega androidx/health/connect/connect-client aar
+          pega com/google/android/gms/play-services-wearable aar
+          pega androidx/wear/tiles/tiles aar
+          pega androidx/wear/protolayout/protolayout aar
+          pega androidx/wear/protolayout/protolayout-expression aar
+          pega androidx/concurrent/concurrent-futures-ktx jar
+          pega androidx/concurrent/concurrent-futures jar
+          pega androidx/wear/wear aar
+          pega androidx/activity/activity-compose aar
+          jp() { d=$1; shift; for c in "$@"; do echo "---- $c"; javap -cp x/$d $c 2>&1 | head -80; done; }
+          jp connect-client androidx.health.connect.client.records.metadata.Metadata 'androidx.health.connect.client.records.metadata.Metadata$Companion' androidx.health.connect.client.records.ExerciseSessionRecord androidx.health.connect.client.PermissionController 'androidx.health.connect.client.PermissionController$Companion' androidx.health.connect.client.HealthConnectClient 'androidx.health.connect.client.HealthConnectClient$Companion' androidx.health.connect.client.request.AggregateRequest androidx.health.connect.client.permission.HealthPermission 'androidx.health.connect.client.permission.HealthPermission$Companion'
+          jp health-services-client androidx.health.services.client.data.ExerciseType 'androidx.health.services.client.data.ExerciseType$Companion' androidx.health.services.client.data.ExerciseConfig 'androidx.health.services.client.data.ExerciseConfig$Builder' androidx.health.services.client.ExerciseUpdateCallback androidx.health.services.client.ExerciseClient androidx.health.services.client.data.ExerciseUpdate androidx.health.services.client.data.DataPointContainer androidx.health.services.client.data.ExerciseCapabilities androidx.health.services.client.HealthServices
+          jp tiles androidx.wear.tiles.TileService androidx.wear.tiles.TileBuilders\$Tile\$Builder androidx.wear.tiles.RequestBuilders\$TileRequest
+          jp protolayout 'androidx.wear.protolayout.ModifiersBuilders$Padding$Builder' 'androidx.wear.protolayout.TimelineBuilders$Timeline' 'androidx.wear.protolayout.LayoutElementBuilders$Text$Builder' 'androidx.wear.protolayout.ActionBuilders$LaunchAction$Builder' 'androidx.wear.protolayout.LayoutElementBuilders$FontStyle$Builder' 'androidx.wear.protolayout.ModifiersBuilders$Modifiers$Builder'
+          jp concurrent-futures-ktx androidx.concurrent.futures.ListenableFutureKt
+          ls x/compose-material3/androidx/wear/compose/material3 2>/dev/null | head -100 | tr '\n' ' '
