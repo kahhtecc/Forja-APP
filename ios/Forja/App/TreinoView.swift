@@ -21,6 +21,7 @@ struct TreinoView: View {
     @State private var ultimoBip = -1
     @State private var confirmarSaida = false
     @State private var video: String?
+    @ObservedObject private var sensores = Sensores.shared
 
     let tique = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
 
@@ -67,9 +68,27 @@ struct TreinoView: View {
             inicio = Date()
             UIApplication.shared.isIdleTimerDisabled = app.e.ajustes.telaLigada
             preparar()
+            sensores.comecarTreino()
+            if app.demo { sensores.simular(132, "Polar H10") } else { AoVivo.shared.pedirPermissaoNotificacoes() }
+            if #available(iOS 16.1, *), let e = estadoAoVivo() { AoVivo.shared.iniciar(titulo: alvo.sessao.titulo, tipo: alvo.sessao.tipo, inicio: inicio, estado: e) }
         }
-        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
+            sensores.terminarTreino()
+            AoVivo.shared.encerrar(concluido: !feitas.isEmpty)
+        }
         .onReceive(tique) { _ in agora = Date(); verificarCronometro() }
+        .onReceive(NotificationCenter.default.publisher(for: .forjaAcaoTreino)) { n in
+            // Botões da Live Activity (tela bloqueada, Dynamic Island, Apple Watch)
+            agora = Date()
+            switch n.object as? String {
+            case AcaoTreino.concluir: if !descansando { concluirSerie() }
+            case AcaoTreino.pular: if descansando { irPara(i + 1, auto: true) }
+            default: break
+            }
+        }
+        .onChange(of: chaveAoVivo) { _ in sincronizarAoVivo() }
+        .onChange(of: sensores.bpm) { _ in sincronizarAoVivo() }
         .confirmationDialog("Sair do treino?", isPresented: $confirmarSaida, titleVisibility: .visible) {
             if !feitas.isEmpty { Button("Salvar e sair") { finalizar() } }
             Button(feitas.isEmpty ? "Sair" : "Descartar", role: .destructive) { fim(nil) }
@@ -94,6 +113,16 @@ struct TreinoView: View {
                 }
                 Spacer()
                 BotaoIcone(icone: "play.rectangle.fill", descricao: "Ver vídeo de \(p.ex.nome)", cor: cor) { video = p.ex.id }
+            }
+            .overlay(alignment: .leading) {
+                if let b = sensores.bpmAtual {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(Cor.perigo)
+                        Text("\(b)").font(Tipo.display(20)).monospacedDigit()
+                    }
+                    .padding(.leading, 56)
+                    .accessibilityLabel("Frequência cardíaca \(b) batimentos por minuto, de \(sensores.fonte ?? "sensor")")
+                }
             }
             HStack(spacing: 3) {
                 let grupos = gruposProgresso()
@@ -258,9 +287,35 @@ struct TreinoView: View {
         }
     }
 
+    // MARK: fora do app (Live Activity, Apple Watch, notificação)
+
+    var chaveAoVivo: String { "\(i)|\(descansando)|\(fimEm?.timeIntervalSince1970 ?? 0)|\(pausado != nil)|\(reps)|\(kg)" }
+
+    @available(iOS 16.1, *)
+    func estadoAoVivo() -> TreinoAtividade.ContentState? {
+        guard let p else { return nil }
+        let prox = passos.indices.contains(i + 1) ? passos[i + 1].ex.nome : nil
+        let prescr = p.porTempo ? Roteiro.formatarTempo(p.item.trabalhoSeg ?? 0)
+            : "\(reps) reps" + (temCarga(p) && kg > 0 ? " · \(Progresso.fmtKg(kg)) kg" : "")
+        return TreinoAtividade.ContentState(exercicio: p.ex.nome, rotulo: p.rotulo, prescricao: prescr, indice: i, total: passos.count,
+                                            descansando: descansando, fimEm: pausado == nil ? fimEm : nil, porTempo: p.porTempo,
+                                            proximo: prox, bpm: sensores.bpmAtual, concluido: false)
+    }
+
+    func sincronizarAoVivo() {
+        if let f = fimEm, pausado == nil {
+            let prox = passos.indices.contains(i + 1) ? passos[i + 1].ex.nome : nil
+            AoVivo.shared.agendarAviso(em: f, descanso: descansando, proximo: prox)
+        } else {
+            AoVivo.shared.cancelarAviso()
+        }
+        if #available(iOS 16.1, *), let e = estadoAoVivo() { AoVivo.shared.atualizar(e) }
+    }
+
     func finalizar() {
         let series = feitas.sorted { $0.key < $1.key }.map(\.value)
         let dur = Int(Date().timeIntervalSince(inicio))
+        sensores.marcarIntervalo(inicio: inicio, fim: Date(), tipo: alvo.sessao.tipo)
         fim(Registro(epochDay: app.loja.hoje(), semana: alvo.semana, sessaoIdx: alvo.idx, titulo: alvo.sessao.titulo, tipo: alvo.sessao.tipo, duracaoSeg: dur, series: series, esforco: 7, nota: ""))
     }
 }
@@ -277,6 +332,9 @@ struct ConcluidoView: View {
     let fechar: () -> Void
     @State private var esforco = 7
     @State private var nota = ""
+    @State private var fc: Saude.FCResumo?
+    @State private var buscandoFC = false
+    @ObservedObject private var saude = Saude.shared
     static let escala = ["Muito leve", "Muito leve", "Leve", "Leve", "Moderado", "Moderado", "Difícil", "Difícil", "Muito difícil", "Quase máximo", "Máximo"]
 
     var body: some View {
@@ -296,6 +354,7 @@ struct ConcluidoView: View {
                     Cartao(padding: 14) { Estatistica(valor: "\(registro.series.count)", rotulo: "séries feitas") }
                     Cartao(padding: 14) { Estatistica(valor: volume > 0 ? Progresso.fmtKg(volume) : "—", rotulo: "kg de volume") }
                 }.padding(.top, 22)
+                cartaoFC(cor).padding(.top, 10)
                 Text("Como foi o esforço?").font(Tipo.titulo3).padding(.top, 26)
                 Text("\(esforco)/10 · \(Self.escala[esforco])").font(Tipo.corpoForte).foregroundStyle(cor).padding(.top, 4)
                 HStack {
@@ -313,11 +372,67 @@ struct ConcluidoView: View {
                     .padding(16).background(Cor.sup1, in: RoundedRectangle(cornerRadius: 16)).padding(.top, 20)
                 BotaoPrimario(texto: "Salvar treino", icone: "checkmark", cor: cor == Cor.brasa ? nil : cor) {
                     var r = registro; r.esforco = esforco; r.nota = nota.trimmingCharacters(in: .whitespaces)
-                    app.loja.registrar(r); Haptico.sucesso(); fechar()
+                    app.loja.registrar(r); Haptico.sucesso()
+                    salvarNoSaude(r)
+                    fechar()
                 }.padding(.top, 26)
                 Button("Descartar") { fechar() }.font(Tipo.pequenoForte).foregroundStyle(Cor.texto3).padding(10)
             }.padding(24)
         }
         .telaForja()
+        .task { await buscarFC() }
+    }
+
+    /// Intervalo do treino (marcado ao finalizar; se faltar, deduz pela duração).
+    var intervalo: (Date, Date) {
+        let s = Sensores.shared
+        let fim = s.fimTreino ?? Date()
+        return (s.inicioTreino ?? fim.addingTimeInterval(-Double(registro.duracaoSeg)), fim)
+    }
+
+    @ViewBuilder func cartaoFC(_ cor: Color) -> some View {
+        if let fc {
+            Cartao(padding: 14) {
+                HStack(spacing: 14) {
+                    Image(systemName: "heart.fill").font(.system(size: 22, weight: .bold)).foregroundStyle(Cor.perigo)
+                    Estatistica(valor: "\(fc.media)", rotulo: "FC média (bpm)")
+                    Estatistica(valor: "\(fc.max)", rotulo: "FC máxima (bpm)")
+                }
+                if !fc.fonte.isEmpty { Text("Fonte: \(fc.fonte)").font(Tipo.pequeno).foregroundStyle(Cor.texto3).padding(.top, 6) }
+            }
+        } else if buscandoFC {
+            HStack(spacing: 8) { ProgressView(); Text("Buscando a frequência cardíaca do seu relógio no app Saúde…").font(Tipo.pequeno).foregroundStyle(Cor.texto2) }
+        } else if !saude.conectado && saude.disponivel {
+            Button {
+                Task { if await saude.conectar() { await buscarFC() } }
+            } label: {
+                Label("Conectar ao app Saúde para ver a FC do seu relógio", systemImage: "heart.text.square.fill").font(Tipo.pequenoForte).foregroundStyle(cor)
+            }
+        }
+    }
+
+    /// FC: cinta/relógio Bluetooth ao vivo; senão, as amostras do app Saúde no intervalo do treino
+    /// (o Apple Watch e outros relógios sincronizam com atraso, então tenta de novo algumas vezes).
+    func buscarFC() async {
+        if app.demo { fc = Saude.FCResumo(media: 128, max: 161, fonte: "Polar H10"); return }
+        if let r = Sensores.shared.resumo { fc = r; return }
+        guard saude.conectado else { return }
+        buscandoFC = true
+        defer { buscandoFC = false }
+        let (ini, fim) = intervalo
+        for espera in [0, 5, 15, 30] {
+            if espera > 0 { try? await Task.sleep(nanoseconds: UInt64(espera) * 1_000_000_000) }
+            if Task.isCancelled { return }
+            if let r = await saude.frequencia(de: ini, ate: fim) { fc = r; return }
+        }
+    }
+
+    /// Grava o treino no Saúde, a menos que um relógio já tenha gravado um treino no mesmo horário.
+    func salvarNoSaude(_ r: Registro) {
+        guard saude.conectado, !app.demo else { return }
+        let (ini, fim) = intervalo
+        let peso = Double(app.e.perfil?.pesoKg ?? 75)
+        let kcal = AtividadeSaude.kcalEstimada(r.tipo, pesoKg: peso, segundos: r.duracaoSeg, fcMedia: fc?.media)
+        Task { await Saude.shared.salvarTreino(tipoSessao: r.tipo, titulo: r.titulo, inicio: ini, fim: fim, kcal: kcal) }
     }
 }

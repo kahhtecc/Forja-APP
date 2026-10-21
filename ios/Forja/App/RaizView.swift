@@ -8,6 +8,7 @@ enum Rota: Hashable {
     case video(String)
     case perfil
     case fontes
+    case cardiaco
 }
 
 enum Aba: String, CaseIterable {
@@ -57,6 +58,7 @@ struct RaizView: View {
                     case .video(let id): VideoView(id: id)
                     case .perfil: PerfilView(refazer: { questionario = true }, abrir: abrir)
                     case .fontes: FontesView()
+                    case .cardiaco: CardiacoView()
                     }
                 }
                 .toolbarBackground(Cor.fundo, for: .navigationBar)
@@ -110,6 +112,9 @@ struct RaizView: View {
         case "progresso": aba = .progresso
         case "perfil": abrir(.perfil)
         case "fontes": abrir(.fontes)
+        case "cardiaco": abrir(.cardiaco)
+        case "concluido":
+            if let r = app.e.registros.last { concluido = r }
         case "quiz": questionario = true
         case "sessao", "treino":
             let (i, s) = app.loja.proximaSessao() ?? (0, app.plano!.semanas[0].sessoes[0])

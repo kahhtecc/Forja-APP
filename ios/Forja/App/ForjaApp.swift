@@ -38,7 +38,10 @@ final class AppEstado: ObservableObject {
         loja = Loja(catalogo: catalogo, armazenamento: Preferencias(prefixo: demo ? "demo." : "forja."))
         e = loja.estado
         loja.aoMudar = { [weak self] novo in self?.e = novo }
-        if demo { semearDemo() }
+        if demo { semearDemo() } else {
+            MonitorCardiaco.shared.reconectarSeLembrado()
+            AoVivo.shared.limparPendentes()
+        }
         Task { await buscarConteudo() }
     }
 

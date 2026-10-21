@@ -10,6 +10,9 @@ struct PerfilView: View {
     @State private var confirmarRecomecar = false
     @State private var lembrete = UserDefaults.standard.bool(forKey: "lembrete.on")
     @State private var hora = UserDefaults.standard.object(forKey: "lembrete.hora") as? Int ?? 18
+    @AppStorage(AoVivo.chave) private var aoVivo = true
+    @ObservedObject private var saude = Saude.shared
+    @ObservedObject private var monitor = MonitorCardiaco.shared
 
     var body: some View {
         let p = app.e.perfil
@@ -48,6 +51,25 @@ struct PerfilView: View {
                     Toggle("Manter a tela ligada", isOn: Binding(get: { app.e.ajustes.telaLigada }, set: { var a = app.e.ajustes; a.telaLigada = $0; app.loja.salvarAjustes(a) })).padding(.top, 8)
                 }
                 .font(Tipo.corpo).tint(Cor.brasa)
+
+                Secao(titulo: "Relógio e saúde")
+                Cartao(padding: 16) {
+                    Toggle(isOn: $aoVivo) {
+                        VStack(alignment: .leading) {
+                            Text("Mostrar treino no relógio e na tela bloqueada").font(Tipo.corpoForte)
+                            Text("Exercício, série e descanso na tela bloqueada, na Dynamic Island e no Apple Watch (watchOS 11+), com os botões Concluir série e Pular descanso. O relógio vibra no fim do descanso.").font(Tipo.pequeno).foregroundStyle(Cor.texto2)
+                        }
+                    }.tint(Cor.brasa)
+                }
+                linha("heart.text.square.fill", saude.conectado ? "Conectado ao app Saúde" : "Conectar ao app Saúde",
+                      saude.conectado ? "Treinos gravados no Saúde e FC média/máxima do seu relógio no resumo" : "Grava os treinos e lê a FC do Apple Watch, Garmin, Polar, Withings, Oura e outros que sincronizam com o Saúde",
+                      cor: saude.conectado ? Cor.ok : Cor.perigo) {
+                    if saude.conectado { UIApplication.shared.open(URL(string: "x-apple-health://")!) } else { Task { await saude.conectar() } }
+                }
+                linha("dot.radiowaves.left.and.right", monitor.lembrado.map { "Monitor: \($0)" } ?? "Conectar cinta ou relógio por Bluetooth",
+                      monitor.lembrado == nil ? "Cinta cardíaca ou relógio em modo transmitir FC: batimentos ao vivo no treino" : (monitor.bpm.map { "\($0) bpm agora · toque para gerenciar" } ?? "Reconecta sozinho quando estiver por perto")) {
+                    abrir(.cardiaco)
+                }
 
                 Secao(titulo: "Lembretes")
                 Cartao(padding: 16) {
