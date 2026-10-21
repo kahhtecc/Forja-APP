@@ -1,6 +1,7 @@
 package com.forja.app.relogio
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
  * andamento no Wear OS (Ongoing Activity) e uma cópia "espelho" vai para o relógio pareado (Wear OS, Galaxy Watch e
  * relógios que espelham notificações: Garmin, Amazfit, Xiaomi…). No fim do descanso, alerta com vibração forte.
  */
+@SuppressLint("MissingPermission")
 object TreinoAoVivo {
     const val ACAO_CONCLUIR = "concluir-serie"
     const val ACAO_PULAR = "pular-descanso"

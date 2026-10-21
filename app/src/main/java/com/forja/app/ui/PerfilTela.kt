@@ -1,6 +1,9 @@
 package com.forja.app.ui
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,10 +28,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Notifications
@@ -42,6 +49,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +69,14 @@ import com.forja.app.BuildConfig
 import com.forja.app.Lembretes
 import com.forja.app.core.Estado
 import com.forja.app.core.Questionario
+import com.forja.app.relogio.FcAoVivo
+import com.forja.app.relogio.MonitorBle
+import com.forja.app.relogio.PrefsRelogio
+import com.forja.app.relogio.Saude
+import androidx.core.content.ContextCompat
+import androidx.health.connect.client.PermissionController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -75,6 +93,24 @@ fun TelaPerfil(vm: AppViewModel, estado: Estado, nav: Navegador) {
         lembrete = ok; Lembretes.configurar(ctx, ok, hora)
     }
     val cor = Cor.modalidade(plano?.modalidade)
+
+    // Relógio e saúde
+    var mostrarRelogio by remember { mutableStateOf(PrefsRelogio.mostrar(ctx)) }
+    val permNotif = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (!ok) vm.aviso = "Sem permissão de notificação o treino não aparece no relógio."
+    }
+    var hcConectado by remember { mutableStateOf(false) }
+    var hcVersao by remember { mutableIntStateOf(0) }
+    LaunchedEffect(hcVersao) { hcConectado = !vm.demo && withContext(Dispatchers.IO) { runCatching { Saude.conectado(ctx) }.getOrDefault(false) } }
+    val hcPedir = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) { g ->
+        hcVersao++
+        if (g.isNotEmpty()) vm.aviso = "Health Connect conectado: seus treinos e a FC do relógio passam a ser sincronizados."
+    }
+    var bleLembrado by remember { mutableStateOf(PrefsRelogio.ble(ctx)) }
+    var dialogoBle by remember { mutableStateOf(false) }
+    val blePedir = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        if (r.values.all { it }) dialogoBle = true else vm.aviso = "Sem a permissão de Bluetooth não dá para procurar o monitor cardíaco."
+    }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding()) {
         Topo("Perfil", "Você e seus ajustes", onVoltar = { nav.voltar() })
@@ -110,6 +146,38 @@ fun TelaPerfil(vm: AppViewModel, estado: Estado, nav: Navegador) {
                 Alternar("Sons do cronômetro", aj.som) { vm.loja.salvarAjustes(aj.copy(som = it)) }
                 Alternar("Vibração", aj.vibracao) { vm.loja.salvarAjustes(aj.copy(vibracao = it)) }
                 Alternar("Manter a tela ligada", aj.telaLigada) { vm.loja.salvarAjustes(aj.copy(telaLigada = it)) }
+            }
+
+            Secao("Relógio e saúde")
+            Cartao(Modifier.fillMaxWidth(), padding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)) {
+                Alternar("Mostrar treino no relógio (notificação)", mostrarRelogio) { on ->
+                    mostrarRelogio = on; PrefsRelogio.setMostrar(ctx, on)
+                    if (on && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+                        permNotif.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+                Text("Exercício, série, descanso com vibração no fim e botões “Concluir série” e “Pular descanso” na tela bloqueada e no relógio pareado (Wear OS, Galaxy Watch, Garmin, Amazfit, Xiaomi…).",
+                    style = Tipo.Pequeno, color = Cor.Texto2, modifier = Modifier.padding(bottom = 10.dp))
+            }
+            LinhaAcao(Icons.Rounded.MonitorHeart, "Conectar ao Health Connect",
+                when {
+                    hcConectado -> "Conectado ✓ · treinos salvos e FC do relógio no fim do treino"
+                    Saude.disponivel(ctx) -> "Salva seus treinos e lê a FC de relógios Samsung, Garmin, Fitbit, Xiaomi…"
+                    Saude.precisaInstalar(ctx) -> "Instale o Health Connect para sincronizar com seu relógio"
+                    else -> "Health Connect não disponível neste aparelho"
+                }) {
+                when {
+                    Saude.disponivel(ctx) -> hcPedir.launch(Saude.PERMISSOES)
+                    Saude.precisaInstalar(ctx) -> Saude.instalar(ctx)
+                    else -> vm.aviso = "O Health Connect não está disponível neste aparelho."
+                }
+            }
+            LinhaAcao(Icons.Rounded.Bluetooth, "Conectar cinta/relógio por Bluetooth",
+                bleLembrado?.let { "Lembrado: ${it.second} · conecta sozinho no treino" } ?: "Cintas e relógios com “transmitir FC” (Polar, Garmin, Coros, Amazfit…)") {
+                when {
+                    !MonitorBle.disponivel(ctx) -> vm.aviso = "Este aparelho não tem Bluetooth LE."
+                    MonitorBle.temPermissao(ctx) -> dialogoBle = true
+                    else -> blePedir.launch(MonitorBle.permissoes())
+                }
             }
 
             Secao("Lembretes")
@@ -154,6 +222,7 @@ fun TelaPerfil(vm: AppViewModel, estado: Estado, nav: Navegador) {
             Spacer(Modifier.height(30.dp))
         }
     }
+    if (dialogoBle) DialogoBle(onFechar = { dialogoBle = false; bleLembrado = PrefsRelogio.ble(ctx) })
     if (confirmarApagar) AlertDialog(onDismissRequest = { confirmarApagar = false }, containerColor = Cor.Sup2,
         title = { Text("Apagar tudo?", style = Tipo.Titulo3, color = Cor.Texto) },
         text = { Text("Isso remove suas respostas, o plano e todo o histórico deste aparelho. Não dá para desfazer.", style = Tipo.Corpo, color = Cor.Texto2) },
@@ -164,6 +233,72 @@ fun TelaPerfil(vm: AppViewModel, estado: Estado, nav: Navegador) {
         text = { Text("A semana atual passa a ser a semana 1. Seus treinos registrados continuam no histórico.", style = Tipo.Corpo, color = Cor.Texto2) },
         confirmButton = { TextButton(onClick = { confirmarRecomecar = false; vm.loja.recomecarPlano() }) { Text("Recomeçar", style = Tipo.Botao, color = Cor.Brasa) } },
         dismissButton = { TextButton(onClick = { confirmarRecomecar = false }) { Text("Cancelar", style = Tipo.Botao, color = Cor.Texto2) } })
+}
+
+@SuppressLint("MissingPermission")
+@Composable
+private fun DialogoBle(onFechar: () -> Unit) {
+    val ctx = LocalContext.current
+    val lista by MonitorBle.encontrados.collectAsState()
+    val buscando by MonitorBle.escaneando.collectAsState()
+    val conectado by MonitorBle.conectado.collectAsState()
+    val conectando by MonitorBle.conectando.collectAsState()
+    val bpm by FcAoVivo.bpm.collectAsState()
+    var ligado by remember { mutableStateOf(MonitorBle.ligado(ctx)) }
+    var lembrado by remember { mutableStateOf(PrefsRelogio.ble(ctx)) }
+    val ligar = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { ligado = MonitorBle.ligado(ctx) }
+    LaunchedEffect(ligado) { if (ligado) MonitorBle.escanear(ctx) }
+    DisposableEffect(Unit) { onDispose { MonitorBle.pararBusca(ctx); MonitorBle.desconectar() } }
+    AlertDialog(
+        onDismissRequest = onFechar, containerColor = Cor.Sup2,
+        title = { Text("Monitor cardíaco", style = Tipo.Titulo3, color = Cor.Texto) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                if (!ligado) {
+                    Text("O Bluetooth está desligado.", style = Tipo.Corpo, color = Cor.Texto2)
+                    Spacer(Modifier.height(10.dp))
+                    BotaoSecundario("Ligar Bluetooth") { runCatching { ligar.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)) } }
+                    return@Column
+                }
+                Text("No relógio, ative “transmitir frequência cardíaca” (Garmin: Transmitir FC; Polar: Compartilhar FC; Coros/Amazfit: Heart rate broadcast). Cintas ligam ao umedecer os eletrodos.",
+                    style = Tipo.Pequeno, color = Cor.Texto2)
+                Spacer(Modifier.height(12.dp))
+                if (conectado != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Favorite, null, tint = Cor.Perigo, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("$conectado · ${FcAoVivo.atual()?.let { "$it bpm" } ?: bpm?.let { "$it bpm" } ?: "aguardando FC…"}", style = Tipo.CorpoForte, color = Cor.Texto)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                } else if (conectando) {
+                    Text("Conectando…", style = Tipo.CorpoForte, color = Cor.Brasa)
+                    Spacer(Modifier.height(10.dp))
+                }
+                lista.forEach { d ->
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Cor.Sup3)
+                        .toque("Conectar ${d.nome}") { MonitorBle.pararBusca(ctx); MonitorBle.conectar(ctx, d.endereco, d.nome); lembrado = PrefsRelogio.ble(ctx) }
+                        .padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Bluetooth, null, tint = Cor.Brasa, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(d.nome, style = Tipo.CorpoForte, color = Cor.Texto, modifier = Modifier.weight(1f))
+                        if (lembrado?.first == d.endereco) Text("lembrado", style = Tipo.Pequeno, color = Cor.Texto3)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
+                if (buscando) Text("Procurando monitores por perto…", style = Tipo.Pequeno, color = Cor.Texto3)
+                else {
+                    if (lista.isEmpty()) Text("Nenhum monitor encontrado.", style = Tipo.Pequeno, color = Cor.Texto3)
+                    Spacer(Modifier.height(8.dp))
+                    BotaoSecundario("Procurar de novo") { MonitorBle.escanear(ctx) }
+                }
+                lembrado?.let { l ->
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = { MonitorBle.esquecer(ctx); lembrado = null }) { Text("Esquecer ${l.second}", style = Tipo.Botao, color = Cor.Perigo) }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onFechar) { Text("Pronto", style = Tipo.Botao, color = Cor.Brasa) } },
+    )
 }
 
 @Composable

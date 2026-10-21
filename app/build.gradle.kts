@@ -61,4 +61,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.media3:media3-exoplayer:1.5.1")
+    // Relógio e saúde: Health Connect (treinos + FC de qualquer relógio) e Ongoing Activity (treino ao vivo no Wear OS)
+    implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("androidx.wear:wear-ongoing:1.1.0")
 }

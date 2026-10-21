@@ -43,4 +43,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onStart() { super.onStart(); com.forja.app.relogio.TreinoAoVivo.appVisivel = true }
+    override fun onStop() { com.forja.app.relogio.TreinoAoVivo.appVisivel = false; super.onStop() }
 }
