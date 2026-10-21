@@ -70,6 +70,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Salva o treino concluído e, se o Health Connect estiver conectado, grava a sessão de exercício nele. */
+    fun salvarTreino(r: Registro) {
+        loja.registrar(r)
+        if (demo) return
+        viewModelScope.launch(Dispatchers.IO) { runCatching { com.forja.app.relogio.Saude.gravarTreino(getApplication(), r) } }
+    }
+
     /** Treino em andamento (EstadoTreino), mantido ao abrir o vídeo ou girar a tela. */
     var treino: Any? = null
 

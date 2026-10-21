@@ -64,7 +64,11 @@ struct PerfilView: View {
                 linha("heart.text.square.fill", saude.conectado ? "Conectado ao app Saúde" : "Conectar ao app Saúde",
                       saude.conectado ? "Treinos gravados no Saúde e FC média/máxima do seu relógio no resumo" : "Grava os treinos e lê a FC do Apple Watch, Garmin, Polar, Withings, Oura e outros que sincronizam com o Saúde",
                       cor: saude.conectado ? Cor.ok : Cor.brasa) {
-                    if saude.conectado { UIApplication.shared.open(URL(string: "x-apple-health://")!) } else { Task { await saude.conectar() } }
+                    if saude.conectado { UIApplication.shared.open(URL(string: "x-apple-health://")!) } else { Task {
+                        if !(await saude.conectar()) {
+                            app.aviso = saude.disponivel ? "Não deu para conectar ao Saúde. Libere o Forja em Ajustes › Saúde › Acesso a Dados (instalações com Apple ID grátis não têm HealthKit)." : "O app Saúde não está disponível neste aparelho."
+                        }
+                    } }
                 }
                 linha("dot.radiowaves.left.and.right", monitor.lembrado.map { "Monitor: \($0)" } ?? "Conectar cinta ou relógio por Bluetooth",
                       monitor.lembrado == nil ? "Cinta cardíaca ou relógio em modo transmitir FC: batimentos ao vivo no treino" : (monitor.bpm.map { "\($0) bpm agora · toque para gerenciar" } ?? "Reconecta sozinho quando estiver por perto")) {

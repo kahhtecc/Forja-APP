@@ -22,6 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.forja.app.relogio.Saude
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +56,16 @@ fun TelaConcluido(vm: AppViewModel, estado: Estado, reg: Registro, novo: Boolean
     var nota by remember { mutableStateOf("") }
     val cor = Cor.tipoSessao(reg.tipo, Cor.modalidade(estado.plano?.modalidade))
     val volume = Progresso.volumeKg(reg)
+    val ctx = LocalContext.current
+    // FC: do monitor Bluetooth (guardada no registro) ou, se não houver, do Health Connect (relógios que sincronizam com ele)
+    var fc by remember { mutableStateOf(if (reg.fcMedia > 0) reg.fcMedia to reg.fcMax else null) }
+    var fonteFc by remember { mutableStateOf(if (reg.fcMedia > 0) "monitor cardíaco" else "") }
+    LaunchedEffect(reg) {
+        if (fc == null && !vm.demo) {
+            val (ini, fim) = Saude.intervalo(reg)
+            withContext(Dispatchers.IO) { runCatching { Saude.fc(ctx, ini, fim) }.getOrNull() }?.let { fc = it; fonteFc = "Health Connect" }
+        }
+    }
     val recordesAntes = remember { Progresso.recordes(estado.registros).associateBy { it.exId } }
     val novosRecordes = remember(reg) {
         Progresso.recordes(listOf(reg)).filter { r -> recordesAntes[r.exId]?.let { r.rm1 > it.rm1 + 0.01 } ?: false }
@@ -70,6 +86,22 @@ fun TelaConcluido(vm: AppViewModel, estado: Estado, reg: Registro, novo: Boolean
             Cartao(Modifier.weight(1f), padding = PaddingValues(14.dp)) { Estatistica("${reg.duracaoSeg / 60}", "minutos") }
             Cartao(Modifier.weight(1f), padding = PaddingValues(14.dp)) { Estatistica("${reg.series.size}", "séries feitas") }
             Cartao(Modifier.weight(1f), padding = PaddingValues(14.dp)) { Estatistica(if (volume > 0) Progresso.fmtKg(volume) else "—", "kg de volume") }
+        }
+        fc?.let { (med, max) ->
+            Spacer(Modifier.height(12.dp))
+            Cartao(Modifier.fillMaxWidth(), padding = PaddingValues(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Favorite, null, tint = Cor.Perigo, modifier = Modifier.size(28.dp))
+                    Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Frequência cardíaca", style = Tipo.CorpoForte, color = Cor.Texto)
+                        Text("via $fonteFc", style = Tipo.Pequeno, color = Cor.Texto2)
+                    }
+                    Estatistica("$med", "média")
+                    Spacer(Modifier.size(16.dp))
+                    Estatistica("$max", "máxima")
+                }
+            }
         }
         if (novosRecordes.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
@@ -109,7 +141,7 @@ fun TelaConcluido(vm: AppViewModel, estado: Estado, reg: Registro, novo: Boolean
         )
         Spacer(Modifier.height(26.dp))
         BotaoPrimario("Salvar treino", Modifier.fillMaxWidth(), icone = Icons.Rounded.Check, cor = if (cor == Cor.Brasa) null else cor) {
-            if (novo) vm.loja.registrar(reg.copy(esforco = esforco, nota = nota.trim()))
+            if (novo) vm.salvarTreino(reg.copy(esforco = esforco, nota = nota.trim(), fcMedia = fc?.first ?: 0, fcMax = fc?.second ?: 0))
             onFechar()
         }
         Spacer(Modifier.height(10.dp))

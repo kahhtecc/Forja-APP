@@ -123,4 +123,9 @@ data class Registro(
     val series: List<SerieFeita>,
     val esforco: Int,
     val nota: String,
+    /** Frequência cardíaca média/máxima (bpm) do treino; 0 = sem dado (registros antigos). */
+    val fcMedia: Int = 0,
+    val fcMax: Int = 0,
+    /** Fim do treino (epoch ms); 0 = desconhecido (registros antigos). */
+    val fimMs: Long = 0,
 )

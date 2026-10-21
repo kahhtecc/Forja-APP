@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
@@ -41,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -54,7 +57,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.forja.app.relogio.FcAoVivo
+import com.forja.app.relogio.MonitorBle
+import com.forja.app.relogio.PrefsRelogio
+import com.forja.app.relogio.TreinoAoVivo
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,7 +80,9 @@ import com.forja.app.core.Sessao
 import com.forja.app.core.TipoBloco
 import kotlinx.coroutines.delay
 
-/** Estado do treino em andamento — fica no ViewModel para sobreviver a abrir o vídeo ou girar a tela. */
+/** Estado do treino em andamento — fica no ViewModel para sobreviver a abrir o vídeo ou girar a tela.
+ *  A lógica (concluir série, descanso, avançar) fica aqui, fora da tela, para os botões da notificação e do
+ *  relógio funcionarem mesmo com o celular bloqueado (sem recomposição). */
 class EstadoTreino(val chave: String, val passos: List<Passo>) {
     val inicioMs = System.currentTimeMillis()
     var i by mutableIntStateOf(0)
@@ -81,8 +93,90 @@ class EstadoTreino(val chave: String, val passos: List<Passo>) {
     var reps by mutableIntStateOf(0)
     var kg by mutableDoubleStateOf(0.0)
     var preparadoPara by mutableIntStateOf(-1)
+    var ultimoBip by mutableIntStateOf(-1)
     val feitas = mutableStateMapOf<Int, SerieFeita>()
     val passo: Passo get() = passos[i.coerceIn(0, passos.lastIndex)]
+
+    /** Histórico (para sugerir a carga) e ganchos definidos pela tela. */
+    var registros: List<Registro> = emptyList()
+    var aoFinalizar: () -> Unit = {}
+    var aoMudar: () -> Unit = {}
+
+    /** Valores padrão de reps/kg quando muda de passo. */
+    fun preparar() {
+        if (preparadoPara == i) return
+        preparadoPara = i
+        val p = passo
+        val anterior = feitas.entries.lastOrNull { passos[it.key].ex.id == p.ex.id }?.value
+        reps = anterior?.reps ?: repsAlvo(p)
+        kg = anterior?.kg ?: Progresso.ultimas(registros, p.ex.id).maxOfOrNull { it.kg } ?: 0.0
+    }
+
+    fun irPara(n: Int, auto: Boolean = false) {
+        descansando = false; fimMs = null; pausadoRestante = null
+        if (n > passos.lastIndex) { aoFinalizar(); return }
+        val anterior = passos.getOrNull(i)
+        i = n.coerceAtLeast(0)
+        val novo = passos[i]
+        // Em intervalados e circuitos por tempo, o próximo esforço começa sozinho depois da pausa.
+        if (auto && novo.porTempo && anterior != null && anterior.porTempo && anterior.blocoIdx == novo.blocoIdx) {
+            fimMs = System.currentTimeMillis() + (novo.item.trabalhoSeg ?: 0) * 1000L
+            ultimoBip = -1
+        }
+        preparar()
+        aoMudar()
+    }
+
+    fun concluirSerie() {
+        val p = passo
+        feitas[i] = if (p.porTempo) SerieFeita(p.ex.id, 0, 0.0, p.item.trabalhoSeg ?: 0)
+        else SerieFeita(p.ex.id, reps, if (temCarga(p)) kg else 0.0)
+        if (i == passos.lastIndex) { aoFinalizar(); return }
+        if (p.descansoDepois > 0) {
+            descansando = true
+            fimMs = System.currentTimeMillis() + p.descansoDepois * 1000L
+            pausadoRestante = null
+            aoMudar()
+        } else irPara(i + 1)
+    }
+
+    fun iniciarTempo() {
+        fimMs = System.currentTimeMillis() + (passo.item.trabalhoSeg ?: 0) * 1000L
+        pausadoRestante = null; ultimoBip = -1
+        aoMudar()
+    }
+
+    fun pausar() { fimMs?.let { pausadoRestante = (it - System.currentTimeMillis()).coerceAtLeast(0) }; aoMudar() }
+
+    fun continuar() { pausadoRestante?.let { fimMs = System.currentTimeMillis() + it }; pausadoRestante = null; aoMudar() }
+
+    fun ajustarDescanso(deltaMs: Long) {
+        val agora = System.currentTimeMillis()
+        fimMs = ((fimMs ?: agora) + deltaMs).coerceAtLeast(agora + 1000)
+        aoMudar()
+    }
+
+    /** Ações vindas da notificação ou do relógio. Retorna true se for para encerrar o treino. */
+    fun acao(a: String): Boolean {
+        val agora = System.currentTimeMillis()
+        when (a) {
+            TreinoAoVivo.ACAO_CONCLUIR -> when {
+                descansando -> irPara(i + 1)
+                passo.porTempo && fimMs == null && pausadoRestante == null -> iniciarTempo()
+                else -> concluirSerie()
+            }
+            TreinoAoVivo.ACAO_PULAR -> if (descansando) irPara(i + 1)
+            TreinoAoVivo.ACAO_FIM -> {
+                val f = fimMs
+                if (f != null && pausadoRestante == null && f <= agora + 600) {
+                    ultimoBip = 0
+                    if (descansando) irPara(i + 1, auto = true) else concluirSerie()
+                }
+            }
+            TreinoAoVivo.ACAO_ENCERRAR -> return true
+        }
+        return false
+    }
 }
 
 private fun temCarga(p: Passo) = p.ex.equip.any { it in setOf("barra", "halter", "kettlebell", "maquina", "polia", "bola") }
@@ -93,62 +187,71 @@ private fun repsAlvo(p: Passo): Int = p.item.reps?.substringBefore("–")?.subst
 fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, idx: Int, onSair: () -> Unit, onFim: (Registro) -> Unit, nav: Navegador) {
     val chave = "$semana|$idx|${sessao.titulo}"
     val t = remember(chave) {
-        (vm.treino as? EstadoTreino)?.takeIf { it.chave == chave } ?: EstadoTreino(chave, Roteiro.passos(sessao, vm.catalogo)).also { vm.treino = it }
+        (vm.treino as? EstadoTreino)?.takeIf { it.chave == chave } ?: EstadoTreino(chave, Roteiro.passos(sessao, vm.catalogo)).also {
+            vm.treino = it
+            FcAoVivo.comecarTreino()
+        }
     }
     if (t.passos.isEmpty()) { LaunchedEffect(Unit) { onSair() }; return }
     val view = LocalView.current
+    val ctx = LocalContext.current
     val tom = remember { runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 70) }.getOrNull() }
     DisposableEffect(Unit) { onDispose { tom?.release() } }
     var agora by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var confirmarSaida by remember { mutableStateOf(false) }
-    var ultimoBip by remember { mutableIntStateOf(-1) }
     val aj = estado.ajustes
     val corBase = Cor.tipoSessao(sessao.tipo, Cor.modalidade(estado.plano?.modalidade))
+    val bpm by FcAoVivo.bpm.collectAsState()
 
     LaunchedEffect(Unit) { while (true) { agora = System.currentTimeMillis(); delay(200) } }
 
     val p = t.passo
-    // prepara valores padrão de reps/kg quando muda de passo
-    LaunchedEffect(t.i) {
-        if (t.preparadoPara != t.i) {
-            t.preparadoPara = t.i
-            val anterior = t.feitas.entries.lastOrNull { t.passos[it.key].ex.id == p.ex.id }?.value
-            val ultimas = Progresso.ultimas(estado.registros, p.ex.id)
-            t.reps = anterior?.reps ?: repsAlvo(p)
-            t.kg = anterior?.kg ?: ultimas.maxOfOrNull { it.kg } ?: 0.0
-        }
-    }
+    t.registros = estado.registros
+    LaunchedEffect(t.i) { t.preparar() }
 
     fun finalizar() {
         val series = t.feitas.toSortedMap().values.toList()
-        val dur = ((System.currentTimeMillis() - t.inicioMs) / 1000).toInt()
+        val fim = System.currentTimeMillis()
+        val dur = ((fim - t.inicioMs) / 1000).toInt()
+        val (fcMed, fcMax) = FcAoVivo.resumo()
+        FcAoVivo.pararTreino()
         vm.treino = null
-        onFim(Registro(vm.loja.hoje(), semana, idx, sessao.titulo, sessao.tipo, dur, series, 7, ""))
+        TreinoAoVivo.parar(ctx)
+        onFim(Registro(vm.loja.hoje(), semana, idx, sessao.titulo, sessao.tipo, dur, series, 7, "", fcMed, fcMax, fim))
     }
+    fun sair() { vm.treino = null; FcAoVivo.pararTreino(); TreinoAoVivo.parar(ctx); onSair() }
+    t.aoFinalizar = { finalizar() }
 
-    fun irPara(n: Int, auto: Boolean = false) {
-        t.descansando = false; t.fimMs = null; t.pausadoRestante = null
-        if (n > t.passos.lastIndex) { finalizar(); return }
-        val anterior = t.passos.getOrNull(t.i)
-        t.i = n.coerceAtLeast(0)
-        val novo = t.passos[t.i]
-        // Em intervalados e circuitos por tempo, o próximo esforço começa sozinho depois da pausa.
-        if (auto && novo.porTempo && anterior != null && anterior.porTempo && anterior.blocoIdx == novo.blocoIdx) {
-            t.fimMs = System.currentTimeMillis() + (novo.item.trabalhoSeg ?: 0) * 1000L
-            ultimoBip = -1
+    // Notificação do treino ao vivo (e relógio) + monitor cardíaco Bluetooth lembrado
+    val mostrarRelogio = !vm.demo && PrefsRelogio.mostrar(ctx)
+    t.aoMudar = { TreinoAoVivo.atualizar() }
+    val pedir = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (vm.treino === t) TreinoAoVivo.iniciar(ctx, t, sessao.titulo)
+    }
+    LaunchedEffect(Unit) {
+        if (!vm.demo) MonitorBle.conectarLembrado(ctx)
+        if (mostrarRelogio) {
+            val faltam = TreinoAoVivo.permissoesFaltando(ctx)
+            if (faltam.isNotEmpty() && !PrefsRelogio.pediuPermissoes(ctx)) { PrefsRelogio.marcarPediu(ctx); pedir.launch(faltam) }
+            else TreinoAoVivo.iniciar(ctx, t, sessao.titulo)
         }
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            // abrir o vídeo do exercício não encerra o treino; sair dele, sim
+            if (vm.treino !== t || nav.atual !is Rota.Video) { TreinoAoVivo.parar(ctx); MonitorBle.desconectar() }
+        }
+    }
+    val tratar by rememberUpdatedState<(String) -> Unit> { a ->
+        if (t.acao(a)) { if (t.feitas.isEmpty()) sair() else finalizar() }
+    }
+    LaunchedEffect(Unit) { TreinoAoVivo.acoes.collect { tratar(it) } }
+
+    fun irPara(n: Int, auto: Boolean = false) = t.irPara(n, auto)
 
     fun concluirSerie() {
         if (aj.vibracao) view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-        t.feitas[t.i] = if (p.porTempo) SerieFeita(p.ex.id, 0, 0.0, p.item.trabalhoSeg ?: 0)
-        else SerieFeita(p.ex.id, t.reps, if (temCarga(p)) t.kg else 0.0)
-        if (t.i == t.passos.lastIndex) { finalizar(); return }
-        if (p.descansoDepois > 0) {
-            t.descansando = true
-            t.fimMs = System.currentTimeMillis() + p.descansoDepois * 1000L
-            t.pausadoRestante = null
-        } else irPara(t.i + 1)
+        t.concluirSerie()
     }
 
     // cronômetro (trabalho por tempo ou descanso)
@@ -157,18 +260,18 @@ fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, id
     LaunchedEffect(restanteSeg, t.pausadoRestante) {
         val r = restanteSeg ?: return@LaunchedEffect
         if (t.pausadoRestante != null) return@LaunchedEffect
-        if (r in 1..3 && ultimoBip != r) {
-            ultimoBip = r
+        if (r in 1..3 && t.ultimoBip != r) {
+            t.ultimoBip = r
             if (aj.som) tom?.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
             if (aj.vibracao) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
-        if (r == 0 && ultimoBip != 0) {
-            ultimoBip = 0
+        if (r == 0 && t.ultimoBip != 0) {
+            t.ultimoBip = 0
             if (aj.som) tom?.startTone(ToneGenerator.TONE_PROP_ACK, 350)
             if (aj.vibracao) view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             if (t.descansando) irPara(t.i + 1, auto = true) else concluirSerie()
         }
-        if (r > 3) ultimoBip = -1
+        if (r > 3) t.ultimoBip = -1
     }
 
     val decorrido = ((agora - t.inicioMs) / 1000).toInt()
@@ -182,7 +285,16 @@ fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, id
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(if (decorrido >= 3600) "%d:%02d:%02d".format(decorrido / 3600, decorrido % 3600 / 60, decorrido % 60) else "%d:%02d".format(decorrido / 60, decorrido % 60),
                         style = Tipo.Numero.copy(fontSize = 24.sp), color = Cor.Texto)
-                    Rotulo(p.blocoNome, cor)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Rotulo(p.blocoNome, cor)
+                        val fc = bpm?.takeIf { agora - FcAoVivo.ultimoMs < 10_000 }
+                        if (fc != null) {
+                            Spacer(Modifier.width(8.dp))
+                            Icon(Icons.Rounded.Favorite, "Frequência cardíaca", tint = Cor.Perigo, modifier = Modifier.size(13.dp))
+                            Spacer(Modifier.width(3.dp))
+                            Text("$fc bpm", style = Tipo.PequenoForte, color = Cor.Texto)
+                        }
+                    }
                 }
                 BotaoIcone(Icons.Rounded.PlayCircle, "Ver vídeo de ${p.ex.nome}", cor = cor) { nav.ir(Rota.Video(p.ex.id)) }
             }
@@ -261,9 +373,9 @@ fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, id
                     BotaoPrimario(if (rodando) "Pausar" else if (t.pausadoRestante != null) "Continuar" else "Iniciar", Modifier.weight(1f),
                         icone = if (rodando) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, cor = if (cor == Cor.Brasa) null else cor) {
                         when {
-                            rodando -> t.pausadoRestante = (t.fimMs!! - System.currentTimeMillis()).coerceAtLeast(0)
-                            t.pausadoRestante != null -> { t.fimMs = System.currentTimeMillis() + t.pausadoRestante!!; t.pausadoRestante = null }
-                            else -> { t.fimMs = System.currentTimeMillis() + (p.item.trabalhoSeg ?: 0) * 1000L; ultimoBip = -1 }
+                            rodando -> t.pausar()
+                            t.pausadoRestante != null -> t.continuar()
+                            else -> t.iniciarTempo()
                         }
                     }
                 } else {
@@ -276,8 +388,8 @@ fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, id
 
         AnimatedVisibility(t.descansando, enter = fadeIn(), exit = fadeOut()) {
             Descanso(vm, t, restanteSeg ?: 0, p.descansoDepois, cor,
-                onMais = { t.fimMs = (t.fimMs ?: System.currentTimeMillis()) + 15_000 },
-                onMenos = { t.fimMs = ((t.fimMs ?: System.currentTimeMillis()) - 15_000).coerceAtLeast(System.currentTimeMillis() + 1000) },
+                onMais = { t.ajustarDescanso(15_000) },
+                onMenos = { t.ajustarDescanso(-15_000) },
                 onPular = { irPara(t.i + 1) })
         }
     }
@@ -288,12 +400,12 @@ fun TelaTreino(vm: AppViewModel, estado: Estado, sessao: Sessao, semana: Int, id
         title = { Text("Sair do treino?", style = Tipo.Titulo3, color = Cor.Texto) },
         text = { Text(if (t.feitas.isEmpty()) "Nada foi registrado ainda." else "Você pode salvar o que já fez (${t.feitas.size} séries) ou descartar.", style = Tipo.Corpo, color = Cor.Texto2) },
         confirmButton = {
-            TextButton(onClick = { confirmarSaida = false; if (t.feitas.isEmpty()) { vm.treino = null; onSair() } else finalizar() }) {
+            TextButton(onClick = { confirmarSaida = false; if (t.feitas.isEmpty()) sair() else finalizar() }) {
                 Text(if (t.feitas.isEmpty()) "Sair" else "Salvar e sair", style = Tipo.Botao, color = Cor.Brasa)
             }
         },
         dismissButton = {
-            TextButton(onClick = { confirmarSaida = false; vm.treino = null; onSair() }) { Text(if (t.feitas.isEmpty()) "Continuar treinando" else "Descartar", style = Tipo.Botao, color = Cor.Texto2) }
+            TextButton(onClick = { confirmarSaida = false; if (t.feitas.isNotEmpty()) sair() }) { Text(if (t.feitas.isEmpty()) "Continuar treinando" else "Descartar", style = Tipo.Botao, color = Cor.Texto2) }
         },
     )
 }

@@ -171,6 +171,7 @@ class Loja(private val cat: Catalogo, private val arm: Armazenamento, private va
             .put("d", r.epochDay).put("w", r.semana).put("i", r.sessaoIdx).put("t", r.titulo).put("tp", r.tipo)
             .put("s", r.duracaoSeg).put("e", r.esforco).put("n", r.nota)
             .put("x", JSONArray(r.series.map { JSONArray().put(it.exId).put(it.reps).put(it.kg).put(it.seg) }))
+            .apply { if (r.fcMedia > 0) put("fm", r.fcMedia).put("fx", r.fcMax); if (r.fimMs > 0) put("f", r.fimMs) }
 
         fun registroDeJson(o: JSONObject): Registro {
             val x = o.optJSONArray("x") ?: JSONArray()
@@ -178,6 +179,7 @@ class Loja(private val cat: Catalogo, private val arm: Armazenamento, private va
                 o.getLong("d"), o.getInt("w"), o.getInt("i"), o.optString("t"), o.optString("tp"), o.optInt("s"),
                 (0 until x.length()).map { x.getJSONArray(it).let { s -> SerieFeita(s.getString(0), s.getInt(1), s.getDouble(2), s.optInt(3)) } },
                 o.optInt("e"), o.optString("n"),
+                o.optInt("fm"), o.optInt("fx"), o.optLong("f"),
             )
         }
     }
