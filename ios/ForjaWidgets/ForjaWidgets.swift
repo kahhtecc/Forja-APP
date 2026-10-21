@@ -181,8 +181,10 @@ struct Botoes: View {
     var compacto = false
     var cor: Color { Paleta.cor(hex) }
     var body: some View {
-        if #available(iOSApplicationExtension 17.0, *), !s.concluido {
-            if s.descansando {
+        if #available(iOSApplicationExtension 17.0, *) {
+            if s.concluido {
+                EmptyView()
+            } else if s.descansando {
                 Button(intent: PularDescansoIntent()) { rotulo("Pular descanso", "forward.end.fill") }
                     .buttonStyle(.plain)
             } else if !s.porTempo {

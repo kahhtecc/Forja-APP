@@ -78,14 +78,14 @@ final class AoVivo {
         cancelarAviso()
         guard #available(iOS 16.1, *), let a = atividade as? Activity<TreinoAtividade> else { return }
         atividade = nil
-        var final = (ultimo as? TreinoAtividade.ContentState)
-        final?.concluido = concluido
-        final?.descansando = false
-        final?.fimEm = nil
+        var fimEstado = (ultimo as? TreinoAtividade.ContentState)
+        fimEstado?.concluido = concluido
+        fimEstado?.descansando = false
+        fimEstado?.fimEm = nil
         let politica: ActivityUIDismissalPolicy = imediato || !concluido ? .immediate : .after(Date().addingTimeInterval(120))
         Task {
-            if #available(iOS 16.2, *) { await a.end(final.map { ActivityContent(state: $0, staleDate: nil) }, dismissalPolicy: politica) }
-            else { await a.end(using: final, dismissalPolicy: politica) }
+            if #available(iOS 16.2, *) { await a.end(fimEstado.map { ActivityContent(state: $0, staleDate: nil) }, dismissalPolicy: politica) }
+            else { await a.end(using: fimEstado, dismissalPolicy: politica) }
         }
     }
 

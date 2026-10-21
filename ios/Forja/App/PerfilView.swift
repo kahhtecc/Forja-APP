@@ -63,7 +63,7 @@ struct PerfilView: View {
                 }
                 linha("heart.text.square.fill", saude.conectado ? "Conectado ao app Saúde" : "Conectar ao app Saúde",
                       saude.conectado ? "Treinos gravados no Saúde e FC média/máxima do seu relógio no resumo" : "Grava os treinos e lê a FC do Apple Watch, Garmin, Polar, Withings, Oura e outros que sincronizam com o Saúde",
-                      cor: saude.conectado ? Cor.ok : Cor.perigo) {
+                      cor: saude.conectado ? Cor.ok : Cor.brasa) {
                     if saude.conectado { UIApplication.shared.open(URL(string: "x-apple-health://")!) } else { Task { await saude.conectar() } }
                 }
                 linha("dot.radiowaves.left.and.right", monitor.lembrado.map { "Monitor: \($0)" } ?? "Conectar cinta ou relógio por Bluetooth",
