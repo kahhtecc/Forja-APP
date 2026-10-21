@@ -2,7 +2,6 @@ name: Sonda de bibliotecas (temporária)
 on:
   push:
     paths: [ ".github/workflows/sonda.yml" ]
-  workflow_dispatch:
 jobs:
   sonda:
     runs-on: ubuntu-24.04
@@ -11,35 +10,9 @@ jobs:
         run: |
           set +e
           G=https://dl.google.com/dl/android/maven2
-          mkdir w && cd w
-          pega() { # grupo/artefato tipo(aar|jar) [versão]
-            a=$1; t=$2
-            vs=$(curl -s $G/$a/maven-metadata.xml | grep -o '<version>[^<]*' | sed 's/<version>//')
-            echo "== $a: $(echo "$vs" | tail -12 | tr '\n' ' ')"
-            v=${3:-$(echo "$vs" | grep -v -E 'alpha|beta|rc|dev' | tail -1)}
-            n=$(basename $a)
-            curl -s -o $n.$t $G/$a/$v/$n-$v.$t
-            echo "   usando $v"
-            mkdir -p x/$n; (cd x/$n; unzip -o -q ../../$n.$t 2>/dev/null; [ -f classes.jar ] && unzip -o -q classes.jar; grep -o 'minSdkVersion="[0-9]*"' AndroidManifest.xml 2>/dev/null)
-            curl -s $G/$a/$v/$n-$v.pom | grep -E '<(artifactId|version)>' | paste - - | head -14
-          }
-          pega androidx/wear/compose/compose-material aar 1.4.1
-                    pega androidx/wear/compose/compose-foundation aar 1.4.1
-                    pega androidx/health/health-services-client aar
-          pega androidx/health/connect/connect-client aar
-          pega com/google/android/gms/play-services-wearable aar 19.0.0
-          pega androidx/wear/tiles/tiles aar 1.5.0
-          pega androidx/wear/protolayout/protolayout aar 1.3.0
-          pega androidx/wear/protolayout/protolayout-expression aar 1.3.0
-          pega androidx/concurrent/concurrent-futures-ktx aar 1.2.0
-          pega androidx/concurrent/concurrent-futures aar 1.2.0
-                              jp() { d=$1; shift; for c in "$@"; do echo "---- $c"; javap -cp x/$d $c 2>&1 | head -80; done; }
-          jp connect-client androidx.health.connect.client.records.metadata.Metadata 'androidx.health.connect.client.records.metadata.Metadata$Companion' androidx.health.connect.client.records.ExerciseSessionRecord androidx.health.connect.client.PermissionController 'androidx.health.connect.client.PermissionController$Companion' androidx.health.connect.client.HealthConnectClient 'androidx.health.connect.client.HealthConnectClient$Companion' androidx.health.connect.client.request.AggregateRequest androidx.health.connect.client.permission.HealthPermission 'androidx.health.connect.client.permission.HealthPermission$Companion'
-          jp health-services-client androidx.health.services.client.data.ExerciseType 'androidx.health.services.client.data.ExerciseType$Companion' androidx.health.services.client.data.ExerciseConfig 'androidx.health.services.client.data.ExerciseConfig$Builder' androidx.health.services.client.ExerciseUpdateCallback androidx.health.services.client.ExerciseClient androidx.health.services.client.data.ExerciseUpdate androidx.health.services.client.data.DataPointContainer androidx.health.services.client.data.ExerciseCapabilities androidx.health.services.client.HealthServices
-          jp tiles androidx.wear.tiles.TileService androidx.wear.tiles.TileBuilders\$Tile\$Builder androidx.wear.tiles.RequestBuilders\$TileRequest
-          jp protolayout 'androidx.wear.protolayout.ModifiersBuilders$Padding$Builder' 'androidx.wear.protolayout.TimelineBuilders$Timeline' 'androidx.wear.protolayout.LayoutElementBuilders$Text$Builder' 'androidx.wear.protolayout.ActionBuilders$LaunchAction$Builder' 'androidx.wear.protolayout.LayoutElementBuilders$FontStyle$Builder' 'androidx.wear.protolayout.ModifiersBuilders$Modifiers$Builder'
-          jp concurrent-futures-ktx androidx.concurrent.futures.ListenableFutureKt
-          jp compose-material 'androidx.wear.compose.material.CircularProgressIndicatorKt' 'androidx.wear.compose.material.ChipKt' 'androidx.wear.compose.material.ScalingLazyColumnKt'
-          ls x/compose-material/androidx/wear/compose/material | head -150 | tr '\n' ' '
-          jp play-services-wearable com.google.android.gms.wearable.DataClient com.google.android.gms.wearable.WearableListenerService
-          ls; ls x/*
+          a=androidx/wear/wear-ongoing
+          curl -s $G/$a/maven-metadata.xml | grep -o '<version>[^<]*' | tail -12
+          v=$(curl -s $G/$a/maven-metadata.xml | grep -o '<version>[^<]*' | sed 's/<version>//' | grep -v -E 'alpha|beta|rc' | tail -1); echo "usando $v"
+          curl -s -o o.aar $G/$a/$v/wear-ongoing-$v.aar; mkdir x; cd x; unzip -q ../o.aar; unzip -q classes.jar; grep -o 'minSdkVersion="[0-9]*"' AndroidManifest.xml
+          curl -s $G/$a/$v/wear-ongoing-$v.pom | grep -E '<(artifactId|version)>' | paste - -
+          for c in androidx.wear.ongoing.OngoingActivity 'androidx.wear.ongoing.OngoingActivity$Builder' androidx.wear.ongoing.Status 'androidx.wear.ongoing.Status$Builder' 'androidx.wear.ongoing.Status$TimerPart' 'androidx.wear.ongoing.Status$StopwatchPart' 'androidx.wear.ongoing.Status$TextPart'; do echo "---- $c"; javap -cp . "$c"; done
