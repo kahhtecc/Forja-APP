@@ -345,11 +345,11 @@ def montar(kit, ctx, h, estados):
             c = ctx.ref.get("barra3") or ctx.p3(pr.get("x", 0), pr.get("y", 21))
             if ctx.paralelas:
                 # barras centradas nas mãos (o corpo fica no meio das duas, longe dos montantes)
-                c = Vector((c.x, sum((a["gL"].y + a["gR"].y) / 2 for a in am) / len(am) + 0.8, c.z))
+                c = Vector((c.x, sum((a["gL"].y + a["gR"].y) / 2 for a in am) / len(am) + 0.5, c.z))
                 for s in (-1, 1):
                     xb = s * max(1.8, min(xmax, 3.2))
-                    kit.cil((xb, c.y - 4.5, c.z), (xb, c.y + 4.5, c.z), 0.2, kit.metal)
-                    for dy in (-4.0, 4.0):
+                    kit.cil((xb, c.y - 6.6, c.z), (xb, c.y + 6.6, c.z), 0.2, kit.metal)
+                    for dy in (-6.0, 6.0):
                         kit.cil((xb, c.y + dy, 0), (xb, c.y + dy, c.z - 0.1), 0.22, kit.quadro, 16)
                         kit.caixa((xb, c.y + dy, 0.08), (1.6, 0.6, 0.16), kit.quadro, 0.04)
             else:
