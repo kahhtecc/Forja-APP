@@ -11,7 +11,7 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "rol":  rotação do corpo inteiro em torno do eixo frente-trás (graus; 90 = deitado de lado; + levanta o lado da câmera)
   "cinc": inclinação lateral da cabeça; "cr": rotação da cabeça (olhar para o lado; + para o lado da câmera)
   "z":    deslocamento lateral do quadril (unidades do esqueleto; + = para o lado da câmera)
-  "oe":   elevação dos ombros 0..1 (encolhimento). Se ausente em exercícios do grupo Trapézio, vale 0 no 1º quadro e 1 nos demais.
+  "oe":   elevação dos ombros 0..1 (encolhimento; 1 = clavícula +34°). Se ausente em exercícios do grupo Trapézio, vale 0 no 1º quadro e 1 nos demais.
 Por animação:
   "cam":  azimute da câmera em graus (64 = 3/4, o padrão; 90 = de frente; 0 = perfil)
 Acessórios além dos de tools/anim/esqueleto.py:
@@ -74,6 +74,7 @@ ALVOS = [
 RELEVO = 1.2  # intensidade do relevo muscular (1 = alturas de anatomia.py)
 NIVEL_SUB = 2  # subdivisão da malha em repouso (relevo muscular precisa de densidade)
 LADOS = (("f", ".L", 1), ("t", ".R", -1))
+GANHO_OE = 34.0  # graus de elevação da clavícula com "oe" = 1 (ombro sobe ~10 cm: encolhimento bem visível)
 COLUNA = ("root", "spine05", "spine04", "spine03", "spine02", "spine01")
 PESCOCO = ("neck01", "neck02", "neck03", "head")
 
@@ -490,7 +491,7 @@ class Humano:
             db, da = d2(b, ab, s), d2(a, aa, s)
             dirs[sf] = (db, da)
             elev = math.degrees(math.acos(_clamp(db.dot(-up_t), -1, 1)))
-            e_cl = _clamp((elev - 75) / 105, 0, 1) * 20 + p["oe"] * 24
+            e_cl = _clamp((elev - 75) / 105, 0, 1) * 20 + p["oe"] * GANHO_OE
             f = db.dot(fw_t)
             ret = _clamp(-f * 1.4, 0, 1) * 14 - _clamp((f - 0.45) * 1.6, 0, 1) * 7
             cl = "clavicle" + sf
@@ -842,8 +843,8 @@ class Contexto:
                 ocup |= {"f", "t"}
             elif em in ("mao_f", "mao_t"):
                 ocup.add(em[-1])
-        if "corda" in tipos:
-            ocup |= {"f", "t"}
+        if "corda" in tipos or any(x in self.id for x in ("supino-maquina", "peck-deck", "voador")):
+            ocup |= {"f", "t"}  # pegadores das alavancas da máquina
         self.ocupadas = ocup
         self.props_maos = bool(ocup)
         self.barra = None
@@ -856,6 +857,11 @@ class Contexto:
         self.ref = {"k": k}
         self.grupo = grupo
         self.planta = "esteira" not in tipos and "bike" not in tipos
+        # banco com "maos": "borda" (mergulho no banco): as mãos ficam espalmadas na borda da frente do assento
+        self.maos_banco = None
+        for pr in self.props:
+            if pr.get("tipo") == "banco" and pr.get("maos") == "borda":
+                self.maos_banco = pr
 
     def p3(self, x2, y2, z2=0.0):
         """Ponto 2D da animação (x para frente, y para cima; z opcional = para o lado da câmera) em 3D,
@@ -869,7 +875,7 @@ class Contexto:
             return self._sup
         sup = [(-1e9, 1e9, -1e9, 1e9, self.z0)]
         for pr in self.props:
-            if pr.get("tipo") in ("banco", "caixa", "maquina"):
+            if pr.get("tipo") in ("banco", "caixa", "maquina", "hack"):
                 x, w, y, hh = pr.get("x", 0), pr.get("w", 8), pr.get("y", 0), pr.get("h", 4)
                 a, b = self.p3(x, 0), self.p3(x + w, 0)
                 sup.append((-3.2, 3.2, min(a.y, b.y) - 0.3, max(a.y, b.y) + 0.3, (y + hh) * self.k))
@@ -1067,8 +1073,30 @@ def colocar_chave(h, ctx, q):
     for lado, sf, _ in LADOS:
         if apoio[lado]:
             h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
+    if ctx.maos_banco is not None:
+        maos_na_borda(h, ctx, T, apoio)
     encaixar(h, ctx, T, apoio)
     return T, maos, {"apoio": apoio, "p2": p2}
+
+
+def maos_na_borda(h, ctx, T, apoio):
+    """Mergulho no banco: punhos levados (IK) até a borda da frente do assento, palmas apoiadas no estofado."""
+    pr = ctx.maos_banco
+    x, w, hh = pr.get("x", 0), pr.get("w", 8), pr.get("y", 0) + pr.get("h", 4)
+    a, b = ctx.p3(x, 0), ctx.p3(x + w, 0)
+    y_borda = min(a.y, b.y)
+    Ti = T.inverted()
+    for lado, sf, s in LADOS:
+        if not apoio[lado]:
+            continue
+        P = h.proxy(T)
+        pts = P[h.px_partes["mao_" + lado]]
+        punho = T @ h.cabeca("wrist" + sf)
+        dz = punho.z - float(pts[:, 2].min())
+        dy = punho.y - float(pts[:, 1].mean())
+        alvo = Vector((s * max(abs(punho.x), 1.9), y_borda + 0.75 + dy, hh * ctx.k + dz))
+        h.ik("braco", sf, Ti @ alvo, h.rot("wrist" + sf))
+        h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
 
 
 def repousar(h, ctx, T, q):
@@ -1170,7 +1198,18 @@ def plantar(h, ctx, T, chaves, i, j, u):
     ea, eb = chaves[i]["ef"], chaves[j]["ef"]
     for ef, membro, sf in EFETORES:
         a, b = ea[ef], eb[ef]
-        if a["contato"] and b["contato"] and (a["baixo"] - b["baixo"]).length < 1.6:
+        dist = (a["baixo"] - b["baixo"]).length
+        passo = (ctx.anim.get("passos") and membro == "perna" and a["contato"] and b["contato"] and 1.6 <= dist < 9.0
+                 and abs(a["baixo"].z - b["baixo"].z) < 0.3)
+        if passo:
+            # passo (caminhada lateral etc.): o pé sai de um apoio e pousa no outro num arco baixo
+            s = mov.suave(u)
+            pos = a["pos"].lerp(b["pos"], s) + Vector((0, 0, min(0.9, 0.16 * dist) * math.sin(math.pi * u)))
+            rot = _slerp(a["rot"], b["rot"], s)
+            fim = _fim(membro, sf)
+            h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
+            continue
+        if a["contato"] and b["contato"] and dist < 1.6:
             w = 1.0
             s = mov.suave(u)
             pos = a["pos"].lerp(b["pos"], s)
