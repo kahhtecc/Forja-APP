@@ -682,6 +682,32 @@ def _extras_maquina(kit, ctx, h, am, estados):
         _assento_remo(kit, ctx, h)
     if "eliptico" in idd:
         _eliptico(kit, ctx, h, am)
+    if "scott" in idd:
+        _apoio_scott(kit, ctx, h)
+
+
+def _apoio_scott(kit, ctx, h):
+    """Banco Scott: almofada inclinada sob os braços (na direção do braço da 1ª chave), sobre a coluna."""
+    h.restaurar(ctx.chaves[0]["est"])
+    T = ctx.chaves[0]["T"]
+    omb = [T @ h.cabeca("upperarm01" + sf) for sf in (".L", ".R")]
+    cot = [T @ h.cabeca("lowerarm01" + sf) for sf in (".L", ".R")]
+    meio = sum((o + c for o, c in zip(omb, cot)), Vector()) / 4
+    d = (sum(cot, Vector()) / 2 - sum(omb, Vector()) / 2)
+    d.x = 0
+    d.normalize()
+    nrm = d.cross(X)
+    if nrm.z < 0:
+        nrm = -nrm
+    centro = meio - nrm * 1.0 + d * 0.2
+    o = kit.caixa((0, 0, 0), (5.6, 4.2, 0.9), kit.estofado, 0.3)
+    o.matrix_world = Matrix.Translation(centro) @ _alinhar(Vector((0, 1, 0)), d).to_3x3().to_4x4() @ Matrix.Identity(4)
+    # garante que o "cima" da almofada é a normal
+    up = (o.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
+    if up.dot(nrm) < 0:
+        o.matrix_world = o.matrix_world @ Matrix.Rotation(math.pi, 4, "Y")
+    kit.viga(Vector((0, centro.y, 0.1)), centro - nrm * 0.3, 0.6, 0.6, kit.quadro)
+    kit.caixa((0, centro.y, 0.1), (3.0, 3.0, 0.2), kit.quadro, 0.05)
 
 
 def _eliptico(kit, ctx, h, am):

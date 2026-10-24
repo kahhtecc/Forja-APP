@@ -1532,8 +1532,13 @@ def plantar(h, ctx, T, chaves, i, j, u):
         pesos[ef] = w
         if w <= 1e-4:
             continue
-        atual_p = T @ h.cabeca(fim)
-        atual_r = (Tq @ h.rot(fim)).to_quaternion()
+        # pose livre (antes de plantar) guardada no espaço do corpo: chamadas repetidas no mesmo quadro (depois de
+        # deslocar o corpo) misturam sempre a partir dela, sem acumular o peso (1-(1-w)^n)
+        livre = ctx.__dict__.setdefault("_livre", {})
+        if ef not in livre:
+            livre[ef] = (h.cabeca(fim).copy(), h.rot(fim).copy())
+        atual_p = T @ livre[ef][0]
+        atual_r = (Tq @ livre[ef][1]).to_quaternion()
         alvo_p = atual_p.lerp(pos, w)
         ctx._alvos[ef] = (alvo_p.copy(), membro, sf, w)
         alvo_r = _slerp(atual_r, rot, w)
@@ -1591,7 +1596,8 @@ def assentar_apoios(h, ctx, T, pesos):
             if abs(gap) < 0.001 or abs(gap) > 0.6:
                 continue
             fim = _fim(membro, sf)
-            alvo = T @ h.cabeca(fim) - Vector((0, 0, gap * w))
+            # correção some suavemente perto do limite (sem degrau quando o gap cruza 0,6)
+            alvo = T @ h.cabeca(fim) - Vector((0, 0, gap * w * (1.0 - mov.suave(abs(gap), 0.3, 0.6))))
             if ef in getattr(ctx, "_alvos", {}):
                 a_ = ctx._alvos[ef]
                 alvo = Vector((a_[0].x, a_[0].y, alvo.z))
@@ -1982,6 +1988,7 @@ def finalizar(h, ctx, T, tau, seg, maos):
     pesos = {}
     if seg is not None:
         i, j, u = seg
+        ctx._livre = {}
         pesos = plantar(h, ctx, T, ctx.chaves, i, j, u)
         if ctx.barra is not None and "barra3" in ctx.ref and all(ctx.chaves[x]["ef"]["mao_f"]["contato"] for x in (i, j)):
             segurar_barra(h, ctx, T)
