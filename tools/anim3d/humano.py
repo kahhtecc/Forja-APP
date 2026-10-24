@@ -1994,7 +1994,9 @@ def finalizar(h, ctx, T, tau, seg, maos):
             segurar_barra(h, ctx, T)
     if pesos:
         T = assentar_apoios(h, ctx, T, pesos)
-        T = alcancar_apoios(h, ctx, T, pesos, seg)
+        T2 = alcancar_apoios(h, ctx, T, pesos, seg)
+        if T2 is not T:  # o corpo andou e o membro foi re-plantado: refaz o encosto vertical
+            T = assentar_apoios(h, ctx, T2, pesos)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
         T2 = sem_atravessar(h, ctx, T, fixos)
