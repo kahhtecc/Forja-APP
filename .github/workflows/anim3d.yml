@@ -57,6 +57,11 @@ jobs:
           )
           echo "ids: $ids"
           [ -z "$ids" ] && exit 0
+          # verificação automática (pops, emenda, pés escorregando, chão, barra, alavancas, rosto): só avisa no log
+          python tools/anim3d/qa.py --mh "$RUNNER_TEMP/mh/makehuman/data" \
+            --anim tools/anim/dados/lote1.json tools/anim/dados/lote2.json tools/anim/dados/lote3.json \
+            --ids "$ids" --so-avisar 2>&1 | grep -E "^(ERRO|aviso|ok|QA)" || true
+          # movimentos rápidos saem a 30 fps com desfoque de movimento (decidido pelo motor; o meta.json guarda o fps)
           python tools/anim3d/humano.py --mh "$RUNNER_TEMP/mh/makehuman/data" \
             --anim tools/anim/dados/lote1.json tools/anim/dados/lote2.json tools/anim/dados/lote3.json \
             --ids "$ids" --saida saida --tam 720 --fps 24 --amostras 12 --crf 18 --video 2>&1 | grep -E "pronto|Erro|Error|Traceback|^  File" || true

@@ -7,7 +7,7 @@ ERROS (reprovam):
   skate      pé/mão apoiado escorregando (antepé / pegada): > 3 mm/quadro a 24 fps (descontado o piso rolante)
              ou apoio que muda < 16 cm entre chaves (escorrega em vez de dar passo)
   chao       pele abaixo do chão: > 8 mm (sola do tênis na proxy)
-  barra      centro da barra salta: > 3x a mediana e > 8 cm/quadro
+  barra      centro da barra salta num quadro isolado: > 2,5x os vizinhos e > 5 cm
   alavanca   alavanca de máquina com comprimento variando > 2 mm
   rosto      mão (ou pegada do implemento) na frente do rosto, cobrindo > 15 % da área da cabeça projetada
 AVISOS:
@@ -150,8 +150,7 @@ def avaliar(h, anim, k, grupo, fps):
     if len(barra) == n:
         B = np.array(barra)
         dB = np.linalg.norm(np.roll(B, -1, axis=0) - B, axis=1)
-        med = float(np.median(dB))
-        for j in np.where((dB > 3 * max(med, 0.02)) & (dB > 0.8))[0]:
+        for j in pops(dB, lim_rel=2.5, lim_abs=0.5 * 24.0 / fps):
             erros.append(f"barra salta no quadro {j} ({dB[j] * 10:.1f} cm)")
     # alavanca
     if alav:

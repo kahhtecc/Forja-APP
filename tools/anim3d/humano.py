@@ -12,8 +12,18 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "cinc": inclinação lateral da cabeça; "cr": rotação da cabeça (olhar para o lado; + para o lado da câmera)
   "z":    deslocamento lateral do quadril (unidades do esqueleto; + = para o lado da câmera)
   "oe":   elevação dos ombros 0..1 (encolhimento; 1 = clavícula +34°). Se ausente em exercícios do grupo Trapézio, vale 0 no 1º quadro e 1 nos demais.
+  "cfl":  flexão (+, arredonda) / extensão (-, arqueia) da coluna em graus, sem mudar a corda quadril->pescoço (gato-camelo)
+  "pel":  inclinação pélvica (+ anteversão, - retroversão); "trp": rotação da pelve (soco cruzado, carioca)
+  "pro":  protração (+) / retração (-) das escápulas, -1..1
+  "apoio": lista dos apoios do quadro ("pe_f","pe_t","mao_f","mao_t"); substitui a detecção automática ([] = nenhum)
 Por animação:
-  "cam":  azimute da câmera em graus (64 = 3/4, o padrão; 90 = de frente; 0 = perfil)
+  "cam":  azimute da câmera em graus (64 = 3/4, o padrão; 90 = de frente; 0 = perfil; negativo = por trás)
+  "cam_el": elevação da câmera (padrão por família: 12 em pé, 22 no chão, 24 deitado no banco, 15 por trás)
+  "ease": curva de cada trecho ("con", "exc", "io", "pausa", "lin"); sem ela: >=1,3 s exc, 0,5-1,3 s con, cardio lin
+  "vida": 0..1 (micro-movimento: respiração, peso, olhar); padrão 1 em isometria/mobilidade, 0,4 em força, 0 em cardio
+  "barra_modo": "maos" | "costas" | "rack" | "clean" (barra olímpica; padrão por id)
+  "rolar": true = piso rolante (locomoção no lugar: o pé de apoio acompanha as marcas do chão)
+  "sem_balistica": true = não usar parábola nas fases de voo (ay > 0 sem apoio)
 Acessórios além dos de tools/anim/esqueleto.py:
   "banco" com "inc": encosto inclinado (graus sobre a horizontal) saindo da borda de trás do assento ("enc": comprimento, padrão 7)
   "halter" com "maos": "f" | "t" | "ambas" (padrão)
@@ -23,8 +33,11 @@ Acessórios além dos de tools/anim/esqueleto.py:
   "maquina" alta (h >= 6.5, w <= 2.6) ao lado de um assento vira encosto; supino/peck-deck/desenvolvimento na máquina ganham braços móveis
 Elástico entre as mãos: {"tipo": "elastico", "de": "maos", "ate": "maos"} (automático no band-pull-apart sem props).
 
-Movimento: spline cúbica pelos quadros-chave (movimento.py), apoios firmes (pé/mão apoiados ficam parados no mundo via IK
-de 2 ossos), nada atravessa o chão, coluna curva distribuída, pescoço/cabeça acompanham, escápulas sobem/retraem.
+Movimento: spline cúbica pelos quadros-chave com easing por trecho e camada de vida (movimento.py), braços por arco de
+círculo máximo, apoios firmes com peso contínuo (o antepé/a pegada fica parado no mundo via IK de 2 ossos refinado; apoio
+que muda de lugar vira passo), voo parabólico, nada atravessa o chão/banco, coluna curva distribuída, pescoço/cabeça com
+atraso, escápulas pelo ritmo escápulo-umeral. Render: marcas sutis no chão, 30 fps + desfoque de movimento nos movimentos
+rápidos (pico > 2,5 m/s), pontilhado fixo. Verificação automática: tools/anim3d/qa.py.
 
 Uso (python do ambiente com bpy):
   python tools/anim3d/humano.py --mh <pasta makehuman/data> --anim <dados.json> [--ids a,b] --saida <pasta>
@@ -71,6 +84,7 @@ ALVOS = [
     ("measure/measure-thigh-circ-incr.target", 0.2),
     ("measure/measure-calf-circ-incr.target", 0.25),
 ]
+SUBQUADROS = 4  # desfoque de movimento nos movimentos rápidos (média de N subquadros)
 RELEVO = 1.2  # intensidade do relevo muscular (1 = alturas de anatomia.py)
 NIVEL_SUB = 2  # subdivisão da malha em repouso (relevo muscular precisa de densidade)
 LADOS = (("f", ".L", 1), ("t", ".R", -1))
@@ -353,6 +367,7 @@ class Humano:
 
     def restaurar(self, est):
         self.ver += 1
+        self._polos = {}
         for n, m in est.items():
             self.basis[n] = m.copy()
             self.mod[n] = self.ver
@@ -480,6 +495,7 @@ class Humano:
         """p: pose normalizada (movimento.normalizar) com '_qb' (0..1: quadril apoiado deitado).
         maos: {".L": v, ".R": v} estado dos dedos (-1 apoio, 0 relaxado, 1 pegada)."""
         self.zerar()
+        self._polos = {}  # plano de flexão de cada membro, fixado pela pose do quadro (IK determinístico)
         t = p["t"]
         # ---- coluna: curvatura distribuída
         vt = (math.sin(math.radians(t)), -math.cos(math.radians(t)))
@@ -592,6 +608,13 @@ class Humano:
         # plano de flexão: o da pose atual quando o membro está dobrado; perto de esticado, mistura contínua com o polo
         # natural (joelho para a frente, cotovelo para trás/fora) girado junto com o segmento proximal: sem "virar"
         s = 1 if sf == ".L" else -1
+        polos = self.__dict__.setdefault("_polos", {})
+        if (membro, sf) in polos:
+            perp = polos[(membro, sf)] - u * polos[(membro, sf)].dot(u)
+            if perp.length < 1e-6:
+                perp = Vector((0, 0, 1)) - u * u.z
+            perp.normalize()
+            return self._ik_resolver(b1, b2, fim, sf, l1, l2, S, u, d, perp, rot_fim, R_fim_antes, dist_antes)
         Rrel = self.rot(b1[0] + sf) @ self.rest_inv[b1[0] + sf].to_3x3()
         polo = Rrel @ (FRENTE.copy() if membro == "perna" else (-FRENTE + ESQ * s * 0.4 - CIMA * 0.2))
         perp_ref = polo - u * polo.dot(u)
@@ -616,6 +639,10 @@ class Humano:
         if perp.length < 1e-6:
             perp = Vector((0, 0, 1)) - u * u.z
         perp.normalize()
+        polos[(membro, sf)] = perp.copy()
+        return self._ik_resolver(b1, b2, fim, sf, l1, l2, S, u, d, perp, rot_fim, R_fim_antes, dist_antes)
+
+    def _ik_resolver(self, b1, b2, fim, sf, l1, l2, S, u, d, perp, rot_fim, R_fim_antes, dist_antes):
         a = (l1 * l1 - l2 * l2 + d * d) / (2 * d)
         hh = math.sqrt(max(l1 * l1 - a * a, 0.0))
         E2 = S + u * a + perp * hh
@@ -896,7 +923,7 @@ def marcas_chao(tam, geo, zf, centro_corpo, desloc=0.0, passo=5.0):
     m = np.maximum(linhas(X + dx), linhas(Y + dy))
     r = np.hypot(X - centro_corpo[0], (Y - centro_corpo[1]) * 0.8)
     fade = np.exp(-(r / 11.0) ** 2)
-    return (m * fade * 0.028)[..., None]
+    return (m * fade * 0.04)[..., None]
 
 
 def material_corpo():
@@ -1003,6 +1030,20 @@ class Contexto:
         self._sup = sup
         return sup
 
+    def superficie_suave(self, p, abaixo_de=None):
+        """Como superficie_em, mas a borda de banco/caixa é uma rampa de 0,6 unidade (o pé que passa pela quina sobe
+        de forma contínua, sem salto de um quadro)."""
+        z = self.z0
+        lim = (abaixo_de if abaixo_de is not None else p[2]) + 0.6
+        for x0, x1, y0, y1, zt in self.superficies()[1:]:
+            if zt > lim:
+                continue
+            dentro = min(p[0] - x0, x1 - p[0], p[1] - y0, y1 - p[1])
+            w = mov.suave(dentro, -0.5, 0.5)
+            if w > 0:
+                z = max(z, self.z0 + (zt - self.z0) * w)
+        return z
+
     def superficie_em(self, p, abaixo_de=None):
         """Altura da superfície mais alta sob o ponto p (que não esteja muito acima dele)."""
         z = self.z0
@@ -1105,7 +1146,52 @@ def apoios_2d(ctx, p2):
     return out
 
 
-def apoiar_superficies(h, ctx, P, T=None):
+def _sobre_superficie_2d(ctx, p2, parte):
+    """A pose 2D põe esta parte em cima de um banco/caixa? (evita subir o pé que está no chão ao lado do banco)"""
+    if p2 is None:
+        return True
+    lado = parte[-1]
+    nomes = {"pe": ("ponta_", "calcanhar_"), "ma": ("mao_",), "jo": ("joelho_",)}[parte[:2]]
+    pts = [p2[n + lado] for n in nomes if n + lado in p2]
+    for pr in ctx.props:
+        if pr.get("tipo") in ("banco", "caixa", "maquina", "hack"):
+            x, w, top = pr.get("x", 0), pr.get("w", 8), pr.get("y", 0) + pr.get("h", 4)
+            if any(x - 0.6 <= px <= x + w + 0.6 and abs(py - top) < 1.3 for px, py in pts):
+                return True
+    return False
+
+
+def ajuste_altura_dada(h, ctx, T, p2):
+    """Altura do quadril dada em 2D: as proporções 3D diferem, então os pés/mãos que a pose 2D põe no topo de um banco/caixa
+    (ou no chão) podem flutuar/afundar. Desloca o corpo para que o apoio mais baixo em relação à sua superfície encoste."""
+    if "quad" not in ctx.ref:
+        return 0.0
+    tops = [(-1e9, 1e9, 0.0)]
+    for pr in ctx.props:
+        if pr.get("tipo") in ("banco", "caixa", "maquina", "hack"):
+            x, w = pr.get("x", 0), pr.get("w", 8)
+            tops.append((x - 0.6, x + w + 0.6, pr.get("y", 0) + pr.get("h", 4)))
+    P = h.proxy(T)
+    gaps = []
+    for parte, nomes in (("pe_f", ("ponta_f", "calcanhar_f")), ("pe_t", ("ponta_t", "calcanhar_t"))):
+        pts2 = [p2[n] for n in nomes]
+        sobre = [top for x0, x1, top in tops for px, py in pts2 if x0 <= px <= x1 and abs(py - top) < 0.6]
+        if not sobre:
+            continue
+        pts = P[h.px_partes[parte]]
+        zmin = float(pts[:, 2].min())
+        baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
+        zs = ctx.superficie_em(baixo, zmin + 5.0)
+        if max(sobre) > 0.5 and zs <= ctx.z0 + 1e-3:
+            continue  # 2D diz que está num banco, mas em 3D o pé não está sobre ele: ignora
+        gaps.append(zmin - zs)
+    if not gaps:
+        return 0.0
+    g = min(gaps)
+    return -g if abs(g) < 1.5 else 0.0
+
+
+def apoiar_superficies(h, ctx, P, T=None, p2=None):
     """Quanto subir/descer o corpo para que ele se apoie: a pele não fica abaixo do chão e pé/mão/joelho sobre um banco
     ou caixa encostam no topo dele (o mais restritivo vence). Para pés, vale também o antepé na borda de um degrau."""
     dz0 = ctx.z0 - float(P[:, 2].min())
@@ -1113,6 +1199,8 @@ def apoiar_superficies(h, ctx, P, T=None):
     if "quad" in ctx.ref and len(ctx.superficies()) > 1:
         sh = np.array((0.0, 0.0, dz0))
         for parte in ("pe_f", "pe_t", "mao_f", "mao_t", "joelho_f", "joelho_t"):
+            if not _sobre_superficie_2d(ctx, p2, parte):
+                continue
             pts = P[h.px_partes[parte]] + sh
             if not len(pts):
                 continue
@@ -1201,9 +1289,10 @@ def colocar_chave(h, ctx, q):
     if q["y"] is not None:
         dz = p2["quadril"][1] * k - (T @ h.cabeca("root")).z
     else:
-        dz = apoiar_superficies(h, ctx, h.proxy(T), T) + q["ay"] * k
+        dz = apoiar_superficies(h, ctx, h.proxy(T), T, p2) + q["ay"] * k
     T = Matrix.Translation((0, 0, dz)) @ T
     if q["y"] is not None:
+        T = Matrix.Translation((0, 0, ajuste_altura_dada(h, ctx, T, p2))) @ T
         zmin = h.proxy(T)[:, 2].min()
         if zmin < ctx.z0:
             T = Matrix.Translation((0, 0, ctx.z0 - zmin)) @ T  # altura dada não pode enterrar joelhos/pés
@@ -1396,7 +1485,7 @@ def plantar(h, ctx, T, chaves, i, j, u):
     rolar = ctx.rolar
     for ef, membro, sf in EFETORES:
         a, b = ea[ef], eb[ef]
-        dist = (a["baixo"] - b["baixo"]).length
+        dist = (a["ponta"] - b["ponta"]).length  # pelo pivô do apoio (calcanhar subindo não é passo)
         fim = _fim(membro, sf)
         if a["contato"] and b["contato"] and (dist >= 1.6 or (rolar and membro == "perna")):
             if rolar and membro == "perna" and dist < 9.0:
@@ -1408,7 +1497,7 @@ def plantar(h, ctx, T, chaves, i, j, u):
                 continue
             # passo: sai de um apoio e pousa no outro num arco baixo
             sm = mov.suave(u, 0.08, 0.92)
-            alt = min(0.9, 0.16 * dist) if membro == "perna" else min(1.1, 0.18 * dist)
+            alt = min(0.9, 0.2 * dist) if membro == "perna" else min(1.1, 0.18 * dist)
             pos = a["pos"].lerp(b["pos"], sm) + Vector((0, 0, alt * math.sin(math.pi * sm)))
             rot = _slerp(a["rot"], b["rot"], sm)
             h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
@@ -1442,6 +1531,25 @@ def plantar(h, ctx, T, chaves, i, j, u):
     return pesos
 
 
+def _gap_apoio(h, ctx, T, P, ef, membro, sf):
+    """Distância vertical do apoio até a sua superfície (pé com o antepé na borda de um degrau: mede pelo antepé)."""
+    pts = P[h.px_partes[ef]]
+    zmin = float(pts[:, 2].min())
+    baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
+    if membro == "perna":
+        # antepé sobre um degrau/banco: mede sempre pelo antepé (o calcanhar pode passar da borda)
+        a = h.cabeca("foot" + sf)
+        ponta = np.array(T @ (a + (h.cabeca("toe3-1" + sf) - a) * 0.78))
+        bola = pts[np.linalg.norm(pts - ponta, axis=1) < 0.9]
+        if len(bola):
+            zb = float(bola[:, 2].min())
+            zt = ctx.superficie_em(ponta, zb + 0.6)
+            if zt > ctx.z0 + 1e-3:
+                return min(zb, zmin + 0.0 if ctx.superficie_em(baixo, zmin + 0.6) > ctx.z0 + 1e-3 else zb) - zt
+    zs = ctx.superficie_em(baixo, zmin + 0.3)
+    return zmin - zs
+
+
 def assentar_apoios(h, ctx, T, pesos):
     """Pé/mão apoiado encosta exatamente na superfície em todo quadro (a pele do calcanhar depende também da canela):
     correção vertical contínua, proporcional ao peso do apoio."""
@@ -1453,11 +1561,7 @@ def assentar_apoios(h, ctx, T, pesos):
             w = pesos.get(ef, 0.0)
             if w <= 1e-3:
                 continue
-            pts = P[h.px_partes[ef]]
-            zmin = pts[:, 2].min()
-            baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
-            zs = ctx.superficie_em(baixo, zmin + 0.3)
-            gap = zmin - zs
+            gap = _gap_apoio(h, ctx, T, P, ef, membro, sf)
             if abs(gap) < 0.001 or abs(gap) > 0.6:
                 continue
             fim = _fim(membro, sf)
@@ -1471,10 +1575,7 @@ def assentar_apoios(h, ctx, T, pesos):
     res = []
     for ef, membro, sf in EFETORES:
         if pesos.get(ef, 0.0) > 0.999:
-            pts = P[h.px_partes[ef]]
-            zmin = pts[:, 2].min()
-            baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
-            res.append(zmin - ctx.superficie_em(baixo, zmin + 0.3))
+            res.append(_gap_apoio(h, ctx, T, P, ef, membro, sf))
     if res and min(res) > 0.001 and max(res) < 0.6:
         T = Matrix.Translation((0, 0, -min(res))) @ T
     return T
@@ -1490,7 +1591,7 @@ def sem_atravessar(h, ctx, T, fixos):
         pts = P[h.px_partes[ef]]
         zmin = pts[:, 2].min()
         baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
-        zs = ctx.superficie_em(baixo, zmin + 0.25)
+        zs = ctx.superficie_suave(baixo, zmin + 0.25)
         gap = zmin - zs
         if gap < -0.002 and gap > -2.5:
             fim = _fim(membro, sf)
@@ -1590,10 +1691,20 @@ def corrigir_barra(h, ctx, T):
         return a3 + ab * t_
     raiz = T @ h.cabeca("root")
     joel = (T @ h.cabeca("lowerleg01.L") + T @ h.cabeca("lowerleg01.R")) / 2
-    cands = [mais_perto(raiz, pesc, centro), mais_perto(raiz, joel, centro)]
-    base_p = min(cands, key=lambda p3: (p3 - centro).length)
-    nv = np.array(centro - base_p)
-    nv = nv - ax_dot(nv, eixo) * np.array(eixo)
+    torn = (T @ h.cabeca("foot.L") + T @ h.cabeca("foot.R")) / 2
+    # mistura contínua das direções de saída dos eixos (coluna, coxas, canelas), pesando o mais próximo
+    nv = np.zeros(3)
+    for a3, b3 in ((raiz, pesc), (raiz, joel), (joel, torn)):
+        pp = mais_perto(a3, b3, centro)
+        d_ = np.array(centro - pp)
+        d_ = d_ - ax_dot(d_, eixo) * np.array(eixo)
+        dl = float(np.linalg.norm(d_))
+        if dl > 1e-6:
+            nv += (d_ / dl) / (dl ** 4 + 0.05)
+    # a barra sai sempre pela frente do corpo (ou por trás, no agachamento com barra nas costas)
+    frente_c = np.array(fw_t) * (-1.0 if modo == "costas" else 1.0)
+    if float(np.dot(nv, frente_c)) < 0:
+        nv = nv - 2.0 * float(np.dot(nv, frente_c)) * frente_c
     nrm = np.linalg.norm(nv)
     if nrm > 1e-4:
         nv /= nrm
@@ -1662,7 +1773,7 @@ def ancorar_apoios(ctx):
         if ctx.rolar and membro == "perna":
             continue
         ok = [ch[i]["ef"][ef]["contato"] for i in range(n)]
-        liga = [ok[i] and ok[(i + 1) % n] and (ch[i]["ef"][ef]["baixo"] - ch[(i + 1) % n]["ef"][ef]["baixo"]).length < 1.6
+        liga = [ok[i] and ok[(i + 1) % n] and (ch[i]["ef"][ef]["ponta"] - ch[(i + 1) % n]["ef"][ef]["ponta"]).length < 1.6
                 for i in range(n)]  # liga[i]: chave i e i+1 no mesmo apoio
         if not any(ok):
             continue
@@ -1851,11 +1962,11 @@ def ler_png(png):
 
 
 def compor(im, bg, ruido):
-    """RGBA (float 0..1) sobre o fundo, com pontilhado triangular FIXO (mesmo padrão em todos os quadros: sem chuvisco
+    """RGBA (float 0..1, pré-multiplicado) sobre o fundo, com pontilhado triangular FIXO (mesmo padrão em todos os quadros: sem chuvisco
     no fundo parado e sem gastar bits do vídeo)."""
     from PIL import Image
     a = im[..., 3:4]
-    rgb = im[..., :3] * a + bg * (1 - a)
+    rgb = im[..., :3] + bg * (1 - a)  # im em alfa pré-multiplicado (média correta dos subquadros do desfoque)
     out = np.clip(rgb * 255.0 + ruido + 0.5, 0, 255).astype(np.uint8)
     return Image.fromarray(out, "RGB")
 
@@ -1953,10 +2064,11 @@ def main():
                 if not a.tira and a.video and velocidade_pico(h, estados, fps) > 2.5:
                     # movimento rápido: 30 fps + desfoque de movimento (média de 2 subquadros = obturador de 180°)
                     fps = max(fps, 30.0)
-                    sub = 2
+                    sub = SUBQUADROS
                     taus = ctx.trilhas.instantes(fps)
-                    dtb = 0.25 / fps
-                    estados = [quadro(h, ctx, t + d) for t in taus for d in (-dtb, dtb)]
+                    # obturador de 180°: subquadros distribuídos em ±1/4 de quadro
+                    offs = [((i + 0.5) / sub - 0.5) * 0.5 / fps for i in range(sub)]
+                    estados = [quadro(h, ctx, t + d) for t in taus for d in offs]
             t_pose = time.time() - t_anim
             # aparelhos (fixos + móveis) e enquadramento: corpo + implemento nas mãos (torres e pórticos podem sair do quadro)
             kit.limpar()
@@ -2000,7 +2112,7 @@ def main():
             sc_ = bpy.context.scene
             amostras0 = sc_.cycles.samples
             if sub > 1:
-                sc_.cycles.samples = max(4, a.amostras // 2 + 1)
+                sc_.cycles.samples = max(4, int(round(a.amostras * 1.5 / sub)))
             frames = []
             t_render = time.time()
             for j0 in range(0, len(estados), sub):
@@ -2013,6 +2125,7 @@ def main():
                     sc_.render.filepath = caminho
                     bpy.ops.render.render(write_still=True)
                     im = ler_png(caminho)
+                    im[..., :3] *= im[..., 3:4]  # pré-multiplica (pixel transparente não traz cor de lixo)
                     acc = im if acc is None else acc + im
                     os.remove(caminho)
                 im = acc / sub
@@ -2028,7 +2141,7 @@ def main():
                 folha.save(os.path.join(a.saida, f"{aid}.jpg"), quality=88)
             elif a.video:
                 gravar_video(frames, os.path.join(a.saida, aid), fps, a.crf)
-                meta[aid] = {"v": 1, "f": len(frames), "s": a.tam, "fps": fps}
+                meta[aid] = {"v": 1, "f": len(frames), "s": a.tam, "fps": int(fps) if float(fps).is_integer() else fps}
                 json.dump(meta, open(meta_path, "w"), separators=(",", ":"), sort_keys=True)
             else:
                 cols = 6

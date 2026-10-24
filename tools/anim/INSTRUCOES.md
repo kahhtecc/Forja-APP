@@ -35,3 +35,13 @@ As poses agora vestem um **humano 3D realista** (renderizado no Blender, câmera
 - `"tr"`: torção do tronco em graus.
 Exemplos: elevação lateral = `bf [0,0]` com `bfa` 0 → 85; crucifixo/voador = `bf [90,90]` com `bfa` 85 (aberto) → 10 (fechado); face pull/abertura com elástico = braços à frente (90) e `bfa` 0 → 70; abdutora/caminhada lateral = `pfa` ~5 → 30; polichinelo = `bfa` 10 → 160 e `pfa` 5 → 25; giro russo/rotacionais = `tr` -35 → 35.
 A prévia 2D ignora esses campos — tudo bem. Use-os sempre que o movimento não for só "para frente e para trás".
+
+## Boneco 3D: campos profissionais (2026-10)
+Veja o docstring de `tools/anim3d/humano.py` (lista completa). Regras novas:
+1. **Nunca dois quadros idênticos.** Pausas e isometrias ganham "vida" automática, mas mude ao menos 0,5–1° em `t` ou `c`.
+2. Cadência por família (excêntrica mais lenta que a concêntrica); use `"ease"` quando o padrão automático não servir.
+3. `"apoio"` por quadro quando a detecção errar (mãos atrás da cabeça no abdominal NÃO são apoio; flexões: as quatro).
+4. Pés/mãos no banco ou na caixa: deixe `y` de fora (o motor apoia no topo da superfície; antepé na borda do degrau vale).
+5. Ângulos seguem os valores escritos (sem "atalho" de 360°): braço de -45 a 150 passa pela frente; para passar por cima
+   escreva -94 → -262. Nunca deixe um membro atravessar o chão no caminho.
+6. Câmera pelo plano do movimento (`cam`, `cam_el`); rosto e mãos sempre visíveis. Rode `tools/anim3d/qa.py` antes do render.
