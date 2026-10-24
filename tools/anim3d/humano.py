@@ -255,6 +255,10 @@ class Humano:
         self.comp = {n: ossos[n].length for n in self.ordem}
         self.basis = {n: Matrix.Identity(4) for n in self.ordem}
         self.P = {}
+        # FK preguiçosa: cada osso guarda a "versão" em que foi calculado; mudar um osso invalida só os descendentes
+        self.ver = 1
+        self.mod = {n: 1 for n in self.ordem}
+        self.stamp = {n: 0 for n in self.ordem}
         self._sujo = True
         self._fk()
         L = lambda a, b: (self.cabeca(b) - self.cabeca(a)).length  # noqa: E731
@@ -273,28 +277,52 @@ class Humano:
         self.frac_media = sum(f * c for f, c in zip(fr, cs)) / tot
 
     def _fk(self):
+        """FK de todos os ossos (só recalcula os que mudaram)."""
         if not self._sujo:
             return
-        P = self.P
+        P, tm = self.P, {}
         for n in self.ordem:
             p = self.pai[n]
-            P[n] = (P[p] @ self.rel[n] if p else self.rel[n]) @ self.basis[n]
+            t = max(tm[p], self.mod[n]) if p else self.mod[n]
+            tm[n] = t
+            if self.stamp[n] < t:
+                P[n] = (P[p] @ self.rel[n] if p else self.rel[n]) @ self.basis[n]
+                self.stamp[n] = self.ver
         self._sujo = False
 
+    def _Pn(self, n):
+        """Matriz do osso n atualizada (sobe só pela cadeia de pais)."""
+        p = self.pai[n]
+        if p:
+            Pp, tp = self._Pn(p)
+            t = max(tp, self.mod[n])
+        else:
+            Pp, t = None, self.mod[n]
+        if self.stamp[n] < t:
+            self.P[n] = (Pp @ self.rel[n] if p else self.rel[n]) @ self.basis[n]
+            self.stamp[n] = self.ver
+        return self.P[n], t
+
+    def _mudou(self, n):
+        self.ver += 1
+        self.mod[n] = self.ver
+        self._sujo = True
+
     def zerar(self):
+        self.ver += 1
         for n in self.ordem:
             self.basis[n] = Matrix.Identity(4)
+            self.mod[n] = self.ver
         self._sujo = True
 
     def set_rot(self, n, R3):
         """Rotação absoluta do osso (espaço do esqueleto); a cabeça fica onde o pai deixou."""
-        self._fk()
         p = self.pai[n]
-        base = self.P[p] @ self.rel[n] if p else self.rel[n]
+        base = self._Pn(p)[0] @ self.rel[n] if p else self.rel[n]
         M = R3.to_4x4()
         M.translation = base.translation
         self.basis[n] = base.inverted() @ M
-        self._sujo = True
+        self._mudou(n)
 
     def girar(self, n, R3):
         """Aplica a rotação R3 (espaço do esqueleto) à orientação de repouso do osso."""
@@ -309,26 +337,25 @@ class Humano:
 
     def set_local(self, n, q):
         self.basis[n] = q.to_matrix().to_4x4()
-        self._sujo = True
+        self._mudou(n)
 
     def cabeca(self, n):
-        self._fk()
-        return self.P[n].translation.copy()
+        return self._Pn(n)[0].translation.copy()
 
     def cauda(self, n):
-        self._fk()
-        return self.P[n] @ Vector((0, self.comp[n], 0))
+        return self._Pn(n)[0] @ Vector((0, self.comp[n], 0))
 
     def rot(self, n):
-        self._fk()
-        return self.P[n].to_3x3()
+        return self._Pn(n)[0].to_3x3()
 
     def estado(self):
         return {n: m.copy() for n, m in self.basis.items()}
 
     def restaurar(self, est):
+        self.ver += 1
         for n, m in est.items():
             self.basis[n] = m.copy()
+            self.mod[n] = self.ver
         self._sujo = True
 
     def aplicar(self, T):
@@ -538,7 +565,19 @@ class Humano:
     # ---------------------------------------------------------- IK de 2 ossos (espaço do esqueleto)
     def ik(self, membro, sf, alvo, rot_fim=None):
         """Leva a cabeça do osso final (tornozelo/punho) até 'alvo', mantendo o plano de flexão natural.
-        rot_fim: rotação absoluta do pé/punho; se None, o pé/punho acompanha o segmento distal."""
+        rot_fim: rotação absoluta do pé/punho; se None, o pé/punho acompanha o segmento distal.
+        Os ossos intermediários (upperleg02 etc.) não são exatamente colineares: refina o alvo até errar < 1 mm."""
+        fim = ("foot" if membro == "perna" else "wrist") + sf
+        alvo = Vector(alvo)
+        mira = alvo.copy()
+        for _ in range(4):
+            self._ik1(membro, sf, mira, rot_fim)
+            err = alvo - self.cabeca(fim)
+            if err.length < 0.001:
+                break
+            mira = mira + err
+
+    def _ik1(self, membro, sf, alvo, rot_fim=None):
         if membro == "perna":
             b1, b2, fim, l1, l2 = ("upperleg01", "upperleg02"), ("lowerleg01", "lowerleg02"), "foot", self.l_coxa, self.l_canela
         else:
@@ -550,15 +589,24 @@ class Humano:
         dv = max(v.length, 1e-6)
         u = v / dv
         d = _clamp(dv, abs(l1 - l2) + 1e-3, (l1 + l2) * 0.9995)
+        # plano de flexão: o da pose atual quando o membro está dobrado; perto de esticado, mistura contínua com o polo
+        # natural (joelho para a frente, cotovelo para trás/fora) girado junto com o segmento proximal: sem "virar"
+        s = 1 if sf == ".L" else -1
+        Rrel = self.rot(b1[0] + sf) @ self.rest_inv[b1[0] + sf].to_3x3()
+        polo = Rrel @ (FRENTE.copy() if membro == "perna" else (-FRENTE + ESQ * s * 0.4 - CIMA * 0.2))
+        perp_ref = polo - u * polo.dot(u)
+        if perp_ref.length > 1e-6:
+            perp_ref.normalize()
         n = (E - S).cross(W - S)
-        if n.length < 1e-3 * l1 * l2:
-            s = 1 if sf == ".L" else -1
-            polo = FRENTE.copy() if membro == "perna" else (-FRENTE + ESQ * s * 0.5 - CIMA * 0.3)
-            perp = polo - u * polo.dot(u)
+        dobra = n.length / max((E - S).length * (W - S).length, 1e-9)  # seno do ângulo da articulação
+        w = mov.suave(dobra, 0.06, 0.3)
+        if w > 0:
+            perp_cur = n.normalized().cross(u)
+            if perp_cur.dot(E - S) < 0:
+                perp_cur = -perp_cur
+            perp = perp_cur * w + perp_ref * (1 - w)
         else:
-            perp = n.normalized().cross(u)
-            if perp.dot(E - S) < 0:
-                perp = -perp
+            perp = perp_ref
         if perp.length < 1e-6:
             perp = Vector((0, 0, 1)) - u * u.z
         perp.normalize()
@@ -693,7 +741,8 @@ def cena(tam, amostras):
     sc.cycles.use_denoising = True
     sc.cycles.denoiser = "OPENIMAGEDENOISE"
     sc.cycles.denoising_input_passes = "RGB_ALBEDO_NORMAL"
-    sc.cycles.denoising_prefilter = "FAST"
+    sc.cycles.denoising_prefilter = "ACCURATE"
+    sc.cycles.seed = 0
     try:
         sc.cycles.denoising_quality = "FAST"
     except (AttributeError, TypeError):
@@ -788,6 +837,7 @@ def enquadrar(co, pts, azimute, margem=0.07, elevacao=10.0):
     co.rotation_euler = (-dirc).to_track_quat("-Z", "Y").to_euler()
     co.data.ortho_scale = lado
     co.data.clip_end = 300
+    co["cam_geo"] = {"centro": list(centro), "lado": float(lado), "dirc": list(dirc), "direita": list(direita), "cima": list(cima)}
     # as luzes giram junto com a câmera (mesmo desenho de luz em qualquer vista)
     giro = Matrix.Rotation(math.radians(azimute - AZ_LUZES), 3, "Z")
     alvo = Vector((centro.x, centro.y, 9))
@@ -796,6 +846,50 @@ def enquadrar(co, pts, azimute, margem=0.07, elevacao=10.0):
         loc = giro @ Vector(o["loc0"]) + Vector((centro.x, centro.y, 0))
         o.location = loc
         o.rotation_euler = (alvo - loc).to_track_quat("-Z", "Y").to_euler()
+
+
+def camera_familia(anim, ctx):
+    """(campo "cam", elevação em graus): valores da animação ou padrão por família (tabela C2.2 da pesquisa)."""
+    cam = anim.get("cam", 64)
+    if "cam_el" in anim:
+        return cam, float(anim["cam_el"])
+    ch = ctx.trilhas.chaves
+    deitado = sum(1 for c in ch if abs(math.sin(math.radians(c["t"]))) > 0.7) >= len(ch) / 2
+    banco = any(pr.get("tipo") == "banco" for pr in ctx.props)
+    if deitado and banco and not ctx.anim.get("fixo") == "maos":
+        el = 24.0
+    elif deitado or "tapete" in ctx.tipos or anim.get("fixo") == "maos":
+        el = 22.0
+    elif float(cam) < 0:
+        el = 15.0
+    else:
+        el = 12.0
+    return cam, el
+
+
+def marcas_chao(tam, geo, zf, centro_corpo, desloc=0.0, passo=5.0):
+    """Placas de piso em baixo contraste (luminância +4 %) projetadas pela câmera ortográfica, com fade radial.
+    desloc: deslocamento das marcas no eixo frente-trás (piso rolante). Devolve o ganho (tam, tam, 1)."""
+    c = np.array(geo["centro"]); L = geo["lado"]
+    dc, dr, cm = np.array(geo["dirc"]), np.array(geo["direita"]), np.array(geo["cima"])
+    t = (np.arange(tam) + 0.5) / tam
+    U, V = np.meshgrid(t - 0.5, 0.5 - t)
+    Q = c[None, None, :] + dr[None, None, :] * (U[..., None] * L) + cm[None, None, :] * (V[..., None] * L)
+    if dc[2] < 1e-3:
+        return np.zeros((tam, tam, 1))
+    tt = (Q[..., 2] - zf) / dc[2]
+    X = Q[..., 0] - dc[0] * tt
+    Y = Q[..., 1] - dc[1] * tt
+    pix = L / tam / max(dc[2], 0.15)  # tamanho do pixel no chão (antisserrilhado)
+    larg = 0.06
+
+    def linhas(a):
+        d = np.abs(((a / passo) + 0.5) % 1.0 - 0.5) * passo
+        return np.clip((larg + pix * 0.7 - d) / (pix * 1.4), 0, 1)
+    m = np.maximum(linhas(X - 0.0), linhas(Y + desloc))
+    r = np.hypot(X - centro_corpo[0], (Y - centro_corpo[1]) * 0.8)
+    fade = np.exp(-(r / 11.0) ** 2)
+    return (m * fade * 0.028)[..., None]
 
 
 def material_corpo():
@@ -942,7 +1036,13 @@ def info_efetor(h, ctx, T, ef, membro, sf, P=None):
     baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
     fim = _fim(membro, sf)
     Tq = T.to_3x3()
-    return {"pos": T @ h.cabeca(fim), "rot": (Tq @ h.rot(fim)).to_quaternion(), "baixo": Vector(baixo), "zmin": float(zmin)}
+    if membro == "perna":
+        a = h.cabeca("foot" + sf)
+        ponta = T @ (a + (h.cabeca("toe3-1" + sf) - a) * 0.78)  # antepé (pivô do apoio)
+    else:
+        ponta = T @ h.pegada(sf)
+    return {"pos": T @ h.cabeca(fim), "rot": (Tq @ h.rot(fim)).to_quaternion(), "baixo": Vector(baixo), "zmin": float(zmin),
+            "ponta": ponta}
 
 
 def mao_apoiada_rot(h, T, sf):
@@ -1270,6 +1370,44 @@ def plantar(h, ctx, T, chaves, i, j, u):
     return pesos
 
 
+def assentar_apoios(h, ctx, T, pesos):
+    """Pé/mão apoiado encosta exatamente na superfície em todo quadro (a pele do calcanhar depende também da canela):
+    correção vertical contínua, proporcional ao peso do apoio."""
+    Ti = T.inverted()
+    for _ in range(2):
+        P = h.proxy(T)
+        mexeu = False
+        for ef, membro, sf in EFETORES:
+            w = pesos.get(ef, 0.0)
+            if w <= 1e-3:
+                continue
+            pts = P[h.px_partes[ef]]
+            zmin = pts[:, 2].min()
+            baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
+            zs = ctx.superficie_em(baixo, zmin + 0.3)
+            gap = zmin - zs
+            if abs(gap) < 0.001 or abs(gap) > 0.6:
+                continue
+            fim = _fim(membro, sf)
+            alvo = T @ h.cabeca(fim) - Vector((0, 0, gap * w))
+            h.ik(membro, sf, Ti @ alvo, h.rot(fim))
+            mexeu = True
+        if not mexeu:
+            break
+    # perna esticada que não alcança o apoio: o corpo desce o que faltar (só se todos os apoios firmes ficaram no ar)
+    P = h.proxy(T)
+    res = []
+    for ef, membro, sf in EFETORES:
+        if pesos.get(ef, 0.0) > 0.999:
+            pts = P[h.px_partes[ef]]
+            zmin = pts[:, 2].min()
+            baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
+            res.append(zmin - ctx.superficie_em(baixo, zmin + 0.3))
+    if res and min(res) > 0.001 and max(res) < 0.6:
+        T = Matrix.Translation((0, 0, -min(res))) @ T
+    return T
+
+
 def sem_atravessar(h, ctx, T, fixos):
     """Pés/mãos livres não entram no chão/banco (IK levanta o membro); o corpo não atravessa o chão."""
     Ti = T.inverted()
@@ -1430,6 +1568,35 @@ def _parametros_vida(anim, grupo, trilhas):
     return vida, tremor, atrasos, em_pe
 
 
+def ancorar_apoios(ctx):
+    """Apoio que fica no mesmo lugar em chaves seguidas (diferença < 1,6) usa UMA âncora no mundo: o pé/mão não
+    escorrega entre as chaves (a diferença de proporções 2D x 3D, joelhos para fora etc. é absorvida pelo IK)."""
+    ch = ctx.chaves
+    n = len(ch)
+    for ef, membro, sf in EFETORES:
+        if ctx.rolar and membro == "perna":
+            continue
+        ok = [ch[i]["ef"][ef]["contato"] for i in range(n)]
+        liga = [ok[i] and ok[(i + 1) % n] and (ch[i]["ef"][ef]["baixo"] - ch[(i + 1) % n]["ef"][ef]["baixo"]).length < 1.6
+                for i in range(n)]  # liga[i]: chave i e i+1 no mesmo apoio
+        if not any(ok):
+            continue
+        if all(liga):
+            inicio = [0]
+        else:
+            inicio = [i for i in range(n) if ok[i] and not liga[(i - 1) % n]]
+        for i0 in inicio:
+            ref = ch[i0]["ef"][ef]
+            j = i0
+            while liga[j % n] and (j + 1) % n != i0:
+                j += 1
+                e = ch[j % n]["ef"][ef]
+                # o antepé (ou a pegada) fica no mesmo ponto; a rotação de cada chave é mantida (calcanhar pode subir)
+                d = ref["ponta"] - e["ponta"]
+                d.z = 0.0
+                e["pos"], e["baixo"], e["ponta"] = e["pos"] + d, e["baixo"] + d, e["ponta"] + d
+
+
 def preparar_anim(h, anim, k, grupo):
     ctx = Contexto(h, anim, k, grupo)
     if grupo == "Trapézio" and not any("oe" in q for q in anim["quadros"]):
@@ -1456,6 +1623,18 @@ def preparar_anim(h, anim, k, grupo):
         chaves.append({"T": T, "maos": maos, "apoio": ext["apoio"], "ef": ef, "est": h.estado(), "pos": pos, "rot": T.to_quaternion(),
                        "q": q})
     ctx.chaves = chaves
+    ancorar_apoios(ctx)
+    # piso rolante: velocidade média do pé de apoio (o chão desenhado corre junto, o pé fica parado em relação a ele)
+    ctx.vel_rolar = 0.0
+    if ctx.rolar:
+        vs = []
+        for i_, c in enumerate(chaves):
+            c2 = chaves[(i_ + 1) % len(chaves)]
+            for pe in ("pe_f", "pe_t"):
+                ea, eb = c["ef"][pe], c2["ef"][pe]
+                if ea["contato"] and eb["contato"]:
+                    vs.append((eb["pos"].y - ea["pos"].y) / float(trilhas.tempos[i_]))
+        ctx.vel_rolar = float(np.mean(vs)) if vs else 0.0
     root0 = h.rest["root"].translation.copy()
     ctx.root0 = root0
     # fases de voo (nenhum apoio e ay > 0): o quadril segue uma parábola entre a decolagem e a aterrissagem
@@ -1531,6 +1710,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
         pesos = plantar(h, ctx, T, ctx.chaves, i, j, u)
         if ctx.barra is not None and "barra3" in ctx.ref and all(ctx.chaves[x]["ef"]["mao_f"]["contato"] for x in (i, j)):
             segurar_barra(h, ctx, T)
+    if pesos:
+        T = assentar_apoios(h, ctx, T, pesos)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
         T2 = sem_atravessar(h, ctx, T, fixos)
@@ -1553,7 +1734,7 @@ def finalizar(h, ctx, T, tau, seg, maos):
     if ctx.barra_livre:
         extras["barra"] = corrigir_barra(h, ctx, T)
     dedos_pes(h, ctx, T)
-    return {"T": T.copy(), "est": h.estado(), "tau": tau, "extras": extras}
+    return {"T": T.copy(), "est": h.estado(), "tau": tau, "extras": extras, "pesos": pesos}
 
 
 def quadro_chave(h, ctx, i):
@@ -1577,19 +1758,32 @@ def fundo(tam):
     return img * (1 - halo) + luz * halo
 
 
-def compor(png, bg, rng):
-    """RGBA 16 bits sobre o fundo, com pontilhado triangular (evita degraus no degradê e nas sombras)."""
+def ler_png(png):
     from PIL import Image
     im = np.array(Image.open(png)).astype(np.float64)
-    if im.max() > 255:
-        im /= 65535.0
-    else:
-        im /= 255.0
+    return im / (65535.0 if im.max() > 255 else 255.0)
+
+
+def compor(im, bg, ruido):
+    """RGBA (float 0..1) sobre o fundo, com pontilhado triangular FIXO (mesmo padrão em todos os quadros: sem chuvisco
+    no fundo parado e sem gastar bits do vídeo)."""
+    from PIL import Image
     a = im[..., 3:4]
     rgb = im[..., :3] * a + bg * (1 - a)
-    ruido = (rng.random(rgb.shape) - rng.random(rgb.shape)) * 0.9
     out = np.clip(rgb * 255.0 + ruido + 0.5, 0, 255).astype(np.uint8)
     return Image.fromarray(out, "RGB")
+
+
+def velocidade_pico(h, estados, fps):
+    """Maior velocidade (m/s) de mãos e pés ao longo do laço (1 unidade = 1 dm)."""
+    P = []
+    for est in estados:
+        h.restaurar(est["est"])
+        T = est["T"]
+        P.append([list(T @ h.cabeca(n)) for n in ("wrist.L", "wrist.R", "foot.L", "foot.R")])
+    P = np.array(P)
+    d = np.linalg.norm(np.roll(P, -1, axis=0) - P, axis=2)
+    return float(np.percentile(d.max(axis=1), 90)) * fps / 10.0
 
 
 def gravar_video(frames, base, fps, crf):
@@ -1603,7 +1797,7 @@ def gravar_video(frames, base, fps, crf):
             f.save(os.path.join(tmp, f"{j:04d}.png"))
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "%04d.png"),
                         "-c:v", "libx264", "-profile:v", "high", "-level", "4.0", "-pix_fmt", "yuv420p", "-preset", "slow",
-                        "-crf", str(crf), "-tune", "film", "-g", str(max(1, len(frames))), "-movflags", "+faststart", "-an",
+                        "-crf", str(crf), "-tune", "animation", "-g", str(max(1, len(frames))), "-movflags", "+faststart", "-an",
                         base + ".mp4"], check=True)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -1639,7 +1833,6 @@ def main():
     grupos = {e["id"]: e for e in json.load(open(a.ex))}
     kit = aparelhos.Kit()
     bg = fundo(tam_saida)
-    rng = np.random.default_rng(7)
     k = (h.juntas[h.ossos["upperleg01.L"]["head"]][2] - h.juntas[h.ossos["foot.L"]["head"]][2]) / 8.7
     meta_path = os.path.join(a.saida, "meta.json")
     meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
@@ -1662,44 +1855,79 @@ def main():
                         (prim if not prim else sec).append(r)
             colorir(h, prim, sec)
             ctx = preparar_anim(h, anim, k, ex.get("grupo", ""))
+            fps = a.fps
+            sub = 1
             if a.chaves:
                 estados = [quadro_chave(h, ctx, i) for i in range(len(ctx.chaves))]
             else:
-                taus = ctx.trilhas.instantes(a.fps)
+                taus = ctx.trilhas.instantes(fps)
                 if a.tira:
                     taus = [j * ctx.trilhas.T / a.tira for j in range(a.tira)]
                 estados = [quadro(h, ctx, t) for t in taus]
+                if not a.tira and a.video and velocidade_pico(h, estados, fps) > 2.5:
+                    # movimento rápido: 30 fps + desfoque de movimento (média de 2 subquadros = obturador de 180°)
+                    fps = max(fps, 30.0)
+                    sub = 2
+                    taus = ctx.trilhas.instantes(fps)
+                    dtb = 0.25 / fps
+                    estados = [quadro(h, ctx, t + d) for t in taus for d in (-dtb, dtb)]
             t_pose = time.time() - t_anim
-            # aparelhos (fixos + móveis) e enquadramento com todos os quadros
+            # aparelhos (fixos + móveis) e enquadramento: corpo + implemento nas mãos (torres e pórticos podem sair do quadro)
             kit.limpar()
             aparelhos.montar(kit, ctx, h, estados)
-            pts = []
+            amostra = estados[:: max(1, len(estados) // 24)] + [estados[-1]]
             corpo = []
-            for est in estados[:: max(1, len(estados) // 24)] + [estados[-1]]:
+            for est in amostra:
                 h.restaurar(est["est"])
                 corpo.append(h.proxy(est["T"])[::3])
-                pts.append(corpo[-1])
-                kit.atualizar(est)
-                pts.append(kit.pontos())
-            pts = np.concatenate(pts)
-            az = azimute_de_cam(anim.get("cam", 64))
-            enquadrar(co, pts, az)
-            # chão de sombra só em volta do corpo (o custo do Cycles está nos pixels de chão)
             cp = np.concatenate(corpo)
             lo, hi = cp.min(axis=0), cp.max(axis=0)
+            pts = [cp]
+            for est in amostra:
+                kit.atualizar(est)
+                pts.append(kit.pontos(lo, hi))
+            pts = np.concatenate(pts)
+            cam, elev = camera_familia(anim, ctx)
+            az = azimute_de_cam(cam)
+            enquadrar(co, pts, az, margem=0.06, elevacao=elev)
+            # chão de sombra só em volta do corpo (o custo do Cycles está nos pixels de chão)
             chao.location = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, 0.0)
             chao.scale = ((hi[0] - lo[0]) / 2 + 3.5, (hi[1] - lo[1]) / 2 + 3.5, 1)
+            # marcas do piso (estáticas, ou correndo sob o pé de apoio no piso rolante)
+            geo = dict(co["cam_geo"])
+            geo = {kk: (list(vv) if not isinstance(vv, float) else vv) for kk, vv in geo.items()}
+            cc = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
+            vel = getattr(ctx, "vel_rolar", 0.0)
+            passo = 5.0
+            if vel:
+                dist = abs(vel) * ctx.trilhas.T
+                passo = dist / max(1, round(dist / 5.0))
+            tint = np.array([1.0, 0.9, 0.8])
+            marca_fixa = None if vel else marcas_chao(tam_saida, geo, 0.0, cc, 0.0, passo)
+            ruido = (np.random.default_rng(7).random((tam_saida, tam_saida, 3)) - np.random.default_rng(8).random((tam_saida, tam_saida, 3))) * 0.9
+            sc_ = bpy.context.scene
+            amostras0 = sc_.cycles.samples
+            if sub > 1:
+                sc_.cycles.samples = max(4, a.amostras // 2 + 1)
             frames = []
             t_render = time.time()
-            for j, est in enumerate(estados):
-                h.restaurar(est["est"])
-                h.aplicar(est["T"])
-                kit.atualizar(est)
-                caminho = os.path.join(a.saida, f"_tmp_{aid}_{j}.png")
-                bpy.context.scene.render.filepath = caminho
-                bpy.ops.render.render(write_still=True)
-                frames.append(compor(caminho, bg, rng))
-                os.remove(caminho)
+            for j0 in range(0, len(estados), sub):
+                acc = None
+                for est in estados[j0:j0 + sub]:
+                    h.restaurar(est["est"])
+                    h.aplicar(est["T"])
+                    kit.atualizar(est)
+                    caminho = os.path.join(a.saida, f"_tmp_{aid}_{j0}.png")
+                    sc_.render.filepath = caminho
+                    bpy.ops.render.render(write_still=True)
+                    im = ler_png(caminho)
+                    acc = im if acc is None else acc + im
+                    os.remove(caminho)
+                im = acc / sub
+                tau_f = estados[j0]["tau"]
+                mk = marca_fixa if marca_fixa is not None else marcas_chao(tam_saida, geo, 0.0, cc, -vel * tau_f, passo)
+                frames.append(compor(im, bg + mk * tint, ruido))
+            sc_.cycles.samples = amostras0
             t_render = (time.time() - t_render) / max(1, len(frames))
             if revisao:
                 folha = Image.new("RGB", (tam_saida * len(frames), tam_saida))
@@ -1707,8 +1935,8 @@ def main():
                     folha.paste(f, (j * tam_saida, 0))
                 folha.save(os.path.join(a.saida, f"{aid}.jpg"), quality=88)
             elif a.video:
-                gravar_video(frames, os.path.join(a.saida, aid), a.fps, a.crf)
-                meta[aid] = {"v": 1, "f": len(frames), "s": a.tam, "fps": a.fps}
+                gravar_video(frames, os.path.join(a.saida, aid), fps, a.crf)
+                meta[aid] = {"v": 1, "f": len(frames), "s": a.tam, "fps": fps}
                 json.dump(meta, open(meta_path, "w"), separators=(",", ":"), sort_keys=True)
             else:
                 cols = 6

@@ -169,14 +169,18 @@ class Kit:
         for f in self.moveis:
             f(est)
 
-    def pontos(self):
+    def pontos(self, lo=None, hi=None, margem=2.5):
+        """Cantos das peças (mundo). Com lo/hi (caixa do corpo), só o implemento nas mãos entra inteiro; o resto
+        (torres, pórticos, esteira) é recortado à caixa do corpo + margem e pode sair pela borda do quadro."""
         out = []
         for o in self.objs:
             if o.hide_render:
                 continue
             M = o.matrix_world
-            for c in o.bound_box:
-                out.append(tuple(M @ Vector(c)))
+            cs = np.array([tuple(M @ Vector(c)) for c in o.bound_box])
+            if lo is not None and not o.get("foco"):
+                cs = np.clip(cs, np.asarray(lo) - margem, np.asarray(hi) + margem)
+            out.extend(cs.tolist())
         return np.array(out) if out else np.zeros((0, 3))
 
 
@@ -210,6 +214,7 @@ def halter_peca(kit):
 def preparar(ctx, h):
     ctx.bike = None
     ctx.parede = None
+    ctx.alavancas = preparar_alavancas(ctx, h)
     for pr in ctx.props:
         if pr.get("tipo") == "parede":
             ctx.parede = _preparar_parede(ctx, h, pr)
@@ -258,6 +263,7 @@ def _antepe(h, sf):
 
 
 def antes_ik(ctx, h, T, tau, extras):
+    ik_alavancas(ctx, h, T)
     if ctx.parede is not None:
         pa = ctx.parede
         Ti = T.inverted()
@@ -524,77 +530,139 @@ def _apoio_tornozelo(kit, ctx, pr, am):
     kit.caixa((0, c.y, 0.08), (6.4, 1.6, 0.16), kit.quadro, 0.04)
 
 
+def preparar_alavancas(ctx, h):
+    """Alavancas RÍGIDAS das máquinas (supino, voador/peck-deck, desenvolvimento): pivô fixo e comprimento constante.
+    A mão é levada (IK, em todo quadro) ao ponto do arco da alavanca mais próximo da pose. Devolve {sf: (piv, eixo, L)}."""
+    idd = ctx.id
+    if "supino-maquina" in idd:
+        tipo = "supino"
+    elif "peck-deck" in idd or "voador" in idd:
+        tipo = "peck"
+    elif "desenvolvimento-maquina" in idd:
+        tipo = "des"
+    else:
+        return None
+    grips = {".L": [], ".R": []}
+    omb = {}
+    for i, c in enumerate(ctx.chaves):
+        h.restaurar(c["est"])
+        T = c["T"]
+        for sf in grips:
+            grips[sf].append(T @ h.pegada(sf))
+            if i == 0:
+                omb[sf] = T @ h.cabeca("upperarm01" + sf)
+    cfg = {"tipo": tipo}
+    for sf, sx in ((".L", 1), (".R", -1)):
+        G = grips[sf]
+        o = omb[sf]
+        if tipo == "supino":
+            ax = X.copy()
+            piv = Vector((sx * (abs(o.x) + 1.3), o.y + 2.0, o.z + 2.6))
+        elif tipo == "peck":
+            ax = CIMA.copy()
+            piv = Vector((sx * 1.9, o.y + 0.4, 0.0))
+        else:
+            ax = Vector((0, 1, 0))
+            A, B = min(G, key=lambda p: p.z), max(G, key=lambda p: p.z)
+            M = (A + B) / 2
+            d = Vector((B.x - A.x, 0, B.z - A.z))
+            nrm = Vector((d.z, 0, -d.x)).normalized() if d.length > 1e-3 else Vector((sx, 0, 0))
+            if nrm.x * sx < 0:
+                nrm = -nrm
+            alvo_x = max(abs(p.x) for p in G) + 2.2
+            t = (alvo_x - abs(M.x)) / max(abs(nrm.x), 0.2)
+            piv = M + nrm * t
+            piv.y = o.y + 1.4
+        dist = []
+        for g in G:
+            r = g - piv
+            dist.append((r - ax * r.dot(ax)).length)
+        cfg[sf] = (piv, ax, sum(dist) / len(dist))
+    return cfg
+
+
+def _proj_alavanca(c, g):
+    piv, ax, L = c
+    r = g - piv
+    a = r.dot(ax)
+    rp = r - ax * a
+    if rp.length < 1e-6:
+        return g
+    return piv + ax * a + rp.normalized() * L
+
+
+def ik_alavancas(ctx, h, T):
+    cfg = getattr(ctx, "alavancas", None)
+    if not cfg:
+        return
+    Ti3 = T.inverted().to_3x3()
+    for _ in range(2):
+        for sf in (".L", ".R"):
+            g = T @ h.pegada(sf)
+            gn = _proj_alavanca(cfg[sf], g)
+            h.ik("braco", sf, h.cabeca("wrist" + sf) + Ti3 @ (gn - g), h.rot("wrist" + sf))
+
+
 def _bracos_maquina(kit, ctx, h, encosto):
-    """Supino/peck-deck/desenvolvimento na máquina: pórtico atrás do encosto e alavancas presas às mãos."""
+    """Supino/peck-deck/desenvolvimento na máquina: pórtico atrás do encosto e alavancas rígidas (pivô fixo, comprimento
+    constante, sempre por fora da largura dos ombros)."""
     y, zt = encosto
+    cfg = getattr(ctx, "alavancas", None)
     for sx in (-1, 1):
         kit.viga((sx * 3.4, y + 1.2, 0.1), (sx * 3.4, y + 1.2, zt + 2.0), 0.5, 0.7, kit.quadro)
     kit.viga((-3.6, y + 1.2, zt + 2.0), (3.6, y + 1.2, zt + 2.0), 0.6, 0.7, kit.quadro)
     kit.caixa((0, y + 1.2, 0.1), (7.6, 2.6, 0.2), kit.quadro, 0.05)
-    peck = "peck" in ctx.id or "voador" in ctx.id
-    supino = "supino" in ctx.id
-    if peck or supino:
-        _alavancas_peito(kit, ctx, h, y, zt, peck)
+    if not cfg:
         return
-    alav = {sf: kit.cil_movel(0.17, kit.quadro, 12) for sf in (".L", ".R")}
-    pega = {sf: kit.cil_movel(0.16, kit.preto, 12) for sf in (".L", ".R")}
-
-    def upd(est):
-        h.restaurar(est["est"])
-        T = est["T"]
-        for sf, sx in ((".L", 1), (".R", -1)):
-            g = T @ h.pegada(sf)
-            piv = Vector((sx * 3.2, y + 1.0, zt + 1.6))
-            Kit.por_cil(alav[sf], piv, g + X * sx * 0.5)
-            e = T.to_3x3() @ h.eixo_polegar(sf)
-            Kit.por_cil(pega[sf], g - e * 0.55, g + e * 0.55)
-    kit.moveis.append(upd)
-
-
-def _alavancas_peito(kit, ctx, h, y, zt, peck):
-    """Alavancas do voador (eixo vertical sobre cada ombro, braço horizontal e pegador vertical na mão) e do supino
-    sentado (pegador na mão, braço de alavanca por fora do corpo até o pivô baixo atrás do encosto)."""
-    h.restaurar(ctx.chaves[0]["est"])
-    T0 = ctx.chaves[0]["T"]
-    omb = {sf: T0 @ h.cabeca("upperarm01" + sf) for sf in (".L", ".R")}
-    zs = min(T0 @ h.cabeca("root") for _ in (0,)).z
+    tipo = cfg["tipo"]
     pega = {sf: kit.cil_movel(0.2, kit.preto, 14) for sf in (".L", ".R")}
     liga = {sf: kit.cil_movel(0.15, kit.metal, 12) for sf in (".L", ".R")}
-    alav = {sf: kit.cil_movel(0.2, kit.quadro, 12) for sf in (".L", ".R")}
+    alav = {sf: kit.cil_movel(0.22, kit.quadro, 12) for sf in (".L", ".R")}
     eixo = {sf: kit.cil_movel(0.22, kit.quadro, 12) for sf in (".L", ".R")}
+    zarm = {}
     for sf, sx in ((".L", 1), (".R", -1)):
-        if peck:
-            topo = Vector((sx * 1.9, omb[sf].y + 0.4, zt + 2.0))
-            kit.viga(topo, Vector((sx * 3.4, y + 1.2, zt + 2.0)), 0.5, 0.5, kit.quadro)
-            kit.disco(topo - Vector((0, 0, 0.2)), 0.45, 0.5, kit.quadro, eixo=(0, 0, 1), verts=20)
-        else:
-            piv = Vector((sx * 3.7, y + 0.6, zs + 0.2))
+        piv, ax, L = cfg[sf]
+        if tipo == "supino":
             kit.disco(piv, 0.5, 0.6, kit.quadro, verts=20)
             kit.viga(piv, Vector((sx * 3.4, y + 1.2, piv.z)), 0.4, 0.4, kit.quadro)
+            kit.viga(Vector((sx * 3.4, y + 1.2, piv.z)), Vector((sx * 3.4, y + 1.2, 0.1)), 0.45, 0.45, kit.quadro)
+        elif tipo == "peck":
+            h.restaurar(ctx.chaves[0]["est"])
+            zarm[sf] = (ctx.chaves[0]["T"] @ h.pegada(sf)).z + 1.7
+            topo = Vector((piv.x, piv.y, zt + 2.0))
+            kit.viga(topo, Vector((sx * 3.4, y + 1.2, zt + 2.0)), 0.5, 0.5, kit.quadro)
+            kit.disco(topo - Vector((0, 0, 0.2)), 0.45, 0.5, kit.quadro, eixo=(0, 0, 1), verts=20)
+            kit.cil(topo, Vector((piv.x, piv.y, zarm[sf])), 0.22, kit.quadro, 12)
+        else:
+            kit.disco(piv, 0.5, 0.6, kit.quadro, eixo=(0, 1, 0), verts=20)
+            kit.viga(piv, Vector((piv.x, y + 1.2, piv.z)), 0.4, 0.4, kit.quadro)
+            kit.viga(Vector((piv.x, y + 1.2, piv.z)), Vector((piv.x, y + 1.2, 0.1)), 0.45, 0.45, kit.quadro)
 
     def upd(est):
         h.restaurar(est["est"])
         T = est["T"]
         for sf, sx in ((".L", 1), (".R", -1)):
+            piv, ax, L = cfg[sf]
             g = T @ h.pegada(sf)
             e = (T.to_3x3() @ h.eixo_polegar(sf)).normalized()
             if e.z < 0:
                 e = -e
             Kit.por_cil(pega[sf], g - e * 0.75, g + e * 0.75)
-            if peck:
-                topo = Vector((sx * 1.9, omb[sf].y + 0.4, zt + 2.0))
-                cot = Vector((g.x, g.y, g.z + 1.6))
-                Kit.por_cil(liga[sf], g + e * 0.7, cot)
-                piv = Vector((topo.x, topo.y, cot.z))
-                Kit.por_cil(alav[sf], cot, piv)
-                Kit.por_cil(eixo[sf], piv, topo)
-            else:
+            eixo[sf].hide_render = True
+            if tipo == "supino":
                 base = g - e * 0.7
-                fora = base + X * sx * 1.1
-                Kit.por_cil(liga[sf], base, fora)
-                piv = Vector((sx * 3.7, y + 0.6, zs + 0.2))
-                Kit.por_cil(alav[sf], fora, piv)
-                eixo[sf].hide_render = True
+                E = Vector((piv.x, base.y, base.z))
+                Kit.por_cil(liga[sf], base, E)
+                Kit.por_cil(alav[sf], E, piv)
+            elif tipo == "peck":
+                topo_m = g + e * 0.7
+                cot = Vector((g.x, g.y, zarm[sf]))
+                Kit.por_cil(liga[sf], topo_m, cot)
+                Kit.por_cil(alav[sf], cot, Vector((piv.x, piv.y, zarm[sf])))
+            else:
+                E = Vector((g.x, piv.y, g.z))
+                Kit.por_cil(liga[sf], g, E)
+                Kit.por_cil(alav[sf], E, piv)
     kit.moveis.append(upd)
 
 
@@ -1172,6 +1240,7 @@ def _barra(kit, ctx, h):
     R = raio_anilha(ctx)
     curta = R < 1.5
     b = barra_olimpica(kit, R, curta)
+    b["foco"] = 1
 
     def upd(est):
         if "barra" in est["extras"]:
@@ -1187,6 +1256,8 @@ def _barra(kit, ctx, h):
 def _halteres(kit, ctx, h, maos="ambas"):
     lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
     hs = {sf: halter_peca(kit) for sf in lados}
+    for o in hs.values():
+        o["foco"] = 1
 
     def upd(est):
         h.restaurar(est["est"])
@@ -1201,6 +1272,7 @@ def _halteres(kit, ctx, h, maos="ambas"):
 def _kettlebell(kit, ctx, h, maos="ambas"):
     ps = [kit.esfera((0, 0, -1.15), 0.95, kit.preto), kit.toro((0, 0, -0.05), 0.5, 0.12, kit.preto, (1, 0, 0))]
     kb = kit.grupo_movel(ps)
+    kb["foco"] = 1
     lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
 
     def upd(est):
@@ -1215,6 +1287,7 @@ def _kettlebell(kit, ctx, h, maos="ambas"):
 
 def _bola(kit, ctx, h):
     b = kit.esfera((0, 0, 0), 1.1, kit.brasa)
+    b["foco"] = 1
 
     def upd(est):
         h.restaurar(est["est"])

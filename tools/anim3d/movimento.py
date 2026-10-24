@@ -3,8 +3,9 @@
 Cada canal (ângulo, posição, quaternion) vira uma "trilha" que PASSA pelos quadros-chave nos instantes dados por
 "tempos". As tangentes são de Catmull-Rom não uniforme (média ponderada das inclinações vizinhas), amortecidas e
 limitadas (Fritsch-Carlson) para não ultrapassar a pose. Tangente zero só nas inversões REAIS (ida e volta); na
-chegada de uma pausa o corpo "assenta" com 15 % da velocidade (sem parada morta). Ângulos são desenrolados (sem saltos
-de 360°) e o laço fecha sem emenda.
+chegada de uma pausa o corpo "assenta" com 15 % da velocidade (sem parada morta). Ângulos não são desenrolados (sem saltos
+de 360°: os valores escritos são seguidos como na prévia 2D, então um braço de -45 a 150 passa pela frente) e o laço
+fecha sem emenda.
 
 Easing por trecho ("ease" na animação, mesmo comprimento de "tempos"): o tempo dentro do trecho é remapeado por uma
 cúbica monotônica E(u) com E'(0)=a e E'(1)=b, e as tangentes são divididas por a/b: a velocidade continua contínua nas
@@ -22,6 +23,7 @@ import numpy as np
 
 AMORTECIMENTO = 0.9  # 1 = Catmull-Rom puro; menor = mais "assentado" em cada pose
 ASSENTAR = 0.15  # fração da velocidade de chegada mantida ao entrar numa pausa
+DESENROLAR = False  # ângulos seguem os valores escritos (como na prévia 2D); giros de 180°+ são intencionais
 G = 98.1  # gravidade em unidades do esqueleto 3D por s² (1 unidade = 1 dm)
 
 EASES = {"con": (1.7, 0.45), "exc": (1.15, 0.55), "io": (1.0, 1.0), "pausa": (1.0, 1.0), "bal": (1.0, 1.0), "lin": (1.0, 1.0)}
@@ -49,7 +51,7 @@ class Trilha:
         self.dt = np.array([max(1e-3, float(t)) for t in tempos[:n]] + [1.0] * max(0, n - len(tempos)))
         self.t0 = np.concatenate([[0.0], np.cumsum(self.dt)])  # t0[i] = início do trecho i; t0[n] = período
         self.T = self.t0[-1]
-        if angular:
+        if angular and DESENROLAR:
             for i in range(1, n):
                 v[i] = v[i - 1] + _wrap(v[i] - v[i - 1])
             fim = v[n - 1] + _wrap(v[0] - v[n - 1])
