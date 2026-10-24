@@ -20,7 +20,7 @@ A parte de código já está pronta: o que sobra são cadastros que só o dono d
 | Pacote para a Play (AAB) | `Forja-N-play.aab` em cada release |
 | Sem atualização de APK por fora da Play | o build da Play (`-Pplay`) não mostra o aviso de APK novo; só o conteúdo (exercícios e animações, sem código) é atualizado |
 | Política de privacidade pública | `https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html` (também dentro do app, em Perfil) |
-| Permissões mínimas | internet, notificações, iniciar com o aparelho (lembretes) e vibração |
+| Permissões mínimas | internet, notificações, iniciar com o aparelho (lembretes), vibração; opcionais: Bluetooth (cinta cardíaca, sem localização), serviço em primeiro plano de saúde (treino ao vivo no relógio) e Health Connect (gravar treino, ler FC) |
 | Sem anúncios, rastreamento ou coleta de dados | tudo fica no aparelho |
 
 **Impressão digital da chave (SHA-256):**
@@ -61,7 +61,9 @@ A partir daí, todo build sai assinado com a chave do Forja (o aviso "assinado c
 - *Anúncios:* não contém anúncios.
 - *Acesso ao app:* todas as funções disponíveis sem login.
 - *Público-alvo:* 18+ (ou 13+). Não é direcionado a crianças.
-- *Apps de saúde (declaração):* categoria **Fitness e exercícios físicos**. Não é dispositivo médico; não usa Health Connect; não pede dados de saúde a servidores.
+- *Apps de saúde (declaração):* categoria **Fitness e exercícios físicos**. Não é dispositivo médico. Usa Health Connect só com o usuário ligando a opção: grava sessões de exercício e lê frequência cardíaca, tudo no aparelho, sem enviar a servidores.
+- *Health Connect (formulário de permissões):* `WRITE_EXERCISE` para gravar o treino concluído; `READ_HEART_RATE` para mostrar FC média e máxima do treino. Link da política acima.
+- *Serviço em primeiro plano (tipo health):* mostra o treino em andamento na notificação e no relógio Wear OS, com botões de concluir série e pular descanso; começa quando o usuário inicia um treino e para ao encerrar.
 - *Segurança dos dados:* **não coleta nem compartilha dados**. Os dados digitados (idade, peso, limitações) ficam só no aparelho e não são transmitidos. Criptografia em trânsito: sim (HTTPS). Exclusão: o usuário apaga dentro do app (Perfil › Apagar todos os dados) ou desinstalando.
 - *Classificação de conteúdo (IARC):* categoria "Referência, notícias ou educação" ou "Utilitário"; responda "não" a violência, sexo, drogas, apostas, interação entre usuários e compras. Resultado esperado: Livre.
 - *Notícias / governo / financeiro / VPN:* não se aplica.
@@ -90,7 +92,7 @@ Página com o passo a passo: **https://kaiqueguimacuper-bit.github.io/teste-3/in
 
 Ganha ícone próprio, abre em tela cheia, funciona offline depois da primeira abertura e se atualiza sozinho.
 
-> Se o endereço der 404: repositório › **Settings › Pages** › Source: *Deploy from a branch* › Branch **gh-pages** / root › Save. O GitHub Pages grátis exige repositório **público**.
+> O site é publicado pelo workflow *Site* (Settings › Pages › Source: **GitHub Actions**). O GitHub Pages grátis exige repositório **público**.
 
 ### 2.2 IPA (app nativo SwiftUI)
 1. Baixe o `Forja-ios-N.ipa` mais recente em **Releases** (ou nos artefatos do workflow *iOS*).
