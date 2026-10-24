@@ -632,9 +632,11 @@ class Humano:
             if perp_cur.length < 1e-6:
                 perp_cur = perp_ref.copy()
             perp_cur.normalize()
-            if perp_cur.dot(perp_ref) < -0.2 and w < 0.999:
-                perp_ref = perp_cur.copy()  # pose dobrada para o outro lado (intencional): a reserva não puxa contra
-            perp = perp_cur * w + perp_ref * (1 - w)
+            # gira do polo natural até o da pose pelo arco (nunca passa por zero, mesmo com vetores opostos)
+            cosv = max(-1.0, min(1.0, perp_ref.dot(perp_cur)))
+            ang = math.acos(cosv)
+            sgn = 1.0 if u.dot(perp_ref.cross(perp_cur)) >= 0 else -1.0
+            perp = Quaternion(u, sgn * ang * w) @ perp_ref
         else:
             perp = perp_ref
         if perp.length < 1e-6:
@@ -1005,7 +1007,8 @@ class Contexto:
         self.supinada = any(s in self.id for s in ("supinad", "rosca", "chin"))
         self.ref = {"k": k}
         self.grupo = grupo
-        self.planta = "esteira" not in tipos and "bike" not in tipos
+        # pedais do elíptico e degraus da escada se movem com o pé: não são apoio fixo no chão
+        self.planta = "esteira" not in tipos and "bike" not in tipos and not any(x in self.id for x in ("eliptico", "escada"))
         # banco com "maos": "borda" (mergulho no banco): as mãos ficam espalmadas na borda da frente do assento
         self.maos_banco = None
         for pr in self.props:
