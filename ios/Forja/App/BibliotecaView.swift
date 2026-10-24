@@ -2,6 +2,8 @@ import SwiftUI
 import ForjaCore
 import WebKit
 
+let TIPO_NOMES: [String: String] = ["forca": "Força", "cardio": "Cardio", "pliometria": "Pliometria", "potencia": "Potência", "mobilidade": "Mobilidade", "tecnica": "Técnica"]
+
 let EQUIP_NOMES: [String: String] = [
     "corpo": "Peso do corpo", "elastico": "Elástico", "halter": "Halteres", "barra": "Barra", "maquina": "Máquina", "polia": "Polia",
     "kettlebell": "Kettlebell", "banco": "Banco", "barra_fixa": "Barra fixa", "bola": "Medicine ball", "corda": "Corda", "rolo": "Rolo",
@@ -150,6 +152,7 @@ struct ExercicioView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(e.equip, id: \.self) { Etiqueta(texto: EQUIP_NOMES[$0] ?? $0, cor: Cor.texto2) }
+                                Etiqueta(texto: TIPO_NOMES[e.tipo] ?? e.tipo, cor: Cor.brasa)
                                 Etiqueta(texto: ["", "Básico", "Intermediário", "Avançado"][min(max(e.nivel, 1), 3)], cor: Cor.texto2)
                             }
                         }.padding(.top, 12)

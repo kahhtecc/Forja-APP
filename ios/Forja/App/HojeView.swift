@@ -45,15 +45,19 @@ struct HojeView: View {
                                     Image(systemName: "checkmark.circle.fill").font(.system(size: 34)).foregroundStyle(Cor.ok)
                                     VStack(alignment: .leading) { Rotulo("Treino de hoje concluído", Cor.ok); Text(h.1.titulo).font(Tipo.titulo2) }
                                 }
-                                Text("Recupere bem: hidratação, proteína e sono.").font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 10)
+                                Text("Recupere bem: hidratação, proteína e sono." + (proxima.map { " O próximo é \($0.1.titulo) (\(Questionario.DIAS_NOMES[$0.1.diaSemana - 1]))." } ?? "")).font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 10)
+                                if let p = proxima {
+                                    BotaoSecundario(texto: "Ver próximo treino") { abrir(.sessao(semana: w, idx: p.0)) }.padding(.top, 14)
+                                }
                             }
                         } else {
                             Cartao {
                                 HStack(spacing: 14) {
                                     IconeRedondo(icone: "moon.stars.fill", cor: corM, tamanho: 48)
-                                    VStack(alignment: .leading) { Rotulo(w >= plano.semanas.count ? "Plano concluído" : "Semana completa", corM); Text("Tudo feito por aqui").font(Tipo.titulo2) }
+                                    VStack(alignment: .leading) { Rotulo(w >= plano.semanas.count ? "Plano concluído" : "Semana completa", corM); Text(w >= plano.semanas.count ? "Você fechou o ciclo!" : "Tudo feito por aqui").font(Tipo.titulo2) }
                                 }
-                                Text(w >= plano.semanas.count ? "Refaça o questionário no perfil para gerar o próximo bloco." : "Aproveite para descansar ou faça uma rotina de mobilidade.").font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 10)
+                                Text(w >= plano.semanas.count ? "Refaça o questionário no perfil para gerar o próximo bloco com novos estímulos." : "Aproveite para descansar ou faça uma rotina de mobilidade.").font(Tipo.pequeno).foregroundStyle(Cor.texto2).padding(.top, 10)
+                                BotaoSecundario(texto: "Ver plano") { irAba(.plano) }.padding(.top, 14)
                             }
                         }
                     }
