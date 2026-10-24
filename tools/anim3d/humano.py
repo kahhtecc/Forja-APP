@@ -1502,7 +1502,7 @@ def plantar(h, ctx, T, chaves, i, j, u):
                 pos = a["ponta"].lerp(b["ponta"], u) + rot.to_matrix() @ off_a.lerp(off_b, u)  # antepé em velocidade constante
                 h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
                 pesos[ef] = 1.0
-                ctx._alvos[ef] = (pos.copy(), membro, sf)
+                ctx._alvos[ef] = (pos.copy(), membro, sf, 1.0)
                 continue
             # passo: sai de um apoio e pousa no outro num arco baixo
             sm = mov.suave(u, 0.08, 0.92)
@@ -1532,11 +1532,10 @@ def plantar(h, ctx, T, chaves, i, j, u):
         pesos[ef] = w
         if w <= 1e-4:
             continue
-        if w > 0.999:
-            ctx._alvos[ef] = (pos.copy(), membro, sf)
         atual_p = T @ h.cabeca(fim)
         atual_r = (Tq @ h.rot(fim)).to_quaternion()
         alvo_p = atual_p.lerp(pos, w)
+        ctx._alvos[ef] = (alvo_p.copy(), membro, sf, w)
         alvo_r = _slerp(atual_r, rot, w)
         h.ik(membro, sf, Ti @ alvo_p, Tqi @ alvo_r.to_matrix())
     return pesos
@@ -1564,15 +1563,15 @@ def _gap_apoio(h, ctx, T, P, ef, membro, sf):
 def alcancar_apoios(h, ctx, T, pesos, seg):
     """Perna/braço esticado que não alcança a âncora (proporções 2D x 3D, torção): o corpo se desloca o que falta,
     em vez de o pé/mão escorregar."""
-    for _ in range(2):
+    for _ in range(4):
         pior = None
-        for ef, (alvo, membro, sf) in getattr(ctx, "_alvos", {}).items():
-            r = alvo - T @ h.cabeca(_fim(membro, sf))
+        for ef, (alvo, membro, sf, w) in getattr(ctx, "_alvos", {}).items():
+            r = (alvo - T @ h.cabeca(_fim(membro, sf))) * mov.suave(w, 0.3, 1.0)  # peso contínuo (sem degrau)
             if pior is None or r.length > pior.length:
                 pior = r
         if pior is None or pior.length < 0.004 or pior.length > 2.0:
             break
-        T = Matrix.Translation(pior) @ T
+        T = Matrix.Translation(pior * 0.7) @ T
         plantar(h, ctx, T, ctx.chaves, *seg)
     return T
 
@@ -1593,6 +1592,10 @@ def assentar_apoios(h, ctx, T, pesos):
                 continue
             fim = _fim(membro, sf)
             alvo = T @ h.cabeca(fim) - Vector((0, 0, gap * w))
+            if ef in getattr(ctx, "_alvos", {}):
+                a_ = ctx._alvos[ef]
+                alvo = Vector((a_[0].x, a_[0].y, alvo.z))
+                ctx._alvos[ef] = (alvo.copy(), a_[1], a_[2], a_[3])
             h.ik(membro, sf, Ti @ alvo, h.rot(fim))
             mexeu = True
         if not mexeu:
@@ -1983,8 +1986,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
         if ctx.barra is not None and "barra3" in ctx.ref and all(ctx.chaves[x]["ef"]["mao_f"]["contato"] for x in (i, j)):
             segurar_barra(h, ctx, T)
     if pesos:
-        T = alcancar_apoios(h, ctx, T, pesos, seg)
         T = assentar_apoios(h, ctx, T, pesos)
+        T = alcancar_apoios(h, ctx, T, pesos, seg)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
         T2 = sem_atravessar(h, ctx, T, fixos)
