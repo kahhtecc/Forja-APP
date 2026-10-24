@@ -8,23 +8,13 @@ import AppIntents
 @main
 struct ForjaWidgets: WidgetBundle {
     var body: some Widget {
-        if #available(iOSApplicationExtension 18.0, *) {
-            TreinoAoVivoRelogio()
-        } else {
-            TreinoAoVivo()
-        }
+        TreinoAoVivo()
     }
 }
 
-/// iOS 16.1–17: tela bloqueada e Dynamic Island (o watchOS 11 usa o layout compacto).
+/// Tela bloqueada e Dynamic Island; no watchOS 11+ o Apple Watch mostra o layout compacto no Smart Stack.
 struct TreinoAoVivo: Widget {
     var body: some WidgetConfiguration { LiveActivityTreino.configuracao() }
-}
-
-/// iOS 18+: também o layout próprio do Apple Watch (família .small).
-@available(iOSApplicationExtension 18.0, *)
-struct TreinoAoVivoRelogio: Widget {
-    var body: some WidgetConfiguration { LiveActivityTreino.configuracao().supplementalActivityFamilies([.small, .medium]) }
 }
 
 enum LiveActivityTreino {
