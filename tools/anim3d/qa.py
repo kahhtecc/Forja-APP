@@ -196,7 +196,7 @@ def avaliar(h, anim, k, grupo, fps):
                 a3 = 0.5 * math.sqrt(max(0.0, (-d + R1 + R2) * (d + R1 - R2) * (d - R1 + R2) * (d + R1 + R2)))
                 frac = (a1 + a2 - a3) / (math.pi * R1 * R1)
             pior_r = max(pior_r, frac)
-    if pior_r > 0.15:
+    if pior_r > 0.15 and not anim.get("rosto_ok"):  # rosto_ok: a mão no rosto É o exercício (isometria de pescoço)
         erros.append(f"rosto coberto {pior_r * 100:.0f}%")
     # chaves idênticas
     for i, q in enumerate(anim["quadros"]):

@@ -1485,6 +1485,7 @@ def plantar(h, ctx, T, chaves, i, j, u):
     Tq = T.to_3x3()
     Tqi = Tq.inverted()
     pesos = {}
+    ctx._alvos = {}
     ea, eb = chaves[i]["ef"], chaves[j]["ef"]
     rolar = ctx.rolar
     for ef, membro, sf in EFETORES:
@@ -1495,10 +1496,13 @@ def plantar(h, ctx, T, chaves, i, j, u):
         if a["contato"] and b["contato"] and (dist >= 1.6 or rola):
             if rola and dist < 9.0:
                 # piso rolante: o pé de apoio acompanha o chão (velocidade constante)
-                pos = a["pos"].lerp(b["pos"], u)
                 rot = _slerp(a["rot"], b["rot"], u)
+                off_a = a["rot"].to_matrix().inverted() @ (a["pos"] - a["ponta"])
+                off_b = b["rot"].to_matrix().inverted() @ (b["pos"] - b["ponta"])
+                pos = a["ponta"].lerp(b["ponta"], u) + rot.to_matrix() @ off_a.lerp(off_b, u)  # antepé em velocidade constante
                 h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
                 pesos[ef] = 1.0
+                ctx._alvos[ef] = (pos.copy(), membro, sf)
                 continue
             # passo: sai de um apoio e pousa no outro num arco baixo
             sm = mov.suave(u, 0.08, 0.92)
@@ -1528,6 +1532,8 @@ def plantar(h, ctx, T, chaves, i, j, u):
         pesos[ef] = w
         if w <= 1e-4:
             continue
+        if w > 0.999:
+            ctx._alvos[ef] = (pos.copy(), membro, sf)
         atual_p = T @ h.cabeca(fim)
         atual_r = (Tq @ h.rot(fim)).to_quaternion()
         alvo_p = atual_p.lerp(pos, w)
@@ -1553,6 +1559,22 @@ def _gap_apoio(h, ctx, T, P, ef, membro, sf):
                 return min(zb, zmin + 0.0 if ctx.superficie_em(baixo, zmin + 0.6) > ctx.z0 + 1e-3 else zb) - zt
     zs = ctx.superficie_em(baixo, zmin + 0.3)
     return zmin - zs
+
+
+def alcancar_apoios(h, ctx, T, pesos, seg):
+    """Perna/braço esticado que não alcança a âncora (proporções 2D x 3D, torção): o corpo se desloca o que falta,
+    em vez de o pé/mão escorregar."""
+    for _ in range(2):
+        pior = None
+        for ef, (alvo, membro, sf) in getattr(ctx, "_alvos", {}).items():
+            r = alvo - T @ h.cabeca(_fim(membro, sf))
+            if pior is None or r.length > pior.length:
+                pior = r
+        if pior is None or pior.length < 0.004 or pior.length > 2.0:
+            break
+        T = Matrix.Translation(pior) @ T
+        plantar(h, ctx, T, ctx.chaves, *seg)
+    return T
 
 
 def assentar_apoios(h, ctx, T, pesos):
@@ -1961,6 +1983,7 @@ def finalizar(h, ctx, T, tau, seg, maos):
         if ctx.barra is not None and "barra3" in ctx.ref and all(ctx.chaves[x]["ef"]["mao_f"]["contato"] for x in (i, j)):
             segurar_barra(h, ctx, T)
     if pesos:
+        T = alcancar_apoios(h, ctx, T, pesos, seg)
         T = assentar_apoios(h, ctx, T, pesos)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
