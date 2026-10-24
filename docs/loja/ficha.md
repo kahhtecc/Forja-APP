@@ -30,6 +30,11 @@ Animações 3D de um corpo humano com os músculos trabalhados destacados em ver
 TREINO AO VIVO
 Cronômetro de séries e descanso, registro de cargas e repetições, sugestão de progressão e troca de exercícios.
 
+NO SEU RELÓGIO
+• Android: o treino aparece no relógio Wear OS (e em relógios que espelham notificações) com botões para concluir série e pular descanso, e vibra no fim do descanso.
+• iPhone: Atividade ao Vivo na tela bloqueada, na Dynamic Island e no Apple Watch.
+• Batimentos ao vivo com cinta cardíaca Bluetooth; treinos gravados no Health Connect ou no app Saúde, com FC média e máxima.
+
 ACOMPANHE SUA EVOLUÇÃO
 Minutos por semana, consistência, recordes e peso corporal.
 
@@ -41,7 +46,7 @@ Sem cadastro, sem anúncios, sem rastreamento. Tudo fica no seu aparelho.
 
 O Forja não substitui avaliação médica nem acompanhamento de um profissional de educação física.
 
-**Novidades desta versão:** Primeira versão do Forja.
+**Novidades desta versão:** Primeira versão do Forja na loja, com treino no relógio, Health Connect / app Saúde e monitor cardíaco Bluetooth.
 
 **E-mail de contato:** (o e-mail da conta de desenvolvedor)
 **Site:** https://kaiqueguimacuper-bit.github.io/teste-3/
