@@ -5,3 +5,11 @@ local.properties
 .idea/
 entregas/
 __pycache__/
+# chaves e credenciais nunca vão para o repositório
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+*.base64.txt
+senha*.txt

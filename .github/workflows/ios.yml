@@ -81,6 +81,9 @@ jobs:
           # a extensão da Live Activity (tela bloqueada, Dynamic Island, Apple Watch) precisa ir dentro do app
           test -d Payload/Forja.app/PlugIns/ForjaWidgets.appex || { echo "::error::ForjaWidgets.appex não está no IPA"; exit 1; }
           ls Payload/Forja.app/PlugIns
+          # manifestos de privacidade (exigidos pela App Store) no app e na extensão
+          test -f Payload/Forja.app/PrivacyInfo.xcprivacy || { echo "::error::PrivacyInfo.xcprivacy faltando no app"; exit 1; }
+          test -f Payload/Forja.app/PlugIns/ForjaWidgets.appex/PrivacyInfo.xcprivacy || { echo "::error::PrivacyInfo.xcprivacy faltando na extensão"; exit 1; }
           zip -qry "../Forja-ios-${{ github.run_number }}.ipa" Payload
 
       - name: Guardar IPA e capturas (artefato)

@@ -22,12 +22,17 @@ enum Conteudo {
         return Bundle.main.url(forResource: nome, withExtension: ext, subdirectory: sub)
     }
 
-    private static func ler(_ d: Data?) -> Manifesto? { d.flatMap { try? JSONDecoder().decode(Manifesto.self, from: $0) } }
+    /// Caminhos fora do padrão (ex.: "../") são descartados: nunca gravamos fora de Application Support/conteudo.
+    private static func ler(_ d: Data?) -> Manifesto? {
+        guard let m = d.flatMap({ try? JSONDecoder().decode(Manifesto.self, from: $0) }) else { return nil }
+        return Manifesto(versao: m.versao, arquivos: m.arquivos.filter { Seguranca.caminhoValido($0.key) })
+    }
     static var embutido: Manifesto { ler(embutidoURL(manifesto).flatMap { try? Data(contentsOf: $0) }) ?? Manifesto(versao: 0, arquivos: [:]) }
     static var local: Manifesto? { ler(try? Data(contentsOf: pasta.appendingPathComponent(manifesto))) }
 
     /// Dados do arquivo: a cópia baixada, se for mais nova, senão a embutida no app.
     static func dados(_ caminho: String) -> Data? {
+        guard Seguranca.caminhoValido(caminho) else { return nil }
         let f = pasta.appendingPathComponent(caminho)
         let emb = embutido
         if let loc = local, loc.versao > emb.versao, let h = loc.arquivos[caminho], h != emb.arquivos[caminho],
@@ -38,6 +43,7 @@ enum Conteudo {
 
     /// Endereço do arquivo para tocadores de mídia: a cópia baixada, se for a mais nova, senão a embutida.
     static func url(_ caminho: String) -> URL? {
+        guard Seguranca.caminhoValido(caminho) else { return nil }
         let f = pasta.appendingPathComponent(caminho)
         let emb = embutido
         if let loc = local, loc.versao > emb.versao, let h = loc.arquivos[caminho], h != emb.arquivos[caminho],
@@ -48,23 +54,31 @@ enum Conteudo {
 
     private static func sha1(_ d: Data) -> String { Insecure.SHA1.hash(data: d).map { String(format: "%02x", $0) }.joined() }
 
-    private static func baixar(_ url: URL) async -> Data? {
+    /// Baixa por HTTPS com teto de tamanho (um arquivo de conteúdo não passa de alguns MB).
+    private static func baixar(_ url: URL, maxBytes: Int = 25 << 20) async -> Data? {
+        guard url.scheme == "https" else { return nil }
         var req = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         req.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-        guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200,
+              r.url?.scheme == "https", d.count <= maxBytes else { return nil }
         return d
     }
 
     /// Procura conteúdo novo. Retorna quantos arquivos mudaram (0 = nada novo). Falhas de rede são ignoradas.
     static func atualizar() async -> Int {
-        guard let bruto = await baixar(base.appendingPathComponent(manifesto)), let remoto = ler(bruto) else { return 0 }
+        guard let bruto = await baixar(base.appendingPathComponent(manifesto), maxBytes: 1 << 20), let remoto = ler(bruto) else { return 0 }
         let emb = embutido, loc = local
         guard remoto.versao > max(emb.versao, loc?.versao ?? 0) else { return 0 }
         try? FileManager.default.createDirectory(at: pasta, withIntermediateDirectories: true)
+        // conteúdo que dá para baixar de novo não vai para o backup do iCloud (regra da App Store)
+        var p = pasta
+        var rv = URLResourceValues(); rv.isExcludedFromBackup = true
+        try? p.setResourceValues(rv)
         var n = 0
         for (caminho, hash) in remoto.arquivos {
             if emb.arquivos[caminho] == hash { continue }
             let f = pasta.appendingPathComponent(caminho)
+            guard Seguranca.dentroDe(pasta, f) else { continue }
             if loc?.arquivos[caminho] == hash, FileManager.default.fileExists(atPath: f.path) { continue }
             guard let d = await baixar(base.appendingPathComponent(caminho)), sha1(d) == hash else { return 0 }
             try? FileManager.default.createDirectory(at: f.deletingLastPathComponent(), withIntermediateDirectories: true)

@@ -215,8 +215,8 @@ private fun LinhaAlternativa(a: Exercicio, onClick: () -> Unit) {
 fun TelaVideo(vm: AppViewModel, exId: String, onVoltar: () -> Unit) {
     val e = vm.catalogo[exId] ?: return
     val ctx = LocalContext.current
-    val v = e.video
-    fun abrir(url: String) = runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    val v = e.video?.takeIf { com.forja.app.Seguranca.idYoutubeValido(it.id) }
+    fun abrir(url: String) = com.forja.app.Seguranca.abrirLink(ctx, url)
     val busca = "https://www.youtube.com/results?search_query=" + Uri.encode(e.busca)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding()) {
         Topo(e.nome, "Vídeo demonstrativo", onVoltar = onVoltar)
@@ -235,7 +235,16 @@ fun TelaVideo(vm: AppViewModel, exId: String, onVoltar: () -> Unit) {
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
                         settings.mediaPlaybackRequiresUserGesture = false
+                        // sem acesso a arquivos do app; links que saem do player abrem no navegador
+                        settings.allowFileAccess = false
+                        settings.allowContentAccess = false
                         webChromeClient = WebChromeClient()
+                        webViewClient = object : android.webkit.WebViewClient() {
+                            override fun shouldOverrideUrlLoading(view: WebView, req: android.webkit.WebResourceRequest): Boolean {
+                                if (req.isForMainFrame) { abrir(req.url.toString()); return true }
+                                return false
+                            }
+                        }
                         setBackgroundColor(android.graphics.Color.parseColor("#0E0D0C"))
                         loadDataWithBaseURL("https://forja.app/", html, "text/html", "utf-8", null)
                     }

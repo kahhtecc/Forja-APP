@@ -28,7 +28,8 @@ object Conteudo {
     private fun ler(json: String): Manifesto {
         val o = JSONObject(json)
         val a = o.optJSONObject("arquivos") ?: JSONObject()
-        return Manifesto(o.optInt("versao", 0), a.keys().asSequence().associateWith { a.getString(it) })
+        // caminhos fora do padrão (ex.: "../") são descartados: nunca gravamos fora de filesDir/conteudo
+        return Manifesto(o.optInt("versao", 0), a.keys().asSequence().filter(Seguranca::caminhoValido).associateWith { a.getString(it) })
     }
 
     @Volatile private var cacheEmb: Manifesto? = null
@@ -50,6 +51,7 @@ object Conteudo {
 
     /** Abre um arquivo de conteúdo: a versão baixada, se for a mais nova, senão a embutida no app. */
     fun abrir(ctx: Context, caminho: String): InputStream? {
+        if (!Seguranca.caminhoValido(caminho)) return null
         val loc = local(ctx)
         val emb = embutido(ctx)
         val f = File(pasta(ctx), caminho)
@@ -62,6 +64,7 @@ object Conteudo {
 
     /** Endereço para tocadores de mídia: o arquivo baixado, se for o mais novo, senão o embutido (asset:///). */
     fun uri(ctx: Context, caminho: String): android.net.Uri {
+        require(Seguranca.caminhoValido(caminho)) { "caminho de conteúdo inválido" }
         val loc = local(ctx)
         val emb = embutido(ctx)
         val f = File(pasta(ctx), caminho)
@@ -71,12 +74,26 @@ object Conteudo {
 
     fun existe(ctx: Context, caminho: String): Boolean = abrir(ctx, caminho)?.use { true } ?: false
 
-    private fun baixar(url: String, limite: Int = 8000): ByteArray? = runCatching {
+    /** Baixa por HTTPS com teto de tamanho (um arquivo de conteúdo não passa de alguns MB). */
+    private fun baixar(url: String, limite: Int = 8000, maxBytes: Int = 25 shl 20): ByteArray? = runCatching {
         val c = URL(url).openConnection() as HttpURLConnection
+        if (c !is javax.net.ssl.HttpsURLConnection) { c.disconnect(); return null }
         c.connectTimeout = limite; c.readTimeout = limite * 3
+        c.instanceFollowRedirects = true
         c.setRequestProperty("Cache-Control", "no-cache")
         try {
-            if (c.responseCode != 200) null else c.inputStream.use { it.readBytes() }
+            if (c.responseCode != 200 || c.contentLengthLong > maxBytes) null
+            else c.inputStream.use { inp ->
+                val out = java.io.ByteArrayOutputStream()
+                val buf = ByteArray(64 * 1024)
+                while (true) {
+                    val n = inp.read(buf)
+                    if (n < 0) break
+                    out.write(buf, 0, n)
+                    if (out.size() > maxBytes) return null
+                }
+                out.toByteArray()
+            }
         } finally { c.disconnect() }
     }.getOrNull()
 
@@ -87,7 +104,7 @@ object Conteudo {
      * Seguro para rodar em segundo plano; falhas de rede são ignoradas.
      */
     fun atualizar(ctx: Context): Int {
-        val remotoBytes = baixar(BASE + MANIFESTO) ?: return 0
+        val remotoBytes = baixar(BASE + MANIFESTO, maxBytes = 1 shl 20) ?: return 0
         val remoto = runCatching { ler(String(remotoBytes)) }.getOrNull() ?: return 0
         if (remoto.versao <= versaoAtual(ctx)) return 0
         val emb = embutido(ctx)
@@ -97,6 +114,7 @@ object Conteudo {
         for ((caminho, hash) in remoto.arquivos) {
             if (emb.arquivos[caminho] == hash) continue // igual ao que veio no app
             val f = File(dir, caminho)
+            if (!Seguranca.dentroDe(dir, f)) continue
             if (loc?.arquivos?.get(caminho) == hash && f.exists()) continue
             val b = baixar(BASE + caminho, 15000) ?: return 0 // sem rede no meio: tenta de novo depois
             if (sha1(b) != hash) return 0
@@ -124,7 +142,9 @@ object Conteudo {
             val assets = r.getJSONArray("assets")
             val apk = (0 until assets.length()).map { assets.getJSONObject(it) }
                 .firstOrNull { it.getString("name").endsWith(".apk") && !it.getString("name").contains("debug") }?.getString("browser_download_url")
-            NovaVersao(n, r.getString("html_url"), apk)
+            val pagina = r.getString("html_url")
+            if (!Seguranca.linkDoRepositorio(pagina)) return null
+            NovaVersao(n, pagina, apk?.takeIf(Seguranca::linkDoRepositorio))
         }.getOrNull()
     }
 }

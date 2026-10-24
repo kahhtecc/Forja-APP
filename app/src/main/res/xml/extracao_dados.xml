@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dados de treino e saúde não vão para o backup na nuvem.
+     Na troca de aparelho (cabo ou Wi-Fi direto), o perfil e o histórico são copiados. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" />
+    </device-transfer>
+</data-extraction-rules>

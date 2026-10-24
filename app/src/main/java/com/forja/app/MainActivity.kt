@@ -26,8 +26,10 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Cor.Fundo.toArgb()),
         )
         // Extras para abrir telas direto (capturas automáticas): demo=true, screen=home|plano|mobilidade|exercicios|progresso|perfil|quiz|sessao|player|exercicio:<id>|rotina:<id>
-        val demo = intent.getBooleanExtra("demo", false)
-        val tela = intent.getStringExtra("screen")
+        // Só valem pela entrada .Captura (protegida por DUMP, ou seja, só o adb); vindos de outro app são ignorados.
+        val captura = intent.component?.className == "com.forja.app.Captura"
+        val demo = captura && intent.getBooleanExtra("demo", false)
+        val tela = if (captura) intent.getStringExtra("screen")?.takeIf { it.length <= 80 } else null
         vm.iniciar(demo)
         setContent {
             TemaForja {

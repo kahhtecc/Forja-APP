@@ -18,6 +18,8 @@ targets:
       - path: Forja/Assets.xcassets
       - path: Forja/Recursos/Fontes
         buildPhase: resources
+      - path: Forja/Recursos/Privacidade/PrivacyInfo.xcprivacy
+        buildPhase: resources
       - path: ../app/src/main/assets/img
         type: folder
         buildPhase: resources
@@ -79,6 +81,8 @@ targets:
     sources:
       - path: ForjaWidgets
       - path: Compartilhado
+      - path: ForjaWidgetsRecursos/PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: ForjaWidgets/Info.plist
       properties:

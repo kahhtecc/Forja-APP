@@ -153,7 +153,7 @@ struct FontesView: View {
             }
             Section("Referências (\(app.fontes.count))") {
                 ForEach(app.fontes) { f in
-                    if let u = URL(string: f.url) {
+                    if let u = Seguranca.linkSeguro(f.url) {
                         Link(destination: u) {
                             HStack(alignment: .top) {
                                 Text("\(f.ano)").font(Tipo.pequenoForte).foregroundStyle(Cor.brasa).frame(width: 44, alignment: .leading)

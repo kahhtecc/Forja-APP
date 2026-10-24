@@ -82,7 +82,17 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "dist/Forja-${{ github.run_number }}-debug.apk"
           cp app/build/outputs/bundle/release/app-release.aab "dist/Forja-${{ github.run_number }}-play.aab"
           files=$(find shots -type f -size +0 2>/dev/null | tr '\n' ' ')
-          gh release create "build-${{ github.run_number }}" dist/* $files \
-            --target "${{ github.sha }}" --prerelease \
-            --title "Forja · build ${{ github.run_number }}" \
-            --notes "APK do Forja (commit ${{ github.sha }}). Instale o Forja-${{ github.run_number }}.apk. Capturas automáticas do emulador anexadas."
+          if [ -n "${FORJA_KEYSTORE:-}" ]; then
+            # assinado com a chave do Forja: vira "build-N", que o app oferece como atualização
+            gh release create "build-${{ github.run_number }}" dist/* $files \
+              --target "${{ github.sha }}" --prerelease \
+              --title "Forja · build ${{ github.run_number }}" \
+              --notes "APK do Forja (commit ${{ github.sha }}). Instale o Forja-${{ github.run_number }}.apk. Capturas automáticas do emulador anexadas."
+          else
+            # sem a chave (secrets não configurados): só para teste. O app ignora tags que não começam com "build-",
+            # então ninguém recebe aviso de atualização para um APK com outra assinatura.
+            gh release create "teste-${{ github.run_number }}" dist/* $files \
+              --target "${{ github.sha }}" --prerelease \
+              --title "Forja · teste ${{ github.run_number }} (chave de depuração)" \
+              --notes "Build de teste assinado com a chave de depuração: não atualiza o Forja instalado. Configure os secrets FORJA_* (docs/PUBLICAR.md) para gerar builds oficiais."
+          fi

@@ -351,7 +351,7 @@ fun TelaFontes(vm: AppViewModel, onVoltar: () -> Unit) {
         item { Box(Modifier.padding(horizontal = 20.dp)) { Secao("Referências (${vm.fontes.size})") } }
         items(vm.fontes) { f ->
             Row(Modifier.fillMaxWidth().toque(f.titulo) {
-                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(f.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                com.forja.app.Seguranca.abrirLink(ctx, f.url)
             }.padding(horizontal = 20.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("${f.ano}", style = Tipo.PequenoForte, color = Cor.Brasa, modifier = Modifier.width(44.dp))
                 Text(f.titulo, style = Tipo.Pequeno, color = Cor.Texto2, modifier = Modifier.weight(1f))

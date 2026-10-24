@@ -154,7 +154,7 @@ struct ExercicioView: View {
                             }
                         }.padding(.top, 12)
                         BotaoPrimario(texto: e.video != nil ? "Assistir vídeo demonstrativo" : "Buscar vídeo no YouTube", icone: "play.fill") { abrir(.video(e.id)) }.padding(.top, 18)
-                        if let v = e.video {
+                        if let v = e.video, Seguranca.idYoutubeValido(v.id) {
                             Text(v.titulo + (v.canal.isEmpty || v.canal == "não identificado" ? "" : " · \(v.canal)") + (v.idioma == "en" ? " · em inglês" : ""))
                                 .font(Tipo.pequeno).foregroundStyle(Cor.texto3).lineLimit(2).padding(.top, 6)
                         }
@@ -249,11 +249,26 @@ struct VideoView: View {
 
 struct YouTubeEmbed: UIViewRepresentable {
     let videoId: String
+
+    /// Links que saem do player (logo do YouTube, vídeos sugeridos) abrem fora do app.
+    final class Navegacao: NSObject, WKNavigationDelegate {
+        func webView(_ w: WKWebView, decidePolicyFor a: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if a.navigationType == .linkActivated, a.targetFrame?.isMainFrame ?? true, let u = a.request.url {
+                if u.scheme == "https" { UIApplication.shared.open(u) }
+                decisionHandler(.cancel); return
+            }
+            decisionHandler(.allow)
+        }
+    }
+    func makeCoordinator() -> Navegacao { Navegacao() }
+
     func makeUIView(context: Context) -> WKWebView {
         let c = WKWebViewConfiguration()
+        c.websiteDataStore = .nonPersistent() // sem cookies do YouTube guardados no app
         c.allowsInlineMediaPlayback = true
         c.mediaTypesRequiringUserActionForPlayback = []
         let w = WKWebView(frame: .zero, configuration: c)
+        w.navigationDelegate = context.coordinator
         w.isOpaque = false; w.backgroundColor = UIColor(Cor.fundo); w.scrollView.isScrollEnabled = false
         let html = """
         <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">

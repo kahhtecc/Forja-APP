@@ -1,0 +1,13 @@
+# Avisa (com PR) quando uma biblioteca ou action usada pelo Forja tem versão nova ou correção de segurança.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: claude/personalized-workout-app-ou3pc2
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    target-branch: claude/personalized-workout-app-ou3pc2
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 5

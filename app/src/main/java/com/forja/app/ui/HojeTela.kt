@@ -88,7 +88,7 @@ fun TelaHoje(vm: AppViewModel, estado: Estado, nav: Navegador, onAba: (Aba) -> U
             vm.novaVersao?.let { nv ->
                 val ctxNv = androidx.compose.ui.platform.LocalContext.current
                 Cartao(Modifier.fillMaxWidth().padding(bottom = 14.dp), cor = Cor.Brasa.copy(alpha = 0.08f), borda = Cor.Brasa.copy(alpha = 0.4f), padding = PaddingValues(14.dp),
-                    onClick = { runCatching { ctxNv.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(nv.apk ?: nv.pagina)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } },
+                    onClick = { com.forja.app.Seguranca.abrirLink(ctxNv, nv.apk ?: nv.pagina) },
                     descricao = "Baixar nova versão do app") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconeRedondo(Icons.Rounded.Lightbulb, Cor.Brasa, 40.dp)
