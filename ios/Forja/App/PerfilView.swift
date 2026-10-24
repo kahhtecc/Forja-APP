@@ -80,7 +80,7 @@ struct PerfilView: View {
                     Toggle(isOn: Binding(get: { lembrete }, set: { lembrete = $0; app.configurarLembretes(ligado: $0, hora: hora) })) {
                         VStack(alignment: .leading) {
                             Text("Avisar nos dias de treino").font(Tipo.corpoForte)
-                            Text("Notificação no horário escolhido").font(Tipo.pequeno).foregroundStyle(Cor.texto2)
+                            Text("Só quando o treino do dia ainda não foi feito").font(Tipo.pequeno).foregroundStyle(Cor.texto2)
                         }
                     }.tint(Cor.brasa)
                     if lembrete {

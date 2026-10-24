@@ -188,6 +188,7 @@ struct ExercicioView: View {
                             if origem != id {
                                 BotaoSecundario(texto: "Voltar ao original: \(atual.nome)", icone: "arrow.uturn.backward") { app.loja.trocar(t, origem, nil); voltar() }.padding(.top, 10)
                             }
+                            if alts.isEmpty { Text("Sem alternativas com o seu equipamento.").font(Tipo.pequeno).foregroundStyle(Cor.texto3).padding(.top, 10) }
                             ForEach(alts.prefix(12)) { a in
                                 Button { Haptico.toque(); app.loja.trocar(t, origem, a.id); voltar() } label: {
                                     HStack(spacing: 12) {

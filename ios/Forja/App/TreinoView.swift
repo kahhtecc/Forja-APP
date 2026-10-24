@@ -355,6 +355,22 @@ struct ConcluidoView: View {
                     Cartao(padding: 14) { Estatistica(valor: volume > 0 ? Progresso.fmtKg(volume) : "—", rotulo: "kg de volume") }
                 }.padding(.top, 22)
                 cartaoFC(cor).padding(.top, 10)
+                let antes = Dictionary(Progresso.recordes(app.e.registros).map { ($0.exId, $0) }, uniquingKeysWith: { a, _ in a })
+                let novos = Progresso.recordes([registro]).filter { r in antes[r.exId].map { r.rm1 > $0.rm1 + 0.01 } ?? false }
+                if !novos.isEmpty {
+                    Cartao(cor: Cor.alerta.opacity(0.08), borda: Cor.alerta.opacity(0.4)) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "trophy.fill").font(.system(size: 26)).foregroundStyle(Cor.alerta)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Novo recorde!").font(Tipo.corpoForte)
+                                ForEach(novos, id: \.exId) { r in
+                                    Text("\(app.catalogo[r.exId]?.nome ?? r.exId): \(r.reps) × \(Progresso.fmtKg(r.kg)) kg").font(Tipo.pequeno).foregroundStyle(Cor.texto2)
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }.padding(.top, 12)
+                }
                 Text("Como foi o esforço?").font(Tipo.titulo3).padding(.top, 26)
                 Text("\(esforco)/10 · \(Self.escala[esforco])").font(Tipo.corpoForte).foregroundStyle(cor).padding(.top, 4)
                 HStack {
@@ -372,7 +388,7 @@ struct ConcluidoView: View {
                     .padding(16).background(Cor.sup1, in: RoundedRectangle(cornerRadius: 16)).padding(.top, 20)
                 BotaoPrimario(texto: "Salvar treino", icone: "checkmark", cor: cor == Cor.brasa ? nil : cor) {
                     var r = registro; r.esforco = esforco; r.nota = nota.trimmingCharacters(in: .whitespaces)
-                    app.loja.registrar(r); Haptico.sucesso()
+                    app.loja.registrar(r); Haptico.sucesso(); app.reagendarLembretes()
                     salvarNoSaude(r)
                     fechar()
                 }.padding(.top, 26)

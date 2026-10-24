@@ -92,26 +92,41 @@ final class AppEstado: ObservableObject {
         return 12
     }
 
-    // Lembretes nos dias de treino (notificação local semanal por dia).
+    // Lembretes nos dias de treino, como no Android: só avisa se o treino do dia ainda não foi feito.
+    // O iOS não deixa decidir na hora do aviso, então agendamos avisos avulsos para as próximas 2 semanas
+    // e refazemos a agenda ao abrir o app e ao salvar um treino (o de hoje some se já treinou).
     func configurarLembretes(ligado: Bool, hora: Int) {
         UserDefaults.standard.set(ligado, forKey: "lembrete.on")
         UserDefaults.standard.set(hora, forKey: "lembrete.hora")
         let c = UNUserNotificationCenter.current()
         c.removeAllPendingNotificationRequests()
         guard ligado, let p = e.perfil else { return }
+        let hoje = loja.hoje()
+        let treinouHoje = e.registros.contains { $0.epochDay == hoje }
         c.requestAuthorization(options: [.alert, .sound, .badge]) { ok, _ in
             guard ok else { return }
-            for dia in p.dias {
+            let cal = Calendar.current
+            let inicioHoje = cal.startOfDay(for: Date())
+            for k in 0..<14 {
+                guard let d = cal.date(byAdding: .day, value: k, to: inicioHoje),
+                      let quando = cal.date(bySettingHour: hora, minute: 0, second: 0, of: d), quando > Date() else { continue }
+                let wd = cal.component(.weekday, from: d) // 1 = domingo
+                let dia = wd == 1 ? 7 : wd - 1
+                guard p.dias.contains(dia), !(k == 0 && treinouHoje) else { continue }
                 let conteudo = UNMutableNotificationContent()
                 conteudo.title = "Hoje tem treino"
                 conteudo.body = "Seu treino de hoje está pronto no Forja. Bora forjar!"
                 conteudo.sound = .default
-                var dc = DateComponents(); dc.hour = hora; dc.minute = 0
-                dc.weekday = dia == 7 ? 1 : dia + 1 // Calendar: 1 = domingo
-                let req = UNNotificationRequest(identifier: "treino-\(dia)", content: conteudo, trigger: UNCalendarNotificationTrigger(dateMatching: dc, repeats: true))
-                c.add(req)
+                let dc = cal.dateComponents([.year, .month, .day, .hour, .minute], from: quando)
+                c.add(UNNotificationRequest(identifier: "treino-\(k)", content: conteudo, trigger: UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)))
             }
         }
+    }
+
+    func reagendarLembretes() {
+        let d = UserDefaults.standard
+        guard d.bool(forKey: "lembrete.on") else { return }
+        configurarLembretes(ligado: true, hora: d.object(forKey: "lembrete.hora") as? Int ?? 18)
     }
 }
 
@@ -125,6 +140,7 @@ struct TreinoAlvo: Identifiable, Equatable {
 @main
 struct ForjaApp: App {
     @StateObject private var app = AppEstado()
+    @Environment(\.scenePhase) private var fase
     init() {
         // vídeos das demonstrações não têm som: não interrompem a música de quem está treinando
         try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
@@ -137,6 +153,7 @@ struct ForjaApp: App {
                 .environmentObject(app)
                 .preferredColorScheme(.dark)
                 .tint(Cor.brasa)
+                .onChange(of: fase) { f in if f == .active { app.reagendarLembretes() } }
         }
     }
 }
