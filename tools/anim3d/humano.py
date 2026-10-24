@@ -601,9 +601,15 @@ class Humano:
         dobra = n.length / max((E - S).length * (W - S).length, 1e-9)  # seno do ângulo da articulação
         w = mov.suave(dobra, 0.06, 0.3)
         if w > 0:
-            perp_cur = n.normalized().cross(u)
-            if perp_cur.dot(E - S) < 0:
-                perp_cur = -perp_cur
+            # direção para onde a articulação aponta AGORA (perpendicular à corda atual), levada à nova corda
+            wc = (W - S).normalized()
+            dob = (E - S) - wc * (E - S).dot(wc)
+            perp_cur = dob - u * dob.dot(u)
+            if perp_cur.length < 1e-6:
+                perp_cur = perp_ref.copy()
+            perp_cur.normalize()
+            if perp_cur.dot(perp_ref) < -0.2 and w < 0.999:
+                perp_ref = perp_cur.copy()  # pose dobrada para o outro lado (intencional): a reserva não puxa contra
             perp = perp_cur * w + perp_ref * (1 - w)
         else:
             perp = perp_ref
@@ -886,7 +892,8 @@ def marcas_chao(tam, geo, zf, centro_corpo, desloc=0.0, passo=5.0):
     def linhas(a):
         d = np.abs(((a / passo) + 0.5) % 1.0 - 0.5) * passo
         return np.clip((larg + pix * 0.7 - d) / (pix * 1.4), 0, 1)
-    m = np.maximum(linhas(X - 0.0), linhas(Y + desloc))
+    dx, dy = desloc if isinstance(desloc, (tuple, list)) else (0.0, desloc)
+    m = np.maximum(linhas(X + dx), linhas(Y + dy))
     r = np.hypot(X - centro_corpo[0], (Y - centro_corpo[1]) * 0.8)
     fade = np.exp(-(r / 11.0) ** 2)
     return (m * fade * 0.028)[..., None]
@@ -955,7 +962,7 @@ class Contexto:
                 ocup |= {"f", "t"}
             elif em in ("mao_f", "mao_t"):
                 ocup.add(em[-1])
-        if "corda" in tipos or any(x in self.id for x in ("supino-maquina", "peck-deck", "voador")):
+        if "corda" in tipos or any(x in self.id for x in ("supino-maquina", "peck-deck", "voador", "desenvolvimento-maquina")):
             ocup |= {"f", "t"}  # pegadores das alavancas da máquina
         self.ocupadas = ocup
         self.props_maos = bool(ocup)
@@ -1039,10 +1046,13 @@ def info_efetor(h, ctx, T, ef, membro, sf, P=None):
     if membro == "perna":
         a = h.cabeca("foot" + sf)
         ponta = T @ (a + (h.cabeca("toe3-1" + sf) - a) * 0.78)  # antepé (pivô do apoio)
+        bola = pts[np.linalg.norm(pts - np.array(ponta), axis=1) < 0.9]
+        zbola = float(bola[:, 2].min()) if len(bola) else float(zmin)
     else:
         ponta = T @ h.pegada(sf)
+        zbola = float(zmin)
     return {"pos": T @ h.cabeca(fim), "rot": (Tq @ h.rot(fim)).to_quaternion(), "baixo": Vector(baixo), "zmin": float(zmin),
-            "ponta": ponta}
+            "ponta": ponta, "zbola": zbola}
 
 
 def mao_apoiada_rot(h, T, sf):
@@ -1095,6 +1105,35 @@ def apoios_2d(ctx, p2):
     return out
 
 
+def apoiar_superficies(h, ctx, P, T=None):
+    """Quanto subir/descer o corpo para que ele se apoie: a pele não fica abaixo do chão e pé/mão/joelho sobre um banco
+    ou caixa encostam no topo dele (o mais restritivo vence). Para pés, vale também o antepé na borda de um degrau."""
+    dz0 = ctx.z0 - float(P[:, 2].min())
+    extra = 0.0
+    if "quad" in ctx.ref and len(ctx.superficies()) > 1:
+        sh = np.array((0.0, 0.0, dz0))
+        for parte in ("pe_f", "pe_t", "mao_f", "mao_t", "joelho_f", "joelho_t"):
+            pts = P[h.px_partes[parte]] + sh
+            if not len(pts):
+                continue
+            zmin = float(pts[:, 2].min())
+            baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
+            zs = ctx.superficie_em(baixo, zmin + 5.0)
+            if zs > ctx.z0 + 1e-3:
+                extra = max(extra, zs - zmin)
+            elif parte.startswith("pe") and T is not None:
+                sf = ".L" if parte.endswith("f") else ".R"
+                a_ = h.cabeca("foot" + sf)
+                ponta = np.array(T @ (a_ + (h.cabeca("toe3-1" + sf) - a_) * 0.78)) + sh
+                bola = pts[np.linalg.norm(pts - ponta, axis=1) < 0.9]
+                if len(bola):
+                    zb = float(bola[:, 2].min())
+                    zs = ctx.superficie_em(ponta, zb + 5.0)
+                    if zs > ctx.z0 + 1e-3:
+                        extra = max(extra, zs - zb)
+    return dz0 + extra
+
+
 def colocar_chave(h, ctx, q):
     """Posa um quadro-chave e coloca o corpo no mundo, corrigindo a diferença de proporções entre o esqueleto 2D e o
     humano 3D: dois apoios no chão -> o corpo gira até os dois tocarem; "fixo" -> o ponto fixo fica parado no mundo 3D;
@@ -1112,6 +1151,10 @@ def colocar_chave(h, ctx, q):
     root0 = h.cabeca("root")
     if abs(q["rol"]) > 0.01:
         T = _rot_eixo(root0, FRENTE, math.radians(q["rol"])) @ T
+    # mão espalmada ANTES de nivelar/apoiar (deitar a mão sobe a palma ~1,4 unidade; senão ela fica flutuando)
+    for lado, sf, _ in LADOS:
+        if apoio[lado]:
+            h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
     pts = h.proxy(T)
     # 1) dois apoios no chão -> nivelar (só com o corpo no plano sagital)
     sup = []
@@ -1158,7 +1201,7 @@ def colocar_chave(h, ctx, q):
     if q["y"] is not None:
         dz = p2["quadril"][1] * k - (T @ h.cabeca("root")).z
     else:
-        dz = ctx.z0 - h.proxy(T)[:, 2].min() + q["ay"] * k
+        dz = apoiar_superficies(h, ctx, h.proxy(T), T) + q["ay"] * k
     T = Matrix.Translation((0, 0, dz)) @ T
     if q["y"] is not None:
         zmin = h.proxy(T)[:, 2].min()
@@ -1291,11 +1334,16 @@ def efetores_chave(h, ctx, T, apoio, declarado=None):
         if declarado is not None:
             inf = info_efetor(h, ctx, T, ef, membro, sf, P)
             inf["contato"] = ef in declarado and ctx.planta
+            if inf["contato"]:
+                _encostar(ctx, inf, membro)
             out[ef] = inf
             continue
         inf = info_efetor(h, ctx, T, ef, membro, sf, P)
         zs = ctx.superficie_em(inf["baixo"], inf["zmin"])
         contato = inf["zmin"] - zs < 0.3
+        if membro == "perna" and not contato:
+            zb = ctx.superficie_em(inf["ponta"], inf["zbola"])  # antepé na borda de um degrau, calcanhar no ar
+            contato = zb > ctx.z0 + 1e-3 and inf["zbola"] - zb < 0.3
         if membro == "braco":
             if ctx.barra is not None and "barra3" in ctx.ref:
                 g = T @ h.pegada(sf)
@@ -1308,8 +1356,28 @@ def efetores_chave(h, ctx, T, apoio, declarado=None):
             else:
                 contato = contato and apoio.get(ef[-1], False)
         inf["contato"] = contato and ctx.planta
+        if inf["contato"] and not (membro == "braco" and ctx.barra is not None):
+            _encostar(ctx, inf, membro)
         out[ef] = inf
     return out
+
+
+def _encostar(ctx, inf, membro):
+    """Apoio da chave encosta exatamente na superfície (a âncora fica no chão/banco, não flutuando nem enterrada)."""
+    zs = ctx.superficie_em(inf["baixo"], inf["zmin"] + 0.6)
+    gap = inf["zmin"] - zs
+    if membro == "perna" and zs <= ctx.z0 + 1e-3:
+        zb = ctx.superficie_em(inf["ponta"], inf["zbola"] + 0.6)
+        if zb > ctx.z0 + 1e-3:
+            gap = inf["zbola"] - zb  # antepé na borda do degrau
+    if abs(gap) < 1e-4 or abs(gap) > 1.5:
+        return
+    d = Vector((0, 0, -gap))
+    inf["pos"] = inf["pos"] + d
+    inf["baixo"] = inf["baixo"] + d
+    inf["ponta"] = inf["ponta"] + d
+    inf["zmin"] -= gap
+    inf["zbola"] -= gap
 
 
 def _slerp(qa, qb, t):
@@ -1349,8 +1417,12 @@ def plantar(h, ctx, T, chaves, i, j, u):
         if a["contato"] and b["contato"]:
             w = 1.0
             sm = mov.suave(u)
-            pos = a["pos"].lerp(b["pos"], sm)
             rot = _slerp(a["rot"], b["rot"], sm)
+            # o pivô do apoio (antepé / pegada) fica parado: o tornozelo/punho gira em volta dele (calcanhar sobe)
+            off_a = a["rot"].to_matrix().inverted() @ (a["pos"] - a["ponta"])
+            off_b = b["rot"].to_matrix().inverted() @ (b["pos"] - b["ponta"])
+            piv = a["ponta"].lerp(b["ponta"], sm)
+            pos = piv + rot.to_matrix() @ off_a.lerp(off_b, sm)
         elif a["contato"]:
             w = 1.0 - mov.suave(u, 0.0, 0.45)
             pos, rot = a["pos"], a["rot"]
@@ -1456,6 +1528,10 @@ def dedos_pes(h, ctx, T):
             h.apontar(n, Ti3 @ nova.normalized())
 
 
+def ax_dot(v, e):
+    return float(np.dot(np.asarray(v), np.asarray(e)))
+
+
 def barra_modo(anim):
     """Onde a barra olímpica fica: "maos" (padrão), "costas" (agachamento com barra), "rack" (agachamento frontal) ou
     "clean" (nas mãos, encaixando no rack frontal de forma contínua quando as mãos chegam aos ombros)."""
@@ -1506,26 +1582,35 @@ def corrigir_barra(h, ctx, T):
     Q = P[m]
     quad_z = (T @ h.cabeca("root")).z
     folga = _lerp(0.42, 0.16, mov.suave(quad_z + 0.5 - centro.z, 0.0, 1.5))
-    for _ in range(3):
+    # direção de saída: do eixo do corpo mais próximo (coluna quadril->pescoço ou coxas quadril->joelhos) para a barra;
+    # deslocamento = o necessário para a pele da faixa ficar atrás da barra + folga (contínuo, sem empurrões alternados)
+    def mais_perto(a3, b3, p3):
+        ab = b3 - a3
+        t_ = max(0.0, min(1.0, (p3 - a3).dot(ab) / max(ab.dot(ab), 1e-9)))
+        return a3 + ab * t_
+    raiz = T @ h.cabeca("root")
+    joel = (T @ h.cabeca("lowerleg01.L") + T @ h.cabeca("lowerleg01.R")) / 2
+    cands = [mais_perto(raiz, pesc, centro), mais_perto(raiz, joel, centro)]
+    base_p = min(cands, key=lambda p3: (p3 - centro).length)
+    nv = np.array(centro - base_p)
+    nv = nv - ax_dot(nv, eixo) * np.array(eixo)
+    nrm = np.linalg.norm(nv)
+    if nrm > 1e-4:
+        nv /= nrm
         c = np.array(centro)
         ax = np.array(eixo)
         rel_p = Q - c
         sx = rel_p @ ax
         perto = np.abs(sx) < 2.6
-        if not perto.any():
-            break
-        radial = rel_p[perto] - np.outer(sx[perto], ax)
-        dist = np.linalg.norm(radial, axis=1)
-        dentro = dist < folga
-        if not dentro.any():
-            break
-        pen = folga - dist[dentro]
-        dirs = -radial[dentro] / np.maximum(dist[dentro][:, None], 1e-6)
-        wts = pen ** 2
-        push = (dirs * (wts * pen)[:, None]).sum(axis=0) / max(wts.sum(), 1e-9)
-        if np.linalg.norm(push) < 1e-4:
-            break
-        centro = centro + Vector(push)
+        if perto.any():
+            radial = rel_p[perto] - np.outer(sx[perto], ax)
+            lat = radial - np.outer(radial @ nv, nv)
+            frente = radial @ nv
+            faixa = (np.linalg.norm(lat, axis=1) < folga) & (frente > -2.5)
+            if faixa.any():
+                need = float(frente[faixa].max()) + folga
+                if need > 0:
+                    centro = centro + Vector(nv * need)
     R = aparelhos.raio_anilha(ctx)
     zmin = ctx.z0 + R
     if centro.z < zmin:
@@ -1625,7 +1710,7 @@ def preparar_anim(h, anim, k, grupo):
     ctx.chaves = chaves
     ancorar_apoios(ctx)
     # piso rolante: velocidade média do pé de apoio (o chão desenhado corre junto, o pé fica parado em relação a ele)
-    ctx.vel_rolar = 0.0
+    ctx.vel_rolar = (0.0, 0.0)
     if ctx.rolar:
         vs = []
         for i_, c in enumerate(chaves):
@@ -1633,8 +1718,9 @@ def preparar_anim(h, anim, k, grupo):
             for pe in ("pe_f", "pe_t"):
                 ea, eb = c["ef"][pe], c2["ef"][pe]
                 if ea["contato"] and eb["contato"]:
-                    vs.append((eb["pos"].y - ea["pos"].y) / float(trilhas.tempos[i_]))
-        ctx.vel_rolar = float(np.mean(vs)) if vs else 0.0
+                    vs.append(((eb["pos"].x - ea["pos"].x) / float(trilhas.tempos[i_]),
+                               (eb["pos"].y - ea["pos"].y) / float(trilhas.tempos[i_])))
+        ctx.vel_rolar = tuple(float(x) for x in np.mean(vs, axis=0)) if vs else (0.0, 0.0)
     root0 = h.rest["root"].translation.copy()
     ctx.root0 = root0
     # fases de voo (nenhum apoio e ay > 0): o quadril segue uma parábola entre a decolagem e a aterrissagem
@@ -1897,11 +1983,17 @@ def main():
             geo = dict(co["cam_geo"])
             geo = {kk: (list(vv) if not isinstance(vv, float) else vv) for kk, vv in geo.items()}
             cc = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2)
-            vel = getattr(ctx, "vel_rolar", 0.0)
+            vel = getattr(ctx, "vel_rolar", (0.0, 0.0))
             passo = 5.0
-            if vel:
-                dist = abs(vel) * ctx.trilhas.T
+            vmod = math.hypot(*vel)
+            if vmod > 1e-3:
+                # o passo das placas divide o deslocamento do laço nos dois eixos (laço sem emenda)
+                eixo = 0 if abs(vel[0]) > abs(vel[1]) else 1
+                dist = abs(vel[eixo]) * ctx.trilhas.T
                 passo = dist / max(1, round(dist / 5.0))
+                vel = (vel[0], 0.0) if eixo == 0 else (0.0, vel[1])
+            else:
+                vel = None
             tint = np.array([1.0, 0.9, 0.8])
             marca_fixa = None if vel else marcas_chao(tam_saida, geo, 0.0, cc, 0.0, passo)
             ruido = (np.random.default_rng(7).random((tam_saida, tam_saida, 3)) - np.random.default_rng(8).random((tam_saida, tam_saida, 3))) * 0.9
@@ -1925,7 +2017,7 @@ def main():
                     os.remove(caminho)
                 im = acc / sub
                 tau_f = estados[j0]["tau"]
-                mk = marca_fixa if marca_fixa is not None else marcas_chao(tam_saida, geo, 0.0, cc, -vel * tau_f, passo)
+                mk = marca_fixa if marca_fixa is not None else marcas_chao(tam_saida, geo, 0.0, cc, (-vel[0] * tau_f, -vel[1] * tau_f), passo)
                 frames.append(compor(im, bg + mk * tint, ruido))
             sc_.cycles.samples = amostras0
             t_render = (time.time() - t_render) / max(1, len(frames))

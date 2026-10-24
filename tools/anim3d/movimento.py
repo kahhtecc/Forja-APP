@@ -241,15 +241,15 @@ class TrilhasPose:
         fases = rng.random(8) * 2 * math.pi
         nr = max(1, round(T / 3.2))  # ciclos de respiração por laço (~3,2 s cada)
         w = 2 * math.pi / T
-        v = self.vida
+        v = max(self.vida, self.peso_pausa(tau))  # nas pausas a vida sobe a 100 % (nunca dois quadros iguais)
         resp = math.sin(w * nr * tau + fases[0])
         out["_resp"] = 1.1 * v * resp  # graus no tórax (spine02/03)
-        out["t"] += 0.5 * v * resp
+        out["t"] += 0.7 * v * resp
         out["oe"] = out["oe"] + 0.03 * v * (0.5 + 0.5 * math.sin(w * nr * tau + fases[0] - 0.6))
         n2 = max(1, round(T / 2.3))
         n3 = max(1, round(T / 1.7))
-        out["c"] += 1.0 * v * math.sin(w * n2 * tau + fases[1])
-        out["cr"] += 1.5 * v * math.sin(w * n3 * tau + fases[2])
+        out["c"] += 1.6 * v * math.sin(w * n2 * tau + fases[1])
+        out["cr"] += 2.0 * v * math.sin(w * n3 * tau + fases[2])
         out["cinc"] += 0.6 * v * math.sin(w * max(1, round(T / 2.9)) * tau + fases[3])
         out["_dz"] = 0.08 * v * math.sin(w * max(1, round(T / 4.0)) * tau + fases[4])
         for lado, ph in (("f", fases[5]), ("t", fases[6])):
@@ -259,6 +259,44 @@ class TrilhasPose:
             mod = 0.6 + 0.4 * math.sin(w * tau + fases[7])
             out["t"] += 0.3 * self.tremor * mod * math.sin(w * nt * tau)
             out["_resp"] += 0.3 * self.tremor * mod * math.sin(w * (nt + 1) * tau + 1.0)
+
+    def _pausas(self):
+        """Trechos praticamente parados (pausas e isometrias): variação de canal < 3° entre as chaves."""
+        if hasattr(self, "_pz"):
+            return self._pz
+        n = len(self.chaves)
+        pz = []
+        for i in range(n):
+            a, b = self.chaves[i], self.chaves[(i + 1) % n]
+            d = max(abs(a[k] - b[k]) for k in ANGULOS)
+            for k in LISTAS:
+                d = max(d, max(abs(x - y) for x, y in zip(a[k], b[k])))
+            d = max(d, 10 * max(abs(a[k] - b[k]) for k in ("x", "z", "ay")))
+            pz.append(d < 3.0)
+        self._pz = pz
+        return pz
+
+    def peso_pausa(self, tau):
+        """0..1, contínuo: 1 dentro de um trecho de pausa, rampa suave nas bordas (laço periódico)."""
+        pz = self._pausas()
+        if not any(pz):
+            return 0.0
+        i, u = self.segmento(tau)
+        n = len(pz)
+        ant, prox = pz[(i - 1) % n], pz[(i + 1) % n]
+        if pz[i]:
+            w = 1.0
+            if not ant:
+                w = min(w, suave(u, 0.0, 0.35))
+            if not prox:
+                w = min(w, 1.0 - suave(u, 0.65, 1.0))
+            return w
+        w = 0.0
+        if ant:
+            w = max(w, 1.0 - suave(u, 0.0, 0.25))
+        if prox:
+            w = max(w, suave(u, 0.75, 1.0))
+        return w * 0.0
 
     def __call__(self, tau, vida=True):
         out = {}

@@ -4,7 +4,7 @@ do vídeo) e mede, no espaço do mundo (1 unidade = 1 dm):
 ERROS (reprovam):
   pop        salto de pose num quadro: deslocamento máximo de junta > 2,2x a mediana dos 4 vizinhos e > 4 cm
   emenda     o mesmo teste na volta do laço (último quadro -> primeiro)
-  skate      pé/mão apoiado escorregando (tornozelo+dedos / punho+dedos): > 3 mm/quadro a 24 fps (descontado o piso rolante)
+  skate      pé/mão apoiado escorregando (antepé / pegada): > 3 mm/quadro a 24 fps (descontado o piso rolante)
              ou apoio que muda < 16 cm entre chaves (escorrega em vez de dar passo)
   chao       pele abaixo do chão: > 8 mm (sola do tênis na proxy)
   barra      centro da barra salta: > 3x a mediana e > 8 cm/quadro
@@ -82,11 +82,8 @@ def avaliar(h, anim, k, grupo, fps):
                 c1, c2 = ctx.chaves[i_]["ef"][ef], ctx.chaves[(i_ + 1) % len(ctx.chaves)]["ef"][ef]
                 w = 1.0 if c1["contato"] and c2["contato"] and (c1["baixo"] - c2["baixo"]).length < 1.6 else 0.0
             # ponto rígido do pé/mão (tornozelo + base dos dedos): a pele do calcanhar deforma com a canela
-            if membro == "perna":
-                cen = (T @ h.cabeca("foot" + sf) + T @ h.cabeca("toe3-1" + sf)) / 2
-            else:
-                cen = (T @ h.cabeca("wrist" + sf) + T @ h.cabeca("finger3-1" + sf)) / 2
-            e[ef] = (cen, inf["zmin"], w, inf["baixo"])
+            cen = inf["ponta"]  # antepé (pivô do apoio, rígido no osso do pé) ou centro da pegada
+            e[ef] = (cen, inf["zmin"], w, inf["baixo"], inf["zbola"])
         efs.append(e)
         cfg = getattr(ctx, "alavancas", None)
         if cfg:
@@ -115,20 +112,25 @@ def avaliar(h, anim, k, grupo, fps):
     if zc < -0.08:
         erros.append(f"chao: pele {abs(zc) * 10:.1f} cm abaixo do chão")
     # skate e flutuar
-    vel = getattr(ctx, "vel_rolar", 0.0)
+    vel = getattr(ctx, "vel_rolar", (0.0, 0.0))
+    if not isinstance(vel, tuple):
+        vel = (0.0, vel)
     dt = ctx.trilhas.T / n
     pior = {}
     for j in range(n):
         a, b = efs[j], efs[(j + 1) % n]
         for ef in a:
-            pa, za, wa, ba = a[ef]
-            pb, zb, wb, bb = b[ef]
+            pa, za, wa, ba = a[ef][:4]
+            pb, zb, wb, bb = b[ef][:4]
             if wa > 0.999 and wb > 0.999:
-                d = Vector((pb.x - pa.x, pb.y - pa.y - vel * dt, 0)).length
+                d = Vector((pb.x - pa.x - vel[0] * dt, pb.y - pa.y - vel[1] * dt, 0)).length
                 pior[ef] = max(pior.get(ef, 0.0), d)
-            if wa > 0.999:
+            if wa > 0.999 and not (ef.startswith("mao") and ctx.barra is not None):
                 zs = ctx.superficie_em(ba, za)
                 gap = za - zs
+                if ef.startswith("pe"):  # antepé na borda do degrau (calcanhar no ar) também é apoio
+                    zbo = a[ef][4]
+                    gap = min(abs(gap), abs(zbo - ctx.superficie_em(pa, zbo)))
                 if not -0.08 <= gap <= 0.08:
                     pior["_f_" + ef] = max(pior.get("_f_" + ef, 0.0), abs(gap))
     for ef, d in pior.items():
@@ -141,7 +143,7 @@ def avaliar(h, anim, k, grupo, fps):
         c2 = ch[(i + 1) % len(ch)]
         for ef in c["ef"]:
             a, b = c["ef"][ef], c2["ef"][ef]
-            dd = (a["baixo"] - b["baixo"]).length
+            dd = Vector((a["ponta"].x - b["ponta"].x, a["ponta"].y - b["ponta"].y, 0)).length
             if a["contato"] and b["contato"] and 0.15 < dd < 1.6 and not getattr(ctx, "rolar", False):
                 erros.append(f"skate {ef} {dd * 10:.1f} cm no trecho {i}")
     # barra

@@ -334,6 +334,7 @@ def _plataforma(h, T, n_pes=("pe_f", "pe_t")):
 
 
 def montar(kit, ctx, h, estados):
+    ctx._estados = estados
     am = _amostras(ctx, h, estados)
     kit_estados = estados
     idd = ctx.id
@@ -365,10 +366,7 @@ def montar(kit, ctx, h, estados):
                     kit.viga((dx, c.y, 0), (dx, c.y, c.z + 0.5), 0.5, 0.5, kit.quadro)
                     kit.caixa((dx, c.y, 0.1), (0.7, 5.0, 0.2), kit.quadro, 0.05)
         elif tp == "saco":
-            c = ctx.p3(pr.get("x", 9), 0)
-            kit.cil((0, c.y, 5.5 * ctx.k), (0, c.y, 17.5 * ctx.k), 1.5, kit.preto, 32)
-            kit.cil((0, c.y, 17.5 * ctx.k), (0, c.y, 24), 0.05, kit.metal, 8)
-            kit.toro((0, c.y, 11.5 * ctx.k), 1.52, 0.06, kit.brasa, (0, 0, 1))
+            _saco(kit, ctx, h, pr, estados)
         elif tp == "esteira":
             _esteira(kit, ctx, root_y, am)
         elif tp == "tapete":
@@ -1138,25 +1136,33 @@ def _elastico(kit, ctx, h, pr, am):
         kit.moveis.append(upd)
         return
     if pr.get("de") == "costas":
-        n = 10
-        segs = [kit.cil_movel(0.09, kit.brasa, 10) for _ in range(n)]
+        n = 16
+        segs = [kit.cil_movel(0.11, kit.brasa, 10) for _ in range(n)]
 
         def upd_c(est):
+            # mão -> por trás do cotovelo -> sobre as escápulas -> outra mão (por fora dos braços, visível)
             h.restaurar(est["est"])
             T = est["T"]
-            gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
             R_up = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
             tras = (T.to_3x3() @ (R_up @ Vector((0, 1, 0)))).normalized()
-            oL = T @ h.cabeca("upperarm01.L") + tras * 1.1
-            oR = T @ h.cabeca("upperarm01.R") + tras * 1.1
-            ctrl = [gL, oL, oR, gR]
+            cima = (T.to_3x3() @ (R_up @ Vector((0, 0, 1)))).normalized()
+            ctrl = [T @ h.pegada(".L"), T @ h.cabeca("lowerarm01.L") + tras * 0.55, T @ h.cabeca("upperarm01.L") + tras * 1.0 + cima * 0.2,
+                     T @ h.cabeca("upperarm01.R") + tras * 1.0 + cima * 0.2, T @ h.cabeca("lowerarm01.R") + tras * 0.55,
+                     T @ h.pegada(".R")]
+            # Catmull-Rom pelos pontos de controle
             pts = []
-            for i in range(n + 1):
-                t = i / n
-                p = (ctrl[0] * (1 - t) ** 3 + ctrl[1] * 3 * t * (1 - t) ** 2 + ctrl[2] * 3 * t * t * (1 - t) + ctrl[3] * t ** 3)
-                pts.append(p)
-            for o, p, q in zip(segs, pts[:-1], pts[1:]):
-                Kit.por_cil(o, p, q)
+            m = len(ctrl)
+            por = n // (m - 1)
+            for i in range(m - 1):
+                p0, p1, p2, p3 = ctrl[max(i - 1, 0)], ctrl[i], ctrl[i + 1], ctrl[min(i + 2, m - 1)]
+                for j in range(por):
+                    t = j / por
+                    t2, t3 = t * t, t * t * t
+                    pts.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3))
+            pts.append(ctrl[-1])
+            for k_, o in enumerate(segs):
+                a_, b_ = pts[min(k_, len(pts) - 2)], pts[min(k_ + 1, len(pts) - 1)]
+                Kit.por_cil(o, a_, b_)
         kit.moveis.append(upd_c)
         return
     # entre as mãos
@@ -1269,19 +1275,125 @@ def _halteres(kit, ctx, h, maos="ambas"):
     kit.moveis.append(upd)
 
 
+def _fourier(taus, vals, T, nh=8):
+    """Série de Fourier periódica (mínimos quadrados) de amostras vetoriais: devolve f(t) e f''(t)."""
+    t = np.asarray(taus, float)
+    V = np.asarray(vals, float)
+    nh = max(1, min(nh, (len(t) - 1) // 2))
+    w = 2 * math.pi / T
+    cols = [np.ones_like(t)]
+    for n in range(1, nh + 1):
+        cols += [np.cos(n * w * t), np.sin(n * w * t)]
+    A = np.stack(cols, axis=1)
+    coef, *_ = np.linalg.lstsq(A, V, rcond=None)
+
+    def f(tt, der=0):
+        out = coef[0] * (1.0 if der == 0 else 0.0)
+        for n in range(1, nh + 1):
+            c, s_ = coef[2 * n - 1], coef[2 * n]
+            if der == 0:
+                out = out + c * math.cos(n * w * tt) + s_ * math.sin(n * w * tt)
+            else:
+                k2 = -(n * w) ** 2
+                out = out + k2 * (c * math.cos(n * w * tt) + s_ * math.sin(n * w * tt))
+        return out
+    return f
+
+
 def _kettlebell(kit, ctx, h, maos="ambas"):
     ps = [kit.esfera((0, 0, -1.15), 0.95, kit.preto), kit.toro((0, 0, -0.05), 0.5, 0.12, kit.preto, (1, 0, 0))]
     kb = kit.grupo_movel(ps)
     kb["foco"] = 1
     lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
 
-    def upd(est):
+    def alvo(est):
         h.restaurar(est["est"])
         T = est["T"]
         c = sum((T @ h.pegada(sf) for sf in lados), Vector()) / len(lados)
         ante = T.to_3x3() @ sum(((h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)) for sf in lados), Vector()).normalized()
-        d = (Vector((0, 0, -1)) * 0.65 + ante * 0.35).normalized()
+        return c, ante
+    dirs = None
+    estados = getattr(ctx, "_estados", None)
+    pendulo = any(x in ctx.id for x in ("swing", "terra-uma-perna")) and estados and len(estados) >= 6
+    if pendulo:
+        # follow-through: a direção do kettlebell segue a linha dos braços com atraso (2ª ordem amortecida, laço periódico)
+        T = ctx.trilhas.T
+        taus, alvos = [], []
+        for est in estados:
+            c, ante = alvo(est)
+            d = (Vector((0, 0, -1)) * 0.25 + ante * 0.75).normalized()
+            taus.append(est["tau"] % T)
+            alvos.append(list(d))
+        f = _fourier(taus, alvos, T, 10)
+        om, ze, dt = 13.0, 0.42, 1.0 / 600
+        d = np.array(f(0.0)); v = np.zeros(3)
+        amostra = {}
+        nps = int(round(T / dt))
+        for volta in range(4):
+            for j in range(nps):
+                tt = j * dt
+                a_ = om * om * (np.array(f(tt)) - d) - 2 * ze * om * v
+                v = v + a_ * dt
+                d = d + v * dt
+                d = d / max(np.linalg.norm(d), 1e-9)
+                if volta == 3:
+                    amostra[j] = d.copy()
+        dirs = {id(est): Vector(amostra[int(round((est["tau"] % T) / dt)) % nps]) for est in estados}
+
+    def upd(est):
+        c, ante = alvo(est)
+        if dirs is not None and id(est) in dirs:
+            d = dirs[id(est)]
+        else:
+            d = (Vector((0, 0, -1)) * 0.65 + ante * 0.35).normalized()
         kb.matrix_world = Matrix.Translation(c) @ _alinhar(Vector((0, 0, -1)), d)
+    kit.moveis.append(upd)
+
+
+def _saco(kit, ctx, h, pr, estados):
+    """Saco de pancada pendurado: pêndulo amortecido que recebe um impulso a cada golpe (laço periódico)."""
+    c = ctx.p3(pr.get("x", 9), 0)
+    piv = Vector((0, c.y, 24.0))
+    ps = [kit.cil((0, c.y, 5.5 * ctx.k), (0, c.y, 17.5 * ctx.k), 1.5, kit.preto, 32),
+          kit.cil((0, c.y, 17.5 * ctx.k), (0, c.y, 24), 0.05, kit.metal, 8),
+          kit.toro((0, c.y, 11.5 * ctx.k), 1.52, 0.06, kit.brasa, (0, 0, 1))]
+    saco = kit.grupo_movel(ps)
+    T = ctx.trilhas.T
+    ang = {}
+    if estados:
+        dist = []
+        for est in estados:
+            h.restaurar(est["est"])
+            Tm = est["T"]
+            r = min(math.hypot((Tm @ h.pegada(sf)).x, (Tm @ h.pegada(sf)).y - c.y) for sf in (".L", ".R")) - 1.5
+            dist.append((est["tau"] % T, r))
+        dist.sort()
+        golpes = []
+        n = len(dist)
+        for j in range(n):
+            t0, r = dist[j]
+            if r < 0.45 and r <= dist[(j - 1) % n][1] and r <= dist[(j + 1) % n][1]:
+                golpes.append(t0)
+        om, ze, dt = math.sqrt(98.1 / 12.5), 0.12, 1.0 / 600
+        th, w = 0.0, 0.0
+        nps = int(round(T / dt))
+        gi = set(int(round(g / dt)) % nps for g in golpes)
+        amostra = {}
+        for volta in range(6):
+            for j in range(nps):
+                if j in gi:
+                    w += 0.22
+                w += (-om * om * th - 2 * ze * om * w) * dt
+                th += w * dt
+                if volta == 5:
+                    amostra[j] = th
+        for est in estados:
+            ang[id(est)] = amostra[int(round((est["tau"] % T) / dt)) % nps]
+
+    def upd(est):
+        a = ang.get(id(est), 0.0)
+        # golpe empurra o saco para longe do atleta (atleta em +y em relação ao saco)
+        saco.matrix_world = Matrix.Translation(piv) @ Matrix.Rotation(-a, 4, "X") @ Matrix.Translation(-piv)
     kit.moveis.append(upd)
 
 
