@@ -327,8 +327,8 @@ class TrilhasPose:
                 voltas = math.floor(tau / self.T)
                 cur_a = out[kk][idx] - voltas * tl.periodo[idx]
                 cur_b = out[ab] - voltas * tla.periodo[0]
-                pesos = [(abs(da), (cur_a - va0) / da)] if abs(da) > 1e-6 else []
-                if abs(db) > 1e-6:
+                pesos = [(abs(da), (cur_a - va0) / da)] if abs(da) > 0.5 else []
+                if abs(db) > 0.5:
                     pesos.append((abs(db), (cur_b - vb0) / db))
                 wgt = sum(p * r for p, r in pesos) / sum(p for p, _ in pesos) if pesos else ui
                 par.append(slerp_v(ds[ti], ds[ja], float(np.clip(wgt, -0.2, 1.2))))

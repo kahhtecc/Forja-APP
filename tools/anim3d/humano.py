@@ -243,6 +243,7 @@ class Humano:
             jo = np.array(J("lowerleg01" + sf))
             self.partes["joelho_" + lado] = (np.linalg.norm(V2 - jo, axis=1) < 0.75) & (sm(["lowerleg01" + sf, "upperleg02" + sf]) > 0.5)
             self.partes["antebraco_" + lado] = sm(["lowerarm01" + sf, "lowerarm02" + sf]) > 0.5
+            self.partes["braco_" + lado] = sm(["upperarm01" + sf, "upperarm02" + sf]) > 0.5
         self.partes["tronco"] = sm(["spine01", "spine02", "spine03", "spine04", "spine05", "root", "pelvis.L", "pelvis.R",
                                     "breast.L", "breast.R", "clavicle.L", "clavicle.R", "neck01", "neck02", "neck03"]) > 0.5
         self.partes["cabeca"] = sm(["head"] + [b for b in W if b.startswith(("jaw", "special", "levator", "oris", "oculi",
@@ -1487,8 +1488,9 @@ def plantar(h, ctx, T, chaves, i, j, u):
         a, b = ea[ef], eb[ef]
         dist = (a["ponta"] - b["ponta"]).length  # pelo pivô do apoio (calcanhar subindo não é passo)
         fim = _fim(membro, sf)
-        if a["contato"] and b["contato"] and (dist >= 1.6 or (rolar and membro == "perna")):
-            if rolar and membro == "perna" and dist < 9.0:
+        rola = rolar and (membro == "perna" or a["zmin"] < ctx.z0 + 0.5)  # mão no chão também acompanha o piso
+        if a["contato"] and b["contato"] and (dist >= 1.6 or rola):
+            if rola and dist < 9.0:
                 # piso rolante: o pé de apoio acompanha o chão (velocidade constante)
                 pos = a["pos"].lerp(b["pos"], u)
                 rot = _slerp(a["rot"], b["rot"], u)
@@ -1646,6 +1648,8 @@ def barra_modo(anim):
         return "rack"
     if i in ("power-clean", "desenvolvimento-barra"):
         return "clean"
+    if i in ("elevacao-quadril",):
+        return "quadril"
     return "maos"
 
 
@@ -1667,6 +1671,19 @@ def corrigir_barra(h, ctx, T):
     fw_t = (Tq @ (R_up @ FRENTE)).normalized()
     pesc = T @ h.cabeca("neck01")
     modo = ctx.barra_modo
+    if modo == "quadril":
+        # elevação de quadril: a barra fica apoiada na frente da pelve (dobra do quadril), as mãos só a seguram
+        Rp = T.to_3x3() @ h.rot("root") @ h.rest_inv["root"].to_3x3()
+        frente_p = (Rp @ FRENTE).normalized()
+        centro = T @ h.cabeca("root") + frente_p * 1.35 + (Rp @ CIMA).normalized() * 0.35
+        eixo = (T.to_3x3() @ ESQ).normalized()
+        meia = max(2.6, min(3.9, meia))
+        for _ in range(2):
+            for sf, sx_ in ((".L", 1), (".R", -1)):
+                alvo_m = centro + eixo * (meia * sx_)
+                Rh = h.rot_pegada(sf, Ti.to_3x3() @ eixo, ctx.supinada)
+                h.ik("braco", sf, Ti @ alvo_m - Rh @ h.off_peg[sf], Rh)
+        return centro, eixo
     if modo != "maos":
         costas = pesc - fw_t * 0.95 - up_t * 0.55
         rack = pesc + fw_t * 1.05 - up_t * 0.55
@@ -1679,7 +1696,8 @@ def corrigir_barra(h, ctx, T):
             meia = _lerp(meia, max(2.6, min(3.9, meia)), w)
     # não atravessar o corpo: empurrão suave (média ponderada das penetrações), folga menor rente às coxas (hinge)
     P = h.proxy(T)
-    m = ~(h.px_partes["mao_f"] | h.px_partes["mao_t"] | h.px_partes["antebraco_f"] | h.px_partes["antebraco_t"])
+    m = ~(h.px_partes["mao_f"] | h.px_partes["mao_t"] | h.px_partes["antebraco_f"] | h.px_partes["antebraco_t"]
+          | h.px_partes["braco_f"] | h.px_partes["braco_t"])
     Q = P[m]
     quad_z = (T @ h.cabeca("root")).z
     folga = _lerp(0.42, 0.16, mov.suave(quad_z + 0.5 - centro.z, 0.0, 1.5))
@@ -1701,8 +1719,14 @@ def corrigir_barra(h, ctx, T):
         dl = float(np.linalg.norm(d_))
         if dl > 1e-6:
             nv += (d_ / dl) / (dl ** 4 + 0.05)
+    if nv[2] < 0:
+        nv[2] *= 0.15  # a pele quase nunca empurra a barra para baixo (evita jogá-la no chão)
+    # barra abaixo do quadril (terra, stiff, rosca, clean): sai na horizontal, rente às pernas
+    nv[2] *= 1.0 - mov.suave(quad_z + 1.5 - centro.z, 0.0, 1.0)
     # a barra sai sempre pela frente do corpo (ou por trás, no agachamento com barra nas costas)
     frente_c = np.array(fw_t) * (-1.0 if modo == "costas" else 1.0)
+    frente_c[2] *= 0.0 if centro.z < quad_z + 0.5 else 1.0
+    frente_c = frente_c / max(np.linalg.norm(frente_c), 1e-9)
     if float(np.dot(nv, frente_c)) < 0:
         nv = nv - 2.0 * float(np.dot(nv, frente_c)) * frente_c
     nrm = np.linalg.norm(nv)
@@ -1719,7 +1743,7 @@ def corrigir_barra(h, ctx, T):
             frente = radial @ nv
             faixa = (np.linalg.norm(lat, axis=1) < folga) & (frente > -2.5)
             if faixa.any():
-                need = float(frente[faixa].max()) + folga
+                need = min(1.5, float(frente[faixa].max()) + folga)
                 if need > 0:
                     centro = centro + Vector(nv * need)
     R = aparelhos.raio_anilha(ctx)
@@ -1770,8 +1794,8 @@ def ancorar_apoios(ctx):
     ch = ctx.chaves
     n = len(ch)
     for ef, membro, sf in EFETORES:
-        if ctx.rolar and membro == "perna":
-            continue
+        if ctx.rolar:
+            continue  # piso rolante: os apoios acompanham o chão
         ok = [ch[i]["ef"][ef]["contato"] for i in range(n)]
         liga = [ok[i] and ok[(i + 1) % n] and (ch[i]["ef"][ef]["ponta"] - ch[(i + 1) % n]["ef"][ef]["ponta"]).length < 1.6
                 for i in range(n)]  # liga[i]: chave i e i+1 no mesmo apoio
@@ -1819,6 +1843,15 @@ def preparar_anim(h, anim, k, grupo):
         chaves.append({"T": T, "maos": maos, "apoio": ext["apoio"], "ef": ef, "est": h.estado(), "pos": pos, "rot": T.to_quaternion(),
                        "q": q})
     ctx.chaves = chaves
+    if ctx.rolar:
+        # piso rolante (o chão corre para trás, +y): pé baixo que vai para a FRENTE até a próxima chave está no ar (balanço)
+        n_ = len(chaves)
+        for i_, c in enumerate(chaves):
+            c2 = chaves[(i_ + 1) % n_]
+            for ef in ("pe_f", "pe_t", "mao_f", "mao_t"):
+                e1, e2 = c["ef"][ef], c2["ef"][ef]
+                if e1["contato"] and (e2["ponta"].y - e1["ponta"].y) < -0.15:
+                    e1["contato"] = False
     ancorar_apoios(ctx)
     # piso rolante: velocidade média do pé de apoio (o chão desenhado corre junto, o pé fica parado em relação a ele)
     ctx.vel_rolar = (0.0, 0.0)
@@ -1832,6 +1865,23 @@ def preparar_anim(h, anim, k, grupo):
                     vs.append(((eb["pos"].x - ea["pos"].x) / float(trilhas.tempos[i_]),
                                (eb["pos"].y - ea["pos"].y) / float(trilhas.tempos[i_])))
         ctx.vel_rolar = tuple(float(x) for x in np.mean(vs, axis=0)) if vs else (0.0, 0.0)
+        # o pé de apoio corre exatamente na velocidade do chão: as âncoras seguidas avançam vel*dt (o IK absorve a diferença)
+        n_ = len(chaves)
+        for ef in ("pe_f", "pe_t", "mao_f", "mao_t"):
+            ok = [c["ef"][ef]["contato"] for c in chaves]
+            if all(ok) or not any(ok):
+                continue
+            for i0 in range(n_):
+                if ok[i0] and not ok[(i0 - 1) % n_]:
+                    j = i0
+                    while ok[(j + 1) % n_] and (j + 1) % n_ != i0:
+                        a_, b_ = chaves[j % n_]["ef"][ef], chaves[(j + 1) % n_]["ef"][ef]
+                        dtj = float(trilhas.tempos[j % n_])
+                        alvo = a_["ponta"] + Vector((ctx.vel_rolar[0] * dtj, ctx.vel_rolar[1] * dtj, 0.0))
+                        d = alvo - b_["ponta"]
+                        d.z = 0.0
+                        b_["pos"], b_["ponta"], b_["baixo"] = b_["pos"] + d, b_["ponta"] + d, b_["baixo"] + d
+                        j += 1
     root0 = h.rest["root"].translation.copy()
     ctx.root0 = root0
     # fases de voo (nenhum apoio e ay > 0): o quadril segue uma parábola entre a decolagem e a aterrissagem

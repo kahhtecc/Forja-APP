@@ -82,8 +82,8 @@ def avaliar(h, anim, k, grupo, fps):
                 c1, c2 = ctx.chaves[i_]["ef"][ef], ctx.chaves[(i_ + 1) % len(ctx.chaves)]["ef"][ef]
                 w = 1.0 if c1["contato"] and c2["contato"] and (c1["baixo"] - c2["baixo"]).length < 1.6 else 0.0
             # ponto rígido do pé/mão (tornozelo + base dos dedos): a pele do calcanhar deforma com a canela
-            cen = inf["ponta"]  # antepé (pivô do apoio, rígido no osso do pé) ou centro da pegada
-            e[ef] = (cen, inf["zmin"], w, inf["baixo"], inf["zbola"])
+            cen = inf.get("ponta", inf["pos"])  # antepé (pivô do apoio, rígido no osso do pé) ou centro da pegada
+            e[ef] = (cen, inf["zmin"], w, inf["baixo"], inf.get("zbola", inf["zmin"]))
         efs.append(e)
         cfg = getattr(ctx, "alavancas", None)
         if cfg:
@@ -98,6 +98,20 @@ def avaliar(h, anim, k, grupo, fps):
     D = DJ.max(axis=1)
     erros, avisos = [], []
     ps = pops(D, lim_abs=0.4 * 24.0 / fps)
+    # confirma com meio passo: num salto de verdade a metade do deslocamento NÃO cai pela metade
+    confirmados = []
+    for j in ps:
+        t0, t1 = taus[j], (taus[j + 1] if j + 1 < n else ctx.trilhas.T)
+        pm = []
+        for tt in (t0, (t0 + t1) / 2, t1):
+            est = H.quadro(h, ctx, tt)
+            h.restaurar(est["est"])
+            pm.append(np.array([list(est["T"] @ h.cabeca(o)) for o in OSSOS]))
+        d1 = np.linalg.norm(pm[1] - pm[0], axis=1).max()
+        d2 = np.linalg.norm(pm[2] - pm[1], axis=1).max()
+        if max(d1, d2) > 0.72 * max(D[j], 1e-6):
+            confirmados.append(j)
+    ps = confirmados
     for j in ps:
         erros.append(f"{'emenda' if j == n - 1 else 'pop'} no quadro {j} ({D[j] * 10:.1f} cm, {OSSOS[int(DJ[j].argmax())]})")
     # congelado
@@ -123,7 +137,9 @@ def avaliar(h, anim, k, grupo, fps):
             pa, za, wa, ba = a[ef][:4]
             pb, zb, wb, bb = b[ef][:4]
             if wa > 0.999 and wb > 0.999:
-                d = Vector((pb.x - pa.x - vel[0] * dt, pb.y - pa.y - vel[1] * dt, 0)).length
+                rola = ef.startswith("pe") or (getattr(ctx, "rolar", False) and za < ctx.z0 + 0.5)
+                vx, vy = vel if rola else (0.0, 0.0)
+                d = Vector((pb.x - pa.x - vx * dt, pb.y - pa.y - vy * dt, 0)).length
                 pior[ef] = max(pior.get(ef, 0.0), d)
             if wa > 0.999 and not (ef.startswith("mao") and ctx.barra is not None):
                 zs = ctx.superficie_em(ba, za)
@@ -143,7 +159,8 @@ def avaliar(h, anim, k, grupo, fps):
         c2 = ch[(i + 1) % len(ch)]
         for ef in c["ef"]:
             a, b = c["ef"][ef], c2["ef"][ef]
-            dd = Vector((a["ponta"].x - b["ponta"].x, a["ponta"].y - b["ponta"].y, 0)).length
+            pa_, pb_ = a.get("ponta", a["pos"]), b.get("ponta", b["pos"])
+            dd = Vector((pa_.x - pb_.x, pa_.y - pb_.y, 0)).length
             if a["contato"] and b["contato"] and 0.15 < dd < 1.6 and not getattr(ctx, "rolar", False):
                 erros.append(f"skate {ef} {dd * 10:.1f} cm no trecho {i}")
     # barra
