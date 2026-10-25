@@ -117,7 +117,7 @@ struct RaizView: View {
             if let r = app.e.registros.last { concluido = r }
         case "quiz": questionario = true
         case "sessao", "treino":
-            let (i, s) = app.loja.proximaSessao() ?? (0, app.plano!.semanas[0].sessoes[0])
+            let (i, s) = app.loja.proximaSessao() ?? (0, app.plano!.semanas[app.semanaAtual - 1].sessoes[0])
             if t == "sessao" { abrir(.sessao(semana: app.semanaAtual, idx: i)) } else { app.treinoAtivo = TreinoAlvo(sessao: s, semana: app.semanaAtual, idx: i) }
         default:
             if t.hasPrefix("exercicio:") { abrir(.exercicio(String(t.dropFirst(10)), trocaSessao: nil)) }
