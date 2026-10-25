@@ -10,7 +10,7 @@ Referência: `pesquisa/animacao-3d-profissional.md`. Scratch: `<scratchpad>/an/`
 - [x] 5. qa.py criado (também no CI, só avisa); rodadas completas: <scratch>/an/tools/qa_all.sh <tag>
 - [x] 6. Dados (rodadas 1 e 2, ver commits): face-pull, monster-walk, supino-maquina, salto-distancia e famílias
 - [x] 7. Revisão visual dos 175 (rodadas 1 e 2 completas com folhas de contato)
-- [~] 8. Render de produção no CI + conferência (RENDER=5 disparado)
+- [x] 8. Render de produção no CI (run 40152840974, juntar e0fad20: 175 MP4 h264/yuv420p/faststart 720px, 141 a 24 fps e 34 a 30 fps, conteudo2 versão 5) e folhas de contato dos 175 conferidas
 
 ## Notas
 - IK refinado (ossos intermediários não colineares davam até 6 cm de erro: era a causa de pés/mãos escorregando).
@@ -22,5 +22,5 @@ Referência: `pesquisa/animacao-3d-profissional.md`. Scratch: `<scratchpad>/an/`
 - Desfoque: 4 subquadros pré-multiplicados (2 subquadros davam "fantasma" e chuvisco).
 - QA motor antigo (bea8da2): 81 erros, 44 avisos, 50 limpos (233 skate, 88 pop, 59 flutua, 28 barra, 26 congelado, 24 chão, 19 idênticas, 8 rosto).
 - plantar re-chamado (alcançar/sem_atravessar) acumulava o peso 1-(1-w)^n: agora mistura da pose livre guardada (box-jump 4,6 cm resolvido).
-- QA motor novo (q7): 3 erros, 9 avisos, 163 limpos; salto-distancia e rolo-it corrigidos depois.
-- Pendências conhecidas: inchworm (mãos andam num passo longo por trecho; skate 3,4 mm/quadro).
+- QA motor novo final (q8): 1 erro (inchworm), 9 avisos (congelados em isometrias, flutuação ≤1,3 cm), 165 limpos.
+- Pendências conhecidas: inchworm (mãos andam num passo longo por trecho; skate 3,4 mm/quadro); corda ainda parece aro; alternância de mãos no motor testada e revertida (piorou o QA).
