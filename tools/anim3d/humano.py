@@ -111,7 +111,38 @@ def _wrap(a):
     return (a + 180.0) % 360.0 - 180.0
 
 
-def limite_suave(x, lo, hi, joelho=12.0):
+# limites articulares (graus, AAOS / Norkin & White) aplicados de forma suave na pose antes de posar
+ROM = {"joelho": (-8.0, 160.0), "cotovelo": (0.0, 150.0), "quadril_flex": (-34.0, 178.0), "quadril_abd": (-30.0, 55.0),
+       "tronco_tor": (-50.0, 50.0), "tronco_inc": (-38.0, 38.0), "cabeca_rot": (-75.0, 75.0), "cabeca_inc": (-42.0, 42.0),
+       "coluna_cfl": (-28.0, 60.0)}
+
+
+def limitar_rom(p):
+    """Clamp suave de amplitude articular: joelho, cotovelo, quadril (flexão/extensão e abdução), coluna (torção,
+    inclinação, flexão), pescoço (rotação, inclinação). Valores dentro da faixa não mudam."""
+    q = dict(p)
+    for lado in ("f", "t"):
+        c_, sh, pe = q["p" + lado]
+        # quadril: ângulo da coxa em relação ao tronco (0 = alinhado em pé)
+        hf = _wrap(c_ - (q["t"] - 180.0))
+        hf2 = limite_suave(hf, *ROM["quadril_flex"])
+        c2 = c_ + (hf2 - hf)
+        fl = c2 - sh
+        # joelho no plano da coxa (mesma abdução): flexão 2D = flexão real
+        fl2 = limite_suave(fl, *ROM["joelho"]) if abs(q["p" + lado + "a"] - q["c" + lado + "a"]) < 5 else fl
+        sh2 = c2 - fl2
+        if c2 != c_ or sh2 != sh:
+            q["p" + lado] = [c2, sh2, pe + (sh2 - sh)]
+        q["p" + lado + "a"] = limite_suave(q["p" + lado + "a"], *ROM["quadril_abd"])
+    q["tr"] = limite_suave(q["tr"], *ROM["tronco_tor"])
+    q["inc"] = limite_suave(q["inc"], *ROM["tronco_inc"])
+    q["cr"] = limite_suave(q["cr"], *ROM["cabeca_rot"])
+    q["cinc"] = limite_suave(q["cinc"], *ROM["cabeca_inc"])
+    q["cfl"] = limite_suave(q.get("cfl", 0.0), *ROM["coluna_cfl"])
+    return q
+
+
+def limite_suave(x, lo, hi, joelho=6.0):
     """Limite articular suave: igual a x no meio da faixa e se aproxima assintoticamente de lo/hi (sem quina)."""
     if x > hi - joelho:
         e = x - (hi - joelho)
@@ -261,6 +292,8 @@ class Humano:
         self.partes["tronco"] = sm(["spine01", "spine02", "spine03", "spine04", "spine05", "root", "pelvis.L", "pelvis.R",
                                     "breast.L", "breast.R", "clavicle.L", "clavicle.R", "neck01", "neck02", "neck03"]) > 0.5
         self.partes["pescoco"] = sm(["neck01", "neck02", "neck03"]) > 0.5
+        self.partes["pelve"] = sm(["root", "pelvis.L", "pelvis.R", "spine05"]) > 0.5
+        self.partes["costas"] = sm(["spine01", "spine02", "spine03", "spine04", "breast.L", "breast.R", "clavicle.L", "clavicle.R"]) > 0.5
         self.partes["cabeca"] = sm(["head"] + [b for b in W if b.startswith(("jaw", "special", "levator", "oris", "oculi",
                                                                                "orbicularis", "temporalis", "risorius", "eye", "tongue"))]) > 0.5
         a = me.attributes.new("cavidade", "FLOAT", "POINT")
@@ -579,7 +612,13 @@ class Humano:
         sx = 1 if sufixo == ".L" else -1
         if f is None:
             f = (self.cabeca("wrist" + sufixo) - self.cabeca("lowerarm01" + sufixo)).normalized()
-        th = eixo.normalized() * (sx if supinada else -sx)
+        if supinada is None:
+            # sentido automático: o que gira menos o antebraço em relação à mão atual (pegadores longitudinais/verticais)
+            th = eixo.normalized()
+            if th.dot(self.eixo_pegada(sufixo)) < 0:
+                th = -th
+        else:
+            th = eixo.normalized() * (sx if supinada else -sx)
         thp = th - f * th.dot(f)
         if thp.length < 1e-3:
             thp = FRENTE - f * FRENTE.dot(f)
@@ -665,6 +704,7 @@ class Humano:
     def posar(self, p, maos=None):
         """p: pose normalizada (movimento.normalizar) com '_qb' (0..1: quadril apoiado deitado).
         maos: {".L": v, ".R": v} estado dos dedos (-1 apoio, 0 relaxado, 1 pegada)."""
+        p = limitar_rom(p)
         self.zerar()
         self._polos = {}  # plano de flexão de cada membro, fixado pela pose do quadro (IK determinístico)
         t = p["t"]
@@ -722,10 +762,18 @@ class Humano:
                 b, a = p["b" + lado]
                 ab, aa = p["b" + lado + "a"], p["a" + lado + "a"]
                 db, da = d2(b, ab, s), d2(a, aa, s)
+            # cotovelo: flexão máxima ~150° (limite suave no ângulo 3D entre braço e antebraço)
+            cf = math.degrees(db.angle(da)) if db.length and da.length else 0.0
+            cf2 = limite_suave(cf, -90.0, ROM["cotovelo"][1])
+            if cf2 < cf - 1e-3:
+                ax = db.cross(da)
+                if ax.length > 1e-6:
+                    da = (Quaternion(ax.normalized(), math.radians(cf2)) @ db).normalized()
             dirs[sf] = (db, da)
             elev = math.degrees(math.acos(_clamp(db.dot(-up_t), -1, 1)))
             # ritmo escápulo-umeral: a clavícula sobe aos poucos a partir de ~60° de elevação do braço
-            e_cl = max(0.0, elev - 60.0) * 0.16 + p["oe"] * GANHO_OE
+            # (limitada a ~13°: com os braços acima da cabeça o trapézio não "engole" o pescoço)
+            e_cl = 13.0 * math.tanh(max(0.0, elev - 60.0) * 0.16 / 13.0) + p["oe"] * GANHO_OE
             f = db.dot(fw_t)
             ret = _clamp(-f * 1.4, 0, 1) * 14 - _clamp((f - 0.45) * 1.6, 0, 1) * 7 - p.get("pro", 0.0) * 12
             cl = "clavicle" + sf
@@ -1060,6 +1108,10 @@ def enquadrar(co, pts, azimute, margem=0.07, elevacao=10.0):
 def camera_familia(anim, ctx):
     """(campo "cam", elevação em graus): valores da animação ou padrão por família (tabela C2.2 da pesquisa)."""
     cam = anim.get("cam", 64)
+    # câmera por trás esconde o rosto e os contatos das mãos: espelha para a frente (3/4 do mesmo lado), salvo se a
+    # animação pedir explicitamente a vista de costas ("cam_tras": true)
+    if float(cam) < 0 and not anim.get("cam_tras"):
+        cam = -float(cam)
     if "cam_el" in anim:
         return cam, float(anim["cam_el"])
     ch = ctx.trilhas.chaves
@@ -1271,6 +1323,137 @@ def _pose2d(q):
     return {"x": q["x"], "y": q["y"], "ay": q["ay"], "t": q["t"], "c": q["c"], "bf": q["bf"], "bt": q["bt"], "pf": q["pf"], "pt": q["pt"]}
 
 
+FRAC_ANTEPE = 0.97  # pivô do pé apoiado na meia-ponta: articulação metatarsofalângica (base dos dedos)
+REG_TRONCO = ("pelve", "costas", "cabeca", "lado", "gluteo")
+REG_MEMBRO = {"joelho_f": "joelho_f", "joelho_t": "joelho_t", "cotovelo_f": "antebraco_f", "cotovelo_t": "antebraco_t",
+              "antebraco_f": "antebraco_f", "antebraco_t": "antebraco_t"}
+
+
+def _mask_regioes(h, regs):
+    m = np.zeros(len(h.px_idx), bool)
+    for r in regs:
+        if r in ("pelve", "gluteo"):
+            m |= h.px_partes["pelve"]
+        elif r == "costas":
+            m |= h.px_partes["costas"]
+        elif r == "cabeca":
+            m |= h.px_partes["cabeca"]
+        elif r == "lado":
+            m |= h.px_partes["tronco"]
+        elif r in REG_MEMBRO:
+            m |= h.px_partes[REG_MEMBRO[r]]
+    return m
+
+
+def superficie_vet(ctx, P, folga=0.6):
+    """Altura da superfície (chão/banco/caixa) sob cada ponto de P (n x 3), ignorando topos muito acima do ponto."""
+    z = np.full(len(P), ctx.z0)
+    if "quad" not in ctx.ref:
+        return z
+    for x0, x1, y0, y1, zt in ctx.superficies()[1:]:
+        m = (P[:, 0] >= x0) & (P[:, 0] <= x1) & (P[:, 1] >= y0) & (P[:, 1] <= y1) & (zt <= P[:, 2] + folga)
+        z[m] = np.maximum(z[m], zt)
+    return z
+
+
+def regioes_apoio(ctx, q, p2):
+    """Partes do tronco/membros que apoiam o corpo neste quadro-chave: declaradas em "apoio" ("pelve", "gluteo",
+    "costas", "cabeca", "lado", "joelho_f", "cotovelo_t"...) ou automáticas: deitado (tronco perto da horizontal ou de lado)
+    com o quadril perto de uma superfície -> pelve/costas/cabeça; sentado sobre banco/chão -> glúteo."""
+    ap = q.get("apoio")
+    if ap is not None:
+        return [r for r in ap if r in REG_TRONCO or r in REG_MEMBRO]
+    if ctx.barra is not None:
+        return []
+    hx, hy = p2["quadril"]
+    tops = [0.0]
+    for pr in ctx.props:
+        if pr.get("tipo") in ("banco", "caixa", "maquina") and pr.get("h", 4) < 6.5:
+            x, w = pr.get("x", 0), pr.get("w", 8)
+            if x - 0.3 <= hx <= x + w + 0.3:
+                tops.append(pr.get("y", 0) + pr.get("h", 4))
+    alt = min((hy - t for t in tops if hy - t > -0.8), default=99.0)
+    st = math.sin(math.radians(q["t"]))
+    deitado = abs(st) > 0.72 or abs(q.get("rol", 0.0)) > 50
+    em_pe = -math.cos(math.radians(q["t"])) > 0.35  # tronco para cima
+    # deitado: o ponto mais baixo do tronco (quadril, ombros ou cabeça: ponte, abdominal) perto do chão/banco
+    alt_t = min(alt, min((p2["ombro"][1] - t for t in tops if p2["ombro"][1] - t > -0.8), default=99.0),
+                min((p2["cabeca"][1] - 1.0 - t for t in tops if p2["cabeca"][1] - 1.0 - t > -0.8), default=99.0))
+    if deitado and alt_t < 1.9:
+        return ["lado"] if abs(q.get("rol", 0.0)) > 50 else ["pelve", "costas", "cabeca"]
+    if em_pe and not deitado and alt < 2.1 and (len(tops) > 1 or alt < 1.6):
+        return ["gluteo"]
+    return []
+
+
+def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
+    """Desloca o corpo na vertical para a parte mais baixa das regiões de apoio encostar na superfície embaixo dela
+    (sentado no assento real, deitado no banco/chão: nada de pousar no ar nem afundar)."""
+    if not regs or w <= 1e-4:
+        return T
+    P = h.proxy(T)
+    m = _mask_regioes(h, regs)
+    if not m.any():
+        return T
+    Q = P[m]
+    gap = Q[:, 2] - superficie_vet(ctx, Q)
+    g = float(gap.min())
+    if abs(g) < 1e-3 or abs(g) > lim:
+        return T
+    return Matrix.Translation((0, 0, -g * w)) @ T
+
+
+def cabeca_no_apoio(h, ctx, T):
+    """Deitado: a cabeça que ficou a poucos cm do banco/chão encosta nele (flexão/extensão do pescoço)."""
+    P = h.proxy(T)
+    m = h.px_partes["cabeca"]
+    Q = P[m]
+    g = float((Q[:, 2] - superficie_vet(ctx, Q)).min())
+    if not (0.03 < g < 0.9):
+        return
+    eixo = (T.to_3x3().inverted() @ ESQ).normalized()
+    est0 = {n: h.basis[n].copy() for n in ("neck01", "neck02")}
+
+    def gap_com(a):
+        for n in ("neck01", "neck02"):
+            h.basis[n] = est0[n].copy()
+            h._mudou(n)
+        for n in ("neck01", "neck02"):
+            h.set_rot(n, Quaternion(eixo, a * 0.5).to_matrix() @ h.rot(n))
+        Q2 = h.proxy(T)[m]
+        return float((Q2[:, 2] - superficie_vet(ctx, Q2)).min())
+    sinal = 1.0 if gap_com(math.radians(8)) < g else -1.0
+    lo, hi = 0.0, math.radians(30)
+    for _ in range(10):
+        mid = (lo + hi) / 2
+        if gap_com(sinal * mid) > 0.01:
+            lo = mid
+        else:
+            hi = mid
+    gap_com(sinal * lo)
+
+
+def dobrar_dedos(h, ctx, T, pesos):
+    """Pé apoiado na meia-ponta: os dedos dobram (extensão das metatarsofalângicas) até ficarem paralelos ao chão ANTES
+    de o corpo ser apoiado — o apoio é a base dos dedos, nunca a ponta (sem 'pé de bailarina')."""
+    Ti3 = T.to_3x3().inverted()
+    Tq = T.to_3x3()
+    for sf, w in pesos.items():
+        if w <= 1e-3:
+            continue
+        for f in range(1, 6):
+            n = f"toe{f}-1{sf}"
+            if n not in h.basis:
+                continue
+            d = Tq @ (h.cauda(n) - h.cabeca(n)).normalized()
+            if d.z >= 0:
+                continue
+            dh = Vector((d.x, d.y, 0.0))
+            if dh.length < 1e-3:
+                continue
+            h.apontar(n, Ti3 @ d.lerp(dh.normalized(), w).normalized())
+
+
 EFETORES = (("pe_f", "perna", ".L"), ("pe_t", "perna", ".R"), ("mao_f", "braco", ".L"), ("mao_t", "braco", ".R"))
 
 
@@ -1289,7 +1472,7 @@ def info_efetor(h, ctx, T, ef, membro, sf, P=None):
     Tq = T.to_3x3()
     if membro == "perna":
         a = h.cabeca("foot" + sf)
-        ponta = T @ (a + (h.cabeca("toe3-1" + sf) - a) * 0.78)  # antepé (pivô do apoio)
+        ponta = T @ (a + (h.cabeca("toe3-1" + sf) - a) * FRAC_ANTEPE)  # cabeça dos metatarsos (pivô do apoio)
         bola = pts[np.linalg.norm(pts - np.array(ponta), axis=1) < 0.9]
         zbola = float(bola[:, 2].min()) if len(bola) else float(zmin)
     else:
@@ -1299,8 +1482,9 @@ def info_efetor(h, ctx, T, ef, membro, sf, P=None):
             "ponta": ponta, "zbola": zbola}
 
 
-def mao_apoiada_rot(h, T, sf):
-    """Rotação (esqueleto) do punho para a mão espalmada no apoio: palma para baixo, dedos à frente (ou seguindo o antebraço deitado)."""
+def mao_apoiada_rot(h, T, sf, giro=None):
+    """Rotação (esqueleto) do punho para a mão espalmada no apoio: palma para baixo, dedos à frente (ou seguindo o antebraço
+    deitado). giro ("dedos" do quadro): "tras" (dedos virados para o corpo), "fora", "dentro" ou graus em torno da vertical."""
     s = 1 if sf == ".L" else -1
     Ti = T.to_3x3().inverted()
     Tq = T.to_3x3()
@@ -1319,6 +1503,10 @@ def mao_apoiada_rot(h, T, sf):
         hd = (ah.normalized() * (1 - w) + base * w).normalized()
     else:
         hd = base
+    if giro is not None:
+        g = {"tras": 180.0, "fora": -90.0 * s, "dentro": 90.0 * s, "frente": 0.0}.get(giro, giro) if isinstance(giro, str) else float(giro)
+        if isinstance(g, (int, float)) and g:
+            hd = Quaternion(Vector((0, 0, 1)), math.radians(g)) @ hd
     return h.rot_mao(sf, Ti @ hd, Ti @ Vector((0, 0, -1)))
 
 
@@ -1434,7 +1622,7 @@ def apoiar_superficies(h, ctx, P, T=None, p2=None):
             elif parte.startswith("pe") and T is not None:
                 sf = ".L" if parte.endswith("f") else ".R"
                 a_ = h.cabeca("foot" + sf)
-                ponta = np.array(T @ (a_ + (h.cabeca("toe3-1" + sf) - a_) * 0.78)) + sh
+                ponta = np.array(T @ (a_ + (h.cabeca("toe3-1" + sf) - a_) * FRAC_ANTEPE)) + sh
                 bola = pts[np.linalg.norm(pts - ponta, axis=1) < 0.9]
                 if len(bola):
                     zb = float(bola[:, 2].min())
@@ -1464,7 +1652,14 @@ def colocar_chave(h, ctx, q):
     # mão espalmada ANTES de nivelar/apoiar (deitar a mão sobe a palma ~1,4 unidade; senão ela fica flutuando)
     for lado, sf, _ in LADOS:
         if apoio[lado]:
-            h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
+            h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf, q.get("dedos")))
+    # pé apoiado: dedos dobrados antes de qualquer apoio vertical (o corpo não sobe pela ponta dos dedos)
+    decl = q.get("apoio")
+    pes_ap = {}
+    for lado, sf, _ in LADOS:
+        pes_ap[sf] = float(("pe_" + lado) in decl) if decl is not None else float(min(p2["ponta_" + lado][1], p2["calcanhar_" + lado][1]) < 0.6)
+    dobrar_dedos(h, ctx, T, pes_ap)
+    regs = regioes_apoio(ctx, q, p2)
     pts = h.proxy(T)
     # 1) dois apoios no chão -> nivelar (só com o corpo no plano sagital)
     sup = []
@@ -1520,6 +1715,9 @@ def colocar_chave(h, ctx, q):
             T = Matrix.Translation((0, 0, ctx.z0 - zmin)) @ T  # altura dada não pode enterrar joelhos/pés
     if q["z"]:
         T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
+    # 3b) tronco apoiado (sentado no assento, deitado no banco/chão, de lado): a parte mais baixa encosta na superfície
+    if regs:
+        T = apoiar_tronco(h, ctx, T, regs)
     # 4) barra fixa: mãos na barra (em todo quadro: quem pendura não solta a barra)
     if ctx.barra is not None and "barra3" in ref:
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
@@ -1545,15 +1743,24 @@ def colocar_chave(h, ctx, q):
     if "quad" not in ref:
         ref["quad"] = (p2["quadril"][0], T @ h.cabeca("root"))
     # 5) deitado de costas sobre banco: as costas encostam no estofado (o 2D não conhece a espessura do corpo 3D)
-    T = repousar(h, ctx, T, q)
+    if regs:
+        T = apoiar_tronco(h, ctx, T, regs)
+        if "cabeca" in regs or "costas" in regs:
+            cabeca_no_apoio(h, ctx, T)
+    else:
+        T = repousar(h, ctx, T, q)
     # 6) mãos espalmadas no apoio + encaixe fino de pés/mãos na superfície
     for lado, sf, _ in LADOS:
         if apoio[lado]:
-            h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf))
+            h.set_rot("wrist" + sf, mao_apoiada_rot(h, T, sf, q.get("dedos")))
     if ctx.maos_banco is not None:
         maos_na_borda(h, ctx, T, apoio)
-    encaixar(h, ctx, T, apoio)
-    return T, maos, {"apoio": apoio, "p2": p2}
+    # apoios declarados (ou pés no chão com o tronco apoiado) descem/sobem até a superfície mesmo longe (IK)
+    largos = {("pe_" + l_) for l_, sf_, _ in LADOS if pes_ap[sf_] > 0.5 and (decl is not None or regs)}
+    if decl is not None:
+        largos |= {("mao_" + l_) for l_ in ("f", "t") if ("mao_" + l_) in decl}
+    encaixar(h, ctx, T, apoio, largos)
+    return T, maos, {"apoio": apoio, "p2": p2, "tronco": regs, "pes_ap": pes_ap}
 
 
 def maos_na_borda(h, ctx, T, apoio):
@@ -1653,8 +1860,9 @@ def cabeca_atras_da_barra(h, ctx, T, folga=0.32):
     return segurar_barra(h, ctx, T)
 
 
-def encaixar(h, ctx, T, apoio):
-    """Pés e mãos que quase tocam uma superfície passam a tocá-la exatamente (IK), sem atravessar."""
+def encaixar(h, ctx, T, apoio, largos=()):
+    """Pés e mãos que quase tocam uma superfície passam a tocá-la exatamente (IK), sem atravessar. largos: apoios
+    declarados que encostam mesmo a até 2,5 unidades (rol, tronco apoiado, proporções 2D x 3D)."""
     Ti = T.inverted()
     P = h.proxy(T)
     for ef, membro, sf in EFETORES:
@@ -1664,9 +1872,12 @@ def encaixar(h, ctx, T, apoio):
         pts = P[h.px_partes[ef]]
         zmin = pts[:, 2].min()
         baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
-        zs = ctx.superficie_em(baixo, zmin)
+        zs = ctx.superficie_em(baixo, zmin + (2.5 if ef in largos else 0.0))
         gap = zmin - zs
-        if membro == "perna" and not (-2.0 < gap < 0.45):
+        lim_sup = 2.5 if ef in largos else 0.45
+        if membro == "perna" and not (-2.0 < gap < lim_sup):
+            continue
+        if membro == "braco" and abs(gap) > lim_sup:
             continue
         if abs(gap) < 0.01:
             continue
@@ -1760,9 +1971,39 @@ def plantar(h, ctx, T, chaves, i, j, u):
                 pesos[ef] = 1.0
                 ctx._alvos[ef] = (pos.copy(), membro, sf, 1.0)
                 continue
+            if membro == "braco":
+                # passos de mão (inchworm, caminhada de urso...): as mãos andam alternadas em passos de até ~26 cm,
+                # uma de cada vez; entre os passos a mão fica parada no chão (nunca desliza)
+                outra = "mao_t" if ef == "mao_f" else "mao_f"
+                ambas = ea[outra]["contato"] and eb[outra]["contato"] and (ea[outra]["ponta"] - eb[outra]["ponta"]).length >= 1.6
+                n_p = max(1, math.ceil(dist / 2.6))
+                k_h = (0 if ef == "mao_f" else 1) if ambas else 0
+                nj = 2 * n_p if ambas else n_p
+                pos, rot, wgt = None, None, 1.0
+                for jp in range(n_p):
+                    m_ = 2 * jp + k_h if ambas else jp
+                    w0, w1 = m_ / nj, (m_ + 1) / nj
+                    pa_, pb_ = a["pos"].lerp(b["pos"], jp / n_p), a["pos"].lerp(b["pos"], (jp + 1) / n_p)
+                    if u < w0:
+                        pos, rot = pa_, _slerp(a["rot"], b["rot"], jp / n_p)
+                        break
+                    if u <= w1:
+                        sm = mov.suave((u - w0) / (w1 - w0), 0.05, 0.95)
+                        d_ = (pb_ - pa_).length
+                        pos = pa_.lerp(pb_, sm) + Vector((0, 0, min(0.9, 0.3 * d_ + 0.25) * math.sin(math.pi * sm)))
+                        rot = _slerp(a["rot"], b["rot"], (jp + sm) / n_p)
+                        wgt = 1.0 - math.sin(math.pi * sm)
+                        break
+                if pos is None:
+                    pos, rot = b["pos"], b["rot"]
+                h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
+                pesos[ef] = wgt
+                if wgt > 0.999:
+                    ctx._alvos[ef] = (pos.copy(), membro, sf, 1.0)
+                continue
             # passo: sai de um apoio e pousa no outro num arco baixo
             sm = mov.suave(u, 0.08, 0.92)
-            alt = min(0.9, 0.2 * dist) if membro == "perna" else min(1.1, 0.18 * dist)
+            alt = min(0.9, 0.2 * dist)
             pos = a["pos"].lerp(b["pos"], sm) + Vector((0, 0, alt * math.sin(math.pi * sm)))
             rot = _slerp(a["rot"], b["rot"], sm)
             h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
@@ -1810,7 +2051,7 @@ def _gap_apoio(h, ctx, T, P, ef, membro, sf):
     if membro == "perna":
         # antepé sobre um degrau/banco: mede sempre pelo antepé (o calcanhar pode passar da borda)
         a = h.cabeca("foot" + sf)
-        ponta = np.array(T @ (a + (h.cabeca("toe3-1" + sf) - a) * 0.78))
+        ponta = np.array(T @ (a + (h.cabeca("toe3-1" + sf) - a) * FRAC_ANTEPE))
         bola = pts[np.linalg.norm(pts - ponta, axis=1) < 0.9]
         if len(bola):
             zb = float(bola[:, 2].min())
@@ -2036,6 +2277,8 @@ def corrigir_barra(h, ctx, T):
         centro = T @ h.cabeca("root") + frente_p * 1.35 + (Rp @ CIMA).normalized() * 0.35
         eixo = (T.to_3x3() @ ESQ).normalized()
         meia = max(2.6, min(3.9, meia))
+        # anilha nunca atravessa o chão: na posição baixa ela pousa no chão (o quadril deve ficar acima; ver dados)
+        centro.z = max(centro.z, ctx.z0 + aparelhos.raio_anilha(ctx))
         for _ in range(2):
             for sf, sx_ in ((".L", 1), (".R", -1)):
                 alvo_m = centro + eixo * (meia * sx_)
@@ -2200,7 +2443,7 @@ def preparar_anim(h, anim, k, grupo):
         ef = efetores_chave(h, ctx, T, ext["apoio"], q.get("apoio"))
         pos = T @ h.cabeca("root")
         chaves.append({"T": T, "maos": maos, "apoio": ext["apoio"], "ef": ef, "est": h.estado(), "pos": pos, "rot": T.to_quaternion(),
-                       "q": q})
+                       "q": q, "tronco": ext.get("tronco") or [], "pes_ap": ext.get("pes_ap") or {}})
     ctx.chaves = chaves
     if ctx.rolar:
         # piso rolante (o chão corre para trás, +y): pé baixo que vai para a FRENTE até a próxima chave está no ar (balanço)
@@ -2297,7 +2540,7 @@ def quadro(h, ctx, tau):
         w = _lerp(wa, wb, mov.suave(u))
         if w > 1e-3:
             Ra = h.rot("wrist" + sf).to_quaternion()
-            Rb = mao_apoiada_rot(h, T, sf).to_quaternion()
+            Rb = mao_apoiada_rot(h, T, sf, (ca if u < 0.5 else cb)["q"].get("dedos")).to_quaternion()
             h.set_rot("wrist" + sf, Ra.slerp(Rb, w).to_matrix())
     return finalizar(h, ctx, T, tau, (i, j, u), maos)
 
@@ -2309,6 +2552,19 @@ def _chave_livre(c):
 
 def finalizar(h, ctx, T, tau, seg, maos):
     extras = {}
+    if seg is not None:
+        i, j, u = seg
+        ca, cb = ctx.chaves[i], ctx.chaves[j]
+        su = mov.suave(u)
+        # tronco apoiado entre as chaves (peso contínuo) e dedos do pé dobrados no pé de apoio, antes de plantar
+        w_t = _lerp(1.0 if ca["tronco"] else 0.0, 1.0 if cb["tronco"] else 0.0, su)
+        if w_t > 1e-3:
+            T = apoiar_tronco(h, ctx, T, sorted(set(ca["tronco"]) | set(cb["tronco"])), w_t, lim=1.5)
+        pes = {}
+        for ef, membro, sf in EFETORES[:2]:
+            pes[sf] = _lerp(float(ca["ef"][ef]["contato"] or ca["pes_ap"].get(sf, 0) > 0.5),
+                            float(cb["ef"][ef]["contato"] or cb["pes_ap"].get(sf, 0) > 0.5), su)
+        dobrar_dedos(h, ctx, T, pes)
     aparelhos.antes_ik(ctx, h, T, tau, extras)
     pesos = {}
     if seg is not None:

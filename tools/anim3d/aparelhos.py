@@ -340,7 +340,8 @@ def _alvo_pegador(ctx, h, T, sf, sx):
         # alavanca da panturrilha sentado: pegadores sobre a almofada das coxas (acompanham os joelhos)
         j = T @ h.cabeca("lowerleg01" + sf)
         q = T @ h.cabeca("upperleg01" + sf)
-        return (j + (q - j) * 0.18 + Vector((sx * 0.55, 0, 1.25)), Vector((1, 0, 0)))
+        c = j + (q - j) * 0.16
+        return (Vector((sx * 2.75, c.y, c.z + 1.1)), Vector((0, 1, 0)))
     if tipo == "hack":
         S = T @ h.cabeca("upperarm01" + sf)
         u = (T @ h.cabeca("neck01") - T @ h.cabeca("root")).normalized()
@@ -370,7 +371,7 @@ def ik_pegadores(ctx, h, T):
                 continue
             pos, eixo = a
             alvo_l = Ti @ pos
-            R = h.rot_pegada(sf, Ti3 @ eixo, False, f=(h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized())
+            R = h.rot_pegada(sf, Ti3 @ eixo, None if abs(eixo.x) < 0.7 else False, f=(h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized())
             h.ik("braco", sf, alvo_l - R @ h.off_peg[sf], R)
 
 
@@ -380,7 +381,7 @@ def depois_ik(ctx, h, T, tau, extras):
     pegada_implementos(ctx, h, T, tau, extras)
 
 
-def pegar_em(h, T, sf, pos, eixo, supinada=False, passes=2):
+def pegar_em(h, T, sf, pos, eixo, supinada=None, passes=2):
     """Leva a pegada da mão até 'pos' (mundo), fechada em volta de um cabo de eixo 'eixo' (mundo)."""
     Ti = T.inverted()
     Ti3 = Ti.to_3x3()
@@ -478,16 +479,11 @@ def pegada_implementos(ctx, h, T, tau, extras):
     if "kettlebell" in cfg:
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
         c = (gL + gR) / 2
-        goblet = "goblet" in ctx.id or cfg["kettlebell"].get("goblet")
-        if goblet:
-            # pelos chifres: cada palma de um lado da alça, eixo vertical, sino encostado no peito
-            e = (T.to_3x3() @ Vector((1, 0, 0))).normalized()
-            for sf, sx in ((".L", 1), (".R", -1)):
-                pegar_em(h, T, sf, c + e * (0.42 * sx), Vector((0, 0, 1)))
-        else:
-            e = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
-            for sf, sx in ((".L", 1), (".R", -1)):
-                pegar_em(h, T, sf, c + e * (0.3 * sx), e)
+        # duas mãos lado a lado na alça (no goblet o sino fica embaixo, encostado no peito)
+        e = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        for sf, sx in ((".L", 1), (".R", -1)):
+            pegar_em(h, T, sf, c + e * (0.3 * sx), e, False)
+        extras["kb"] = (c, e)
     if "halter_unico" in cfg:
         # um halter vertical seguro pelas duas mãos (tríceps francês): mãos uma sobre a outra no cabo
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
@@ -1052,12 +1048,12 @@ def _pegadores(kit, ctx, h):
         for sf, sx in ((".L", 1), (".R", -1)):
             p, e = cfg[sf]
             if abs(e.x) > 0.5:
-                kit.cil(p - X * 0.6, p + X * 0.6, 0.2, kit.preto, 16)
-                kit.viga(p - X * (sx * 0.6), Vector((sx * 1.4, p.y + 0.6, p.z - 0.6)), 0.3, 0.3, kit.quadro)
+                kit.cil(p - X * 1.0, p + X * 1.0, 0.2, kit.preto, 16)
+                kit.viga(p - X * (sx * 1.0), Vector((sx * 1.2, p.y + 0.9, p.z - 0.8)), 0.3, 0.3, kit.quadro)
             else:
-                kit.cil(p - e * 0.85, p + e * 0.85, 0.2, kit.preto, 16)
-                kit.viga(p + e * 0.85, Vector((sx * 1.5, p.y + 0.85, p.z - 0.7)), 0.3, 0.3, kit.quadro)
-                kit.viga(p - e * 0.85, Vector((sx * 1.5, p.y - 0.85, p.z - 0.7)), 0.3, 0.3, kit.quadro)
+                kit.cil(p - e * 1.2, p + e * 1.2, 0.2, kit.preto, 16)
+                kit.viga(p + e * 1.2, Vector((sx * 1.5, p.y + 1.2, p.z - 0.7)), 0.3, 0.3, kit.quadro)
+                kit.viga(p - e * 1.2, Vector((sx * 1.5, p.y - 1.2, p.z - 0.7)), 0.3, 0.3, kit.quadro)
     elif tipo == "mesa":
         for sf, sx in ((".L", 1), (".R", -1)):
             p, e = cfg[sf]
@@ -1084,11 +1080,15 @@ def _pegadores(kit, ctx, h):
             jL, jR = T @ h.cabeca("lowerleg01.L"), T @ h.cabeca("lowerleg01.R")
             qL = T @ h.cabeca("upperleg01.L")
             j = (jL + jR) / 2
-            c = j + (qL - jL) * 0.16 + Vector((0, 0, 0.95))
+            c = j + (qL - jL) * 0.16
+            P = h.proxy(T)
+            mm = (h.px_partes["coxa_f"] | h.px_partes["coxa_t"]) & (np.abs(P[:, 1] - c.y) < 0.6)
+            ztop = float(P[mm, 2].max()) if mm.any() else c.z + 0.6
+            c = Vector((0, c.y, ztop + 0.56))
             Kit.por_cil(pad, Vector((-2.4, c.y, c.z)), Vector((2.4, c.y, c.z)))
             for (sf, sx), o in zip(((".L", 1), (".R", -1)), hastes):
                 a_ = _alvo_pegador(ctx, h, T, sf, sx)
-                Kit.por_cil(peg[sf], a_[0] - a_[1] * 0.6, a_[0] + a_[1] * 0.6)
+                Kit.por_cil(peg[sf], a_[0] - a_[1] * 0.7, a_[0] + a_[1] * 0.7)
                 Kit.por_cil(o, Vector((sx * 2.5, c.y, c.z)), Vector((sx * 2.5, c.y - 2.2, 0.2)))
         kit.moveis.append(upd)
     elif tipo == "hack":
@@ -2063,6 +2063,7 @@ def _kettlebell(kit, ctx, h, maos="ambas"):
         h.restaurar(est["est"])
         T = est["T"]
         c = sum((T @ h.pegada(sf) for sf in lados), Vector()) / len(lados)
+        alvo.e = (T @ h.pegada(".L") - T @ h.pegada(".R")).normalized() if len(lados) == 2 else (T.to_3x3() @ h.eixo_pegada(lados[0])).normalized()
         ante = T.to_3x3() @ sum(((h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)) for sf in lados), Vector()).normalized()
         return c, ante
     dirs = None
@@ -2095,22 +2096,31 @@ def _kettlebell(kit, ctx, h, maos="ambas"):
 
     goblet = "goblet" in ctx.id
 
+    def por_kb(c, d, e):
+        # -Z local = direção do sino, Y local = eixo da alça (entre as mãos); a barra de cima da alça (z local 0,45) na pegada
+        zl = (-d).normalized()
+        yl = e - zl * e.dot(zl)
+        yl = yl.normalized() if yl.length > 1e-4 else zl.orthogonal().normalized()
+        xl = yl.cross(zl)
+        M = Matrix((xl, yl, zl)).transposed().to_4x4()
+        kb.matrix_world = Matrix.Translation(c - zl * 0.45) @ M
+
     def upd(est):
         c, ante = alvo(est)
+        e = alvo.e
         if goblet:
-            # goblet: sino abaixo das mãos, encostado no peito (cada palma num chifre da alça)
+            # goblet: sino abaixo das mãos, encostado no peito
             h.restaurar(est["est"])
             T = est["T"]
             Rs = T.to_3x3() @ h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
             tras = (Rs @ Vector((0, 1, 0))).normalized()
-            d = (Vector((0, 0, -1)) + tras * 0.35).normalized()
-            kb.matrix_world = Matrix.Translation(c + Vector((0, 0, 0.25))) @ _alinhar(Vector((0, 0, -1)), d)
+            por_kb(c, (Vector((0, 0, -1)) + tras * 0.35).normalized(), e)
             return
         if dirs is not None and id(est) in dirs:
             d = dirs[id(est)]
         else:
             d = (Vector((0, 0, -1)) * 0.65 + ante * 0.35).normalized()
-        kb.matrix_world = Matrix.Translation(c) @ _alinhar(Vector((0, 0, -1)), d)
+        por_kb(c, d, e)
     kit.moveis.append(upd)
 
 
