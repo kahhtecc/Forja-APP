@@ -187,8 +187,8 @@ class Kit:
 # ------------------------------------------------------------------ peças compostas (criadas na origem, eixo X)
 
 def barra_olimpica(kit, R, curta=False):
-    meia = 6.6 if curta else 11.0
-    luva = 4.2 if curta else 6.5
+    meia = 7.6 if curta else 11.0
+    luva = 5.2 if curta else 6.5
     ps = [kit.cil((-luva, 0, 0), (luva, 0, 0), 0.14, kit.metal, 20)]
     for s in (-1, 1):
         ps.append(kit.cil((s * luva, 0, 0), (s * meia, 0, 0), 0.25, kit.metal, 20))
@@ -351,7 +351,7 @@ def _alvo_pegador(ctx, h, T, sf, sx):
         return (S - u * 0.2 + Vector((sx * 1.15, 0, 0)) - nb * 0.6, u)
     if tipo == "roda":
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
-        return (Vector((sx * 0.95, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
+        return (Vector((sx * 1.05, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
     return None
 
 
@@ -379,6 +379,34 @@ def depois_ik(ctx, h, T, tau, extras):
     """No fim de cada quadro (posição final do corpo): mãos presas a pegadores fixos no mundo, implementos de duas mãos."""
     ik_pegadores(ctx, h, T)
     pegada_implementos(ctx, h, T, tau, extras)
+    halteres_fora_do_corpo(ctx, h, T)
+
+
+def halteres_fora_do_corpo(ctx, h, T, raio=0.66):
+    """Halter (um por mão) não entra na coxa/tronco: a mão é afastada para fora (IK) o que faltar."""
+    if "halter" not in ctx.tipos or "halter_unico" in (getattr(ctx, "impl", None) or {}):
+        return
+    pr = [p for p in ctx.props if p.get("tipo") == "halter"][0]
+    lados = {"f": (".L",), "t": (".R",)}.get(_qual_mao(pr), (".L", ".R"))
+    P = h.proxy(T)
+    corpo = h.px_partes["tronco"] | h.px_partes["coxa_f"] | h.px_partes["coxa_t"] | h.px_partes["canela_f"] | h.px_partes["canela_t"]
+    Q = P[corpo]
+    Ti = T.inverted()
+    for sf in lados:
+        sx = 1 if sf == ".L" else -1
+        for _ in range(3):
+            g = T @ h.pegada(sf)
+            e = (T.to_3x3() @ h.eixo_pegada(sf)).normalized()
+            pior = 0.0
+            for s_ in (-0.9, 0.9):
+                c = np.array(g + e * s_)
+                d = float(np.linalg.norm(Q - c, axis=1).min())
+                pior = max(pior, raio - d)
+            if pior <= 0.01:
+                break
+            lat = (T.to_3x3() @ Vector((sx, 0, 0))).normalized()
+            alvo = Ti @ (T @ h.cabeca("wrist" + sf) + lat * (pior + 0.03))
+            h.ik("braco", sf, alvo, h.rot("wrist" + sf))
 
 
 def pegar_em(h, T, sf, pos, eixo, supinada=None, passes=2):
@@ -485,12 +513,12 @@ def pegada_implementos(ctx, h, T, tau, extras):
             pegar_em(h, T, sf, c + e * (0.3 * sx), e, False)
         extras["kb"] = (c, e)
     if "halter_unico" in cfg:
-        # um halter vertical seguro pelas duas mãos (tríceps francês): mãos uma sobre a outra no cabo
+        # um halter seguro pelas duas mãos (tríceps francês): punhos lado a lado no mesmo cabo, sem dois halteres
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
         c = (gL + gR) / 2
-        d = sum((T.to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)) for sf in (".L", ".R")), Vector()).normalized()
-        pegar_em(h, T, ".L", c + d * 0.3, d)
-        pegar_em(h, T, ".R", c - d * 0.3, d)
+        d = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        pegar_em(h, T, ".L", c + d * 0.33, d, False)
+        pegar_em(h, T, ".R", c - d * 0.33, d, False)
         extras["halter_unico"] = (c, d)
     if "cabo" in cfg:
         tc = tipo_cabo(ctx)
@@ -683,7 +711,7 @@ def montar(kit, ctx, h, estados):
                 # barras centradas nas mãos (o corpo fica no meio das duas, longe dos montantes)
                 c = Vector((c.x, sum((a["gL"].y + a["gR"].y) / 2 for a in am) / len(am) + 0.5, c.z))
                 for s in (-1, 1):
-                    xb = s * max(1.8, min(xmax, 3.2))
+                    xb = s * max(2.8, min(xmax, 3.4))  # largas o bastante para o quadril passar entre elas
                     kit.cil((xb, c.y - 6.6, c.z), (xb, c.y + 6.6, c.z), 0.2, kit.metal)
                     for dy in (-6.0, 6.0):
                         kit.cil((xb, c.y + dy, 0), (xb, c.y + dy, c.z - 0.1), 0.22, kit.quadro, 16)
@@ -899,7 +927,7 @@ def preparar_alavancas(ctx, h):
         o = omb[sf]
         if tipo == "supino":
             ax = X.copy()
-            piv = Vector((sx * (abs(o.x) + 1.3), o.y + 2.0, o.z + 2.6))
+            piv = Vector((sx * (abs(o.x) + 3.2), o.y + 0.8, o.z - 1.0))  # por fora e abaixo do braço (não corta o ombro)
         elif tipo == "peck":
             ax = CIMA.copy()
             piv = Vector((sx * 1.9, o.y + 0.4, 0.0))
@@ -970,7 +998,7 @@ def _bracos_maquina(kit, ctx, h, encosto):
             kit.viga(Vector((sx * 3.4, y + 1.2, piv.z)), Vector((sx * 3.4, y + 1.2, 0.1)), 0.45, 0.45, kit.quadro)
         elif tipo == "peck":
             h.restaurar(ctx.chaves[0]["est"])
-            zarm[sf] = (ctx.chaves[0]["T"] @ h.pegada(sf)).z + 1.7
+            zarm[sf] = (ctx.chaves[0]["T"] @ h.pegada(sf)).z + 0.3  # alavanca na altura da mão (não cruza o bíceps)
             topo = Vector((piv.x, piv.y, zt + 2.0))
             kit.viga(topo, Vector((sx * 3.4, y + 1.2, zt + 2.0)), 0.5, 0.5, kit.quadro)
             kit.disco(topo - Vector((0, 0, 0.2)), 0.45, 0.5, kit.quadro, eixo=(0, 0, 1), verts=20)
@@ -1117,7 +1145,7 @@ def _roda(kit, ctx, h):
         disco.matrix_world = Matrix.Translation(c) @ Matrix.Rotation(ang, 4, "X")
         Kit.por_cil(eixo, c - X * 1.35, c + X * 1.35)
         for sf, sx in ((".L", 1), (".R", -1)):
-            Kit.por_cil(mans[sf], c + X * (sx * 0.38), c + X * (sx * 1.4))
+            Kit.por_cil(mans[sf], c + X * (sx * 0.42), c + X * (sx * 1.6))
     kit.moveis.append(upd)
 
 
@@ -1190,7 +1218,7 @@ def _apoio_scott(kit, ctx, h):
     up = (o.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
     if up.dot(nrm) < 0:
         o.matrix_world = o.matrix_world @ Matrix.Rotation(math.pi, 4, "Y")
-    kit.viga(Vector((0, centro.y, 0.1)), centro - nrm * 0.3, 0.6, 0.6, kit.quadro)
+    kit.viga(Vector((0, centro.y - d.y * 1.0, 0.1)), centro - nrm * 0.3 - d * 1.0, 0.6, 0.6, kit.quadro)
     kit.caixa((0, centro.y, 0.1), (3.0, 3.0, 0.2), kit.quadro, 0.05)
 
 
@@ -1589,6 +1617,10 @@ def _polia(kit, ctx, pr, am):
         polias.append(A)
     ctx.polia3 = polias[0] if polias else A
     cabos = [kit.cil_movel(0.045, kit.cabo_m, 8) for _ in polias]
+    fio = _fio(kit, 8, 0.045, kit.cabo_m)
+    if len(polias) == 2:
+        for o in fio:
+            o.hide_render = True
     tipo = tipo_cabo(ctx)
     if remo:
         tipo = "barra"
@@ -1614,6 +1646,13 @@ def _polia(kit, ctx, pr, am):
             for o in [alca, puxador] + cordas:
                 o.hide_render = True
             return
+        h.restaurar(est["est"])
+        T = est["T"]
+
+        def cabo_ate(p_fim):
+            pts = [polias[0].lerp(p_fim, i_ / 8) for i_ in range(9)]
+            _por_fio(fio, contornar(h, T, pts, ("mao_f", "mao_t", "antebraco_f", "antebraco_t"), folga=0.35))
+            cabos[0].hide_render = True
         if tipo == "triangulo":
             c, lat, eixo = est["extras"].get("triangulo", ((gL + gR) / 2, (gL - gR).normalized(), Vector((0, 1, 0))))
             topo = c + (polias[0] - c).normalized() * 1.1
@@ -1625,7 +1664,7 @@ def _polia(kit, ctx, pr, am):
             Kit.por_cil(tri[4], c + lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1),
                         c - lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1))
             tri[4].hide_render = False
-            Kit.por_cil(cabos[0], polias[0], topo)
+            cabo_ate(topo)
             for o in cordas + [alca, puxador]:
                 o.hide_render = True
             return
@@ -1636,12 +1675,12 @@ def _polia(kit, ctx, pr, am):
             ext = lado.normalized() * (max(dist, 2.6) / 2 + 0.9)
             Kit.por_cil(puxador, meio - ext, meio + ext)
             puxador.hide_render = False
-            Kit.por_cil(cabos[0], polias[0], meio)
+            cabo_ate(meio)
             for o in cordas + [alca]:
                 o.hide_render = True
         else:
             no = meio + (polias[0] - meio).normalized() * max(1.1, dist * 0.45)
-            Kit.por_cil(cabos[0], polias[0], no)
+            cabo_ate(no)
             Kit.por_cil(cordas[0], no, gL)
             Kit.por_cil(cordas[1], no, gR)
             for o in cordas:

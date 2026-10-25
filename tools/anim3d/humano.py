@@ -15,7 +15,20 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "cfl":  flexão (+, arredonda) / extensão (-, arqueia) da coluna em graus, sem mudar a corda quadril->pescoço (gato-camelo)
   "pel":  inclinação pélvica (+ anteversão, - retroversão); "trp": rotação da pelve (soco cruzado, carioca)
   "pro":  protração (+) / retração (-) das escápulas, -1..1
-  "apoio": lista dos apoios do quadro ("pe_f","pe_t","mao_f","mao_t"); substitui a detecção automática ([] = nenhum)
+  "apoio": lista dos apoios do quadro; substitui a detecção automática ([] = nenhum). Valores: "pe_f","pe_t","mao_f","mao_t"
+          (pé/mão), "joelho_f/t", "cotovelo_f/t" (antebraço), "pelve"/"gluteo" (sentado, sacro), "costas" (escápulas),
+          "cabeca", "lado" (deitado de lado). Partes do tronco/joelho/cotovelo declaradas encostam na superfície embaixo
+          delas (chão, banco, assento) e os pés/mãos declarados descem/sobem até ela por IK. Sem "apoio" o motor detecta:
+          deitado (tronco perto da horizontal ou rol > 50) com quadril/ombros perto do chão/banco -> pelve+costas+cabeça
+          (ou "lado"); sentado com o quadril sobre banco/chão -> glúteo.
+  "maos": estado das mãos livres no quadro: "punho" | "semi" | "rel" | "aberta" | número (-1..1,6) | {"f": .., "t": ..}
+  "segura": mão presa a uma parte do corpo por IK: {"mao_f": "pe_t", "mao_t": "joelho_t"}. Alvos: pe_, tornozelo_, canela_,
+          joelho_, coxa_, cotovelo_, braco_, punho_, ombro_, quadril_/cintura_ (+ "f"/"t"), "nuca", "cabeca", "peito".
+  "dedos": giro da mão APOIADA (espalmada): "tras" (dedos para o corpo), "fora", "dentro" ou graus em torno da vertical
+  "puf"/"put": flexão (+) / extensão (-) do punho da frente/trás; "pdf"/"pdt": desvio radial (+) / ulnar (-) (limite AAOS)
+  "trt": torção só da coluna torácica (pelve e lombar paradas: rotação torácica, deitado de lado)
+Limites anatômicos aplicados automaticamente (suaves): joelho 160, cotovelo 150, quadril (extensão 34, abdução 55), coluna
+(torção 50, inclinação 38), pescoço (rotação 75, inclinação 42), punho (80/70/20/30), clavícula 13° com os braços para cima.
 Por animação:
   "cam":  azimute da câmera em graus (64 = 3/4, o padrão; 90 = de frente; 0 = perfil; negativo = por trás)
   "cam_el": elevação da câmera (padrão por família: 12 em pé, 22 no chão, 24 deitado no banco, 15 por trás)
@@ -24,7 +37,26 @@ Por animação:
   "barra_modo": "maos" | "costas" | "rack" | "clean" (barra olímpica; padrão por id)
   "rolar": true = piso rolante (locomoção no lugar: o pé de apoio acompanha as marcas do chão)
   "sem_balistica": true = não usar parábola nas fases de voo (ay > 0 sem apoio)
+  "maos": estado padrão das mãos livres (como no quadro); sem ele: "punho" em lutas, "semi" em corrida/saltos, "rel" no resto
+  "cam_tras": true = permite câmera por trás (cam < 0); sem ele a câmera negativa é espelhada para a frente (rosto visível)
+Pegada: a mão fecha em volta do cabo com a curvatura de cada dedo calibrada para o raio do implemento (barra, halter, alça,
+pegador, corda); o centro da pegada fica na prega da base dos dedos e o polegar fecha por cima. Barra fixa: as mãos ficam
+presas na barra em todo quadro e a cabeça passa por trás dela. Máquinas com pegadores automáticos (IK das mãos): leg press,
+cadeiras extensora/flexora, abdutora/adutora, mesa flexora (sob a cabeceira), panturrilha sentado (na alavanca da coxa),
+hack (junto às ombreiras), elíptico (alças móveis), escada (corrimãos), trenó (postes), bike (guidão), roda abdominal.
 Acessórios além dos de tools/anim/esqueleto.py:
+  "roda" {"em": "maos"}: roda abdominal (disco no chão sob as mãos, manoplas; gira conforme anda). A roda-abdominal antiga com
+    "bola" vira roda automaticamente.
+  "halter" com "unico": true (ou id triceps-frances): um halter seguro pelas duas mãos, uma sobre a outra
+  "bola" com "voo": [i, j] (sai das mãos na chave i e volta na chave j, em parábola) e "quica": true (no chão, no meio) ou
+    [x, y] (ponto 2D da parede/chão onde quica). Fora do voo as palmas abertas ficam nos lados da bola.
+  "elastico" com "de": "barra" (ou id com "assistida" e barra fixa): laço do centro da barra até o pé ("ate": "pe_t"/"pe_f");
+    com "ate" [x,y,z] as mãos seguram alças; "maos": "f"/"t" liga só uma mão; "ate": "pes" passa sob o arco do pé.
+    battle rope (id) vira corda naval: dois cabos no chão com ondas geradas pela mão.
+  "cabo": puxador triângulo (id com "triangulo" ou remada-baixa), corda (tríceps/face pull/abdominal), duas torres só no
+    crossover ou com "dupla": true; a polia acompanha a torre quando ela é afastada do corpo.
+  "banco" com "z" (deslocamento lateral, + = lado da câmera) e "larg" (largura); vale para superfícies de apoio.
+  "parede" {"mao": "f"|"t", "chave": i}: parede/batente onde a mão se apoia (balanço de pernas, alongamento de peito).
   "banco" com "inc": encosto inclinado (graus sobre a horizontal) saindo da borda de trás do assento ("enc": comprimento, padrão 7)
   "halter" com "maos": "f" | "t" | "ambas" (padrão)
   "cabo"/"elastico" com "ate": [x, y, z] (z = deslocamento lateral, + = lado da câmera) ou "ate": "pes"/"maos";
@@ -1903,6 +1935,8 @@ def efetores_chave(h, ctx, T, apoio, declarado=None):
         inf = info_efetor(h, ctx, T, ef, membro, sf, P)
         zs = ctx.superficie_em(inf["baixo"], inf["zmin"])
         contato = inf["zmin"] - zs < 0.3
+        if membro == "perna" and ctx.pendurado:
+            contato = False  # pendurado na barra: os pés não plantam (só se o quadro declarar "apoio")
         if membro == "perna" and not contato:
             zb = ctx.superficie_em(inf["ponta"], inf["zbola"])  # antepé na borda de um degrau, calcanhar no ar
             contato = zb > ctx.z0 + 1e-3 and inf["zbola"] - zb < 0.3
@@ -2290,6 +2324,12 @@ def corrigir_barra(h, ctx, T):
         rack = pesc + fw_t * 1.05 - up_t * 0.55
         alvo = costas if modo == "costas" else rack
         w = 1.0 if modo in ("costas", "rack") else 1.0 - mov.suave((centro - rack).length, 0.7, 2.2)
+        if modo == "clean":
+            # cotovelos dobrados (> ~85°) com as mãos acima do peito: a barra está no rack (peso 1), nunca no rosto
+            cot = min(math.degrees((h.cabeca("lowerarm01" + sf_) - h.cabeca("upperarm01" + sf_)).angle(
+                h.cabeca("wrist" + sf_) - h.cabeca("lowerarm01" + sf_))) for sf_ in (".L", ".R"))
+            if centro.z > (T @ h.cabeca("spine03")).z:
+                w = max(w, mov.suave(cot, 70.0, 95.0))
         if w > 0:
             centro = centro.lerp(alvo, w)
             e2 = (Tq @ ESQ).normalized()
@@ -2560,6 +2600,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
         w_t = _lerp(1.0 if ca["tronco"] else 0.0, 1.0 if cb["tronco"] else 0.0, su)
         if w_t > 1e-3:
             T = apoiar_tronco(h, ctx, T, sorted(set(ca["tronco"]) | set(cb["tronco"])), w_t, lim=1.5)
+        if "cabeca" in ca["tronco"] and "cabeca" in cb["tronco"]:
+            cabeca_no_apoio(h, ctx, T)
         pes = {}
         for ef, membro, sf in EFETORES[:2]:
             pes[sf] = _lerp(float(ca["ef"][ef]["contato"] or ca["pes_ap"].get(sf, 0) > 0.5),
