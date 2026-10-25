@@ -1228,7 +1228,8 @@ class Contexto:
             if pr.get("tipo") in ("banco", "caixa", "maquina", "hack"):
                 x, w, y, hh = pr.get("x", 0), pr.get("w", 8), pr.get("y", 0), pr.get("h", 4)
                 a, b = self.p3(x, 0), self.p3(x + w, 0)
-                sup.append((-3.2, 3.2, min(a.y, b.y) - 0.3, max(a.y, b.y) + 0.3, (y + hh) * self.k))
+                zc, lg = pr.get("z", 0.0) * self.k, pr.get("larg", 6.4) * self.k / 2  # deslocamento lateral e largura
+                sup.append((zc - lg, zc + lg, min(a.y, b.y) - 0.3, max(a.y, b.y) + 0.3, (y + hh) * self.k))
         self._sup = sup
         return sup
 

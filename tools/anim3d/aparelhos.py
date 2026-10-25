@@ -642,12 +642,28 @@ def _plataforma(h, T, n_pes=("pe_f", "pe_t")):
         R = h.rot("foot" + sf) @ h.rest_inv["foot" + sf].to_3x3()
         nrm += Tq @ (R @ Vector((0, 0, -1)))
     nrm.normalize()
-    proj = pts @ np.array(nrm)
-    lim = proj.max()
-    sola = pts[proj > lim - 0.25]
-    c = Vector(sola.mean(axis=0))
+    # centro = média dos centros das DUAS solas (cada pé separado), no plano da sola mais avançada
+    cs, lims = [], []
+    for ef in n_pes:
+        q = P[h.px_partes[ef]]
+        pj = q @ np.array(nrm)
+        lm = pj.max()
+        cs.append(q[pj > lm - 0.25].mean(axis=0))
+        lims.append(lm)
+    lim = max(lims)
+    c = Vector(np.mean(cs, axis=0))
     c = c + nrm * (lim - float(np.array(c) @ np.array(nrm)))
+    _ = pts
     return c, nrm
+
+
+def _rot_placa(n):
+    """Placa com a normal -n, eixo X da placa = lateral do corpo (X do mundo) e Y = projeção da subida."""
+    up = (-n).normalized()
+    xa = X - up * X.dot(up)
+    xa.normalize()
+    ya = up.cross(xa)
+    return Matrix((xa, ya, up)).transposed().to_4x4()
 
 
 def montar(kit, ctx, h, estados):
@@ -752,6 +768,10 @@ def _blocos(kit, ctx, h, blocos, am):
     # largura do estofado: cobre mãos/pés apoiados nele
     for r in rects:
         r["lx"] = 1.45
+        r["xc"] = r["pr"].get("z", 0.0) * k
+        if "larg" in r["pr"]:
+            r["lx"] = r["pr"]["larg"] * k / 2
+            continue
         for ch in ctx.chaves:
             for ef in ch["ef"].values():
                 p = ef["baixo"]
@@ -760,6 +780,15 @@ def _blocos(kit, ctx, h, blocos, am):
     idd = ctx.id
     ctx.encosto = None
     for r in rects:
+        n_antes = len(kit.objs)
+        _bloco(kit, ctx, h, r, rects, am, idd, k)
+        if abs(r["xc"]) > 1e-4:
+            for o in kit.objs[n_antes:]:
+                o.matrix_world = Matrix.Translation((r["xc"], 0, 0)) @ o.matrix_world
+
+
+def _bloco(kit, ctx, h, r, rects, am, idd, k):
+    if True:
         y0, y1, zb, zt, lx = r["y0"], r["y1"], r["zb"], r["zt"], r["lx"]
         inc = r["pr"].get("inc")
         if inc:
@@ -790,7 +819,7 @@ def _blocos(kit, ctx, h, blocos, am):
                 while zz < zt - 0.3:
                     kit.cil((-xm, cy, zz), (xm, cy, zz), 0.16, kit.madeira, 12)
                     zz += 1.6
-                continue
+                return
             if assento:
                 zs = max(s["zt"] for s in assento)
                 ctx.encosto = (cy, zt)
@@ -801,26 +830,26 @@ def _blocos(kit, ctx, h, blocos, am):
                 kit.caixa((0, cy - 0.5, zt - 0.7), (lx * 2, 2.6, 0.7), kit.estofado, 0.25, rot=(math.radians(-35), 0, 0))
                 kit.caixa((0, cy, 0.1), (3.0, 4.0, 0.2), kit.quadro, 0.05)
             elif any(x in idd for x in ("eliptico", "escada", "sled")):
-                continue  # aparelho dedicado (desenhado em _extras_maquina)
+                return  # aparelho dedicado (desenhado em _extras_maquina)
             else:
                 # coluna de máquina (hack etc.): poste + console
                 kit.viga((0, cy, 0.2), (0, cy, zt - 1.2), 0.7, 0.9, kit.quadro)
                 kit.caixa((0, cy, zt - 0.6), (3.0, 1.2, 1.2), kit.preto, 0.2)
                 kit.caixa((0, cy, 0.1), (4.0, 3.0, 0.2), kit.quadro, 0.05)
-            continue
+            return
         esp = min(0.75, max(0.3, r["h"] * 0.5))
         if any(s in idd for s in ("box-jump", "step")) and r["zb"] < 0.1:
             kit.caixa((0, cy, zt / 2), (5.0, L, zt), kit.madeira, 0.12)
-            continue
+            return
         if r["zb"] > 0.4:
             # almofada elevada (apoio de joelho/quadril) sobre um poste
             kit.caixa((0, cy, (zb + zt) / 2), (lx * 2, max(L, 0.8), max(zt - zb, 0.4)), kit.estofado, 0.25)
             kit.viga((0, cy, 0.15), (0, cy, zb), 0.55, 0.55, kit.quadro)
             kit.caixa((0, cy, 0.08), (3.0, 2.0, 0.16), kit.quadro, 0.05)
-            continue
+            return
         if r["h"] < 1.2:
             kit.caixa((0, cy, zt / 2), (lx * 2, L, zt), kit.quadro if "remo" in idd else kit.borracha, 0.06)
-            continue
+            return
         # banco/assento: estofado + estrutura
         kit.caixa((0, cy, zt - esp / 2), (lx * 2, L, esp), kit.estofado, 0.22)
         kit.caixa((0, cy, zt - esp - 0.12), (lx * 1.4, L * 0.9, 0.24), kit.quadro, 0.05)
@@ -993,8 +1022,12 @@ def _extras_maquina(kit, ctx, h, am, estados):
         _hack(kit, ctx, h, estados)
     if "extensora" in idd or "flexora" in idd and "mesa" not in idd:
         _rolo_canela(kit, ctx, h, frente="extensora" in idd)
+    if "cadeira-flexora" in idd:
+        _almofada_coxa(kit, ctx, h)
     if "mesa-flexora" in idd:
-        _rolo_canela(kit, ctx, h, frente=False)
+        _rolo_canela(kit, ctx, h, frente=False, prono=True)
+    if "hiperextensao" in idd and "apoio_tornozelo" not in ctx.tipos:
+        _apoio_tornozelo(kit, ctx, {}, am)
     if "abdutora" in idd or "adutora" in idd:
         _almofadas_joelho(kit, ctx, h, fora="abdutora" in idd)
     if "remo-ergometro" in idd:
@@ -1298,32 +1331,32 @@ def _plataforma_movel(kit, ctx, h, estados):
         d = cs[0][1].copy()
     d.normalize()
     n0 = cs[0][1]
-    ext0, ext1 = c0 - d * 3.0 + n0 * 0.8, c1 + d * 3.0 + n0 * 0.8
+    # trilho só do lado de cima (não passa pelas pernas, no lado do assento) e por fora da placa larga
+    ext0, ext1 = c0 + n0 * 0.8, c1 + d * 3.0 + n0 * 0.8
     for p in (ext0, ext1):
         if p.z < 0.3:
             # não deixa o trilho entrar no chão
             t = (0.3 - p.z) / max(abs(d.z), 1e-3)
             p += d * (t if p is ext0 else -t) if abs(d.z) > 1e-3 else Vector((0, 0, 0.3 - p.z))
     for s in (-1, 1):
-        kit.viga(ext0 + X * s * 3.2, ext1 + X * s * 3.2, 0.45, 0.45, kit.quadro)
+        kit.viga(ext0 + X * s * 4.4, ext1 + X * s * 4.4, 0.45, 0.45, kit.quadro)
     for p in (ext0, ext1):
         if p.z > 0.4:
             for s in (-1, 1):
-                kit.viga((s * 3.2, p.y, 0.1), (s * 3.2, p.y, p.z), 0.45, 0.45, kit.quadro)
-    ps = [kit.caixa((0, 0, 0.15), (7.0, 5.0, 0.3), kit.quadro, 0.06), kit.caixa((0, 0, -0.02), (6.6, 4.6, 0.06), kit.borracha, 0.02)]
+                kit.viga((s * 4.4, p.y, 0.1), (s * 4.4, p.y, p.z), 0.45, 0.45, kit.quadro)
+    ps = [kit.caixa((0, 0, 0.15), (8.0, 5.4, 0.3), kit.quadro, 0.06), kit.caixa((0, 0, -0.02), (7.6, 5.0, 0.06), kit.borracha, 0.02)]
+    for s in (-1, 1):
+        ps.append(kit.caixa((s * 4.1, 0, 0.3), (0.7, 1.4, 0.5), kit.quadro, 0.05))  # guias da placa nos trilhos
     pl = kit.grupo_movel(ps)
 
     def upd(est):
         h.restaurar(est["est"])
         c, n = _plataforma(h, est["T"])
-        up = Vector((0, 0, 1)) if abs(n.z) < 0.9 else Vector((0, 1, 0))
-        R = (-n).to_track_quat("Z", "Y" if abs(n.y) < 0.9 else "X").to_matrix().to_4x4()
-        _ = up
-        pl.matrix_world = Matrix.Translation(c) @ R
+        pl.matrix_world = Matrix.Translation(Vector((0, c.y, c.z))) @ _rot_placa(n)
     kit.moveis.append(upd)
 
 
-def _rolo_canela(kit, ctx, h, frente=True):
+def _rolo_canela(kit, ctx, h, frente=True, prono=False):
     rolo = kit.cil_movel(0.5, kit.estofado, 24)
     bracos = [kit.cil_movel(0.18, kit.quadro, 12) for _ in range(2)]
     eixo = kit.cil((-3.4, 0, 0), (3.4, 0, 0), 0.25, kit.quadro, 16)
@@ -1337,13 +1370,34 @@ def _rolo_canela(kit, ctx, h, frente=True):
         a = (aL + aR) / 2
         j = (jL + jR) / 2
         s = (a - j).normalized()
-        fw = T.to_3x3() @ FRENTE
-        f = (fw - s * fw.dot(s)).normalized()
-        c = a - s * 0.55 + f * (0.85 if frente else -0.85)
+        if prono:
+            # de bruços: o rolo fica sobre o tendão de Aquiles (lado de cima/posterior da perna, longe do banco)
+            f = Vector((0, 0, 1)) - s * s.z
+            f = f.normalized() if f.length > 1e-3 else Vector((0, 0, 1))
+        else:
+            fw = T.to_3x3() @ FRENTE
+            f = (fw - s * fw.dot(s)).normalized()
+            f = f if frente else -f
+        c = a - s * 0.55 + f * 0.85
         Kit.por_cil(rolo, c - X * 2.6, c + X * 2.6)
         for o, sx in zip(bracos, (-1, 1)):
             Kit.por_cil(o, Vector((sx * 2.9, j.y, j.z)), Vector((sx * 2.9, c.y, c.z)))
     kit.moveis.append(upd)
+
+
+def _almofada_coxa(kit, ctx, h):
+    """Cadeira flexora: almofada fixa sobre as coxas, logo acima dos joelhos (segura o quadril no assento)."""
+    h.restaurar(ctx.chaves[0]["est"])
+    T = ctx.chaves[0]["T"]
+    P = h.proxy(T)
+    j = (T @ h.cabeca("lowerleg01.L") + T @ h.cabeca("lowerleg01.R")) / 2
+    q = (T @ h.cabeca("upperleg01.L") + T @ h.cabeca("upperleg01.R")) / 2
+    c = q + (j - q) * 0.78
+    m = (h.px_partes["coxa_f"] | h.px_partes["coxa_t"]) & (np.abs(P[:, 1] - c.y) < 0.8)
+    zt = float(P[m, 2].max()) if m.any() else c.z + 0.8
+    kit.cil((-2.6, c.y, zt + 0.55), (2.6, c.y, zt + 0.55), 0.55, kit.estofado, 24)
+    for sx in (-1, 1):
+        kit.viga((sx * 2.9, c.y, zt + 0.55), (sx * 2.9, c.y + 1.5, 0.4), 0.4, 0.4, kit.quadro)
 
 
 def _almofadas_joelho(kit, ctx, h, fora=True):
@@ -1362,12 +1416,20 @@ def _almofadas_joelho(kit, ctx, h, fora=True):
 
 
 def _assento_remo(kit, ctx, h):
+    """Remo: assento com rodinhas que desliza no trilho, sempre sob os ísquios (topo = pele mais baixa da pelve)."""
     banco = kit.caixa((0, 0, 0), (2.4, 2.6, 0.5), kit.estofado, 0.2)
+    carro = kit.caixa((0, 0, 0), (1.6, 2.2, 0.3), kit.quadro, 0.05)
 
     def upd(est):
         h.restaurar(est["est"])
-        r = est["T"] @ h.cabeca("root")
-        banco.matrix_world = Matrix.Translation((0, r.y + 0.3, 1.05))
+        T = est["T"]
+        P = h.proxy(T)
+        m = h.px_partes["tronco"] & (np.abs(P[:, 0]) < 1.3)
+        Q = P[m]
+        zb = float(Q[:, 2].min())
+        y = float(Q[Q[:, 2] < zb + 0.3][:, 1].mean())
+        banco.matrix_world = Matrix.Translation((0, y, zb - 0.25))
+        carro.matrix_world = Matrix.Translation((0, y, max(zb - 0.65, 0.5)))
     kit.moveis.append(upd)
 
 
@@ -1480,8 +1542,8 @@ def _polia(kit, ctx, pr, am):
     A = ctx.p3(*pr["ate"][:3])
     h = ctx.h
     hip = am[0]["root"]
-    corda = any(s in ctx.id for s in ("triceps", "face", "abdominal"))
-    dupla = "crossover" in ctx.id or (max(abs(a["gL"].x - a["gR"].x) for a in am) > 6.5 and "puxada" not in ctx.id and not corda)
+    corda = tipo_cabo(ctx) == "corda"
+    dupla = "crossover" in ctx.id or bool(pr.get("dupla"))
     remo = "remo" in ctx.id
     polias = []
     if remo:
@@ -1494,7 +1556,7 @@ def _polia(kit, ctx, pr, am):
         polias.append(A + Vector((0, 0.9, 0.4)))
     elif dupla:
         for s in (-1, 1):
-            xc = s * 8.0
+            xc = s * 13.0  # torres bem afastadas: braços abertos não chegam nas colunas
             _torre(kit, Vector((xc, A.y, 0)), max(A.z + 2, 20), A.z, s)
             polias.append(Vector((xc - s * 0.9, A.y, A.z)))
     else:
@@ -1504,10 +1566,15 @@ def _polia(kit, ctx, pr, am):
             sent = -1.0  # polia sobre a cabeça: torre à frente
         base = Vector((A.x, A.y + sent * 2.0, 0))
         ys = [p.y for a in am for p in (a["root"], a["pesc"], a["gL"], a["gR"], a["jL"], a["jR"])]
+        # topo da cabeça (pescoço + 1,9 na direção da cabeça) também entra na folga da torre
+        ys += [(a["pesc"] + (a["pesc"] - a["root"]).normalized() * 1.9).y for a in am]
+        y_antes = base.y
         if sent < 0:
-            base.y = min(base.y, min(ys) - 2.6)  # a torre não pode atravessar o corpo
+            base.y = min(base.y, min(ys) - 3.2)  # a torre não pode atravessar o corpo
         else:
-            base.y = max(base.y, max(ys) + 2.6)
+            base.y = max(base.y, max(ys) + 3.2)
+        if abs(A.x) <= 2.0 and abs(base.y - y_antes) > 1e-3:
+            A = Vector((A.x, A.y + (base.y - y_antes), A.z))  # a polia vai junto com a torre (cabo nunca sai do nada)
         if abs(A.x) > 2.0:
             base = Vector((A.x + math.copysign(2.0, A.x), A.y, 0))  # polia lateral (pallof): torre ao lado
         alto = max(A.z + 1.5, 20)
@@ -1520,20 +1587,46 @@ def _polia(kit, ctx, pr, am):
         kit.disco(A, 0.48, 0.18, kit.metal, verts=24)
         kit.disco(A, 0.32, 0.26, kit.quadro, verts=16)
         polias.append(A)
+    ctx.polia3 = polias[0] if polias else A
     cabos = [kit.cil_movel(0.045, kit.cabo_m, 8) for _ in polias]
-    tipo = "corda" if any(s in ctx.id for s in ("triceps", "face", "abdominal")) else "barra"
+    tipo = tipo_cabo(ctx)
     if remo:
         tipo = "barra"
     alca = kit.cil_movel(0.13, kit.preto, 12)
     cordas = [kit.cil_movel(0.11, kit.preto, 10) for _ in range(2)]
     puxador = kit.cil_movel(0.13, kit.metal, 12)
+    tri = [kit.cil_movel(0.15, kit.preto, 12) for _ in range(2)] + [kit.cil_movel(0.1, kit.metal, 10) for _ in range(3)]
+    dalc = [kit.cil_movel(0.15, kit.preto, 12) for _ in range(2)]
 
     def upd(est):
         gL, gR = _maos(h, est)
+        for o in tri + dalc:
+            o.hide_render = True
         if len(polias) == 2:
-            for cab, p, g in zip(cabos, polias, ((gR if polias[0].x < 0 else gL), (gL if polias[0].x < 0 else gR))):
+            h.restaurar(est["est"])
+            T = est["T"]
+            for i_, (cab, p, g, sf) in enumerate(zip(cabos, polias, ((gR if polias[0].x < 0 else gL), (gL if polias[0].x < 0 else gR)),
+                                                    ((".R" if polias[0].x < 0 else ".L"), (".L" if polias[0].x < 0 else ".R")))):
+                e = (T.to_3x3() @ h.eixo_pegada(sf)).normalized()
+                Kit.por_cil(dalc[i_], g - e * 0.6, g + e * 0.6)
+                dalc[i_].hide_render = False
                 Kit.por_cil(cab, p, g)
             for o in [alca, puxador] + cordas:
+                o.hide_render = True
+            return
+        if tipo == "triangulo":
+            c, lat, eixo = est["extras"].get("triangulo", ((gL + gR) / 2, (gL - gR).normalized(), Vector((0, 1, 0))))
+            topo = c + (polias[0] - c).normalized() * 1.1
+            for i_, (o, s_) in enumerate(zip(tri[:2], (1, -1))):
+                m_ = c + lat * (0.7 * s_)
+                Kit.por_cil(o, m_ - eixo * 0.6, m_ + eixo * 0.6)
+                Kit.por_cil(tri[2 + i_], m_ + eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1), topo)
+                o.hide_render = tri[2 + i_].hide_render = False
+            Kit.por_cil(tri[4], c + lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1),
+                        c - lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1))
+            tri[4].hide_render = False
+            Kit.por_cil(cabos[0], polias[0], topo)
+            for o in cordas + [alca, puxador]:
                 o.hide_render = True
             return
         meio = (gL + gR) / 2
@@ -1570,14 +1663,96 @@ def _torre(kit, base, alto, z_polia, lado):
     kit.caixa(base + Vector((0, 0, 9.0)), (2.0, 1.2, 0.5), kit.brasa, 0.06)
 
 
+def _fio(kit, n, r, mat):
+    return [kit.cil_movel(r, mat, 10) for _ in range(n)]
+
+
+def _por_fio(segs, pts):
+    """Polilinha pts desenhada nos n segmentos (reamostrada pelo comprimento)."""
+    P = np.array([list(p) for p in pts])
+    d = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    L = d[-1] if d[-1] > 1e-6 else 1.0
+    ss = np.linspace(0, L, len(segs) + 1)
+    Q = np.stack([np.interp(ss, d, P[:, k]) for k in range(3)], axis=1)
+    for o, a, b in zip(segs, Q[:-1], Q[1:]):
+        Kit.por_cil(o, Vector(a), Vector(b))
+
+
+def contornar(h, T, pts, excl=(), folga=0.45, iters=3):
+    """Cabo/elástico não atravessa o corpo: pontos internos da polilinha que caem dentro da pele (proxy) são empurrados
+    para fora pela normal local (centro dos pontos de pele vizinhos -> ponto), com folga."""
+    P = h.proxy(T)
+    m = np.ones(len(P), bool)
+    for k_ in excl:
+        m &= ~h.px_partes[k_]
+    Q = P[m][::2]
+    pts = [Vector(p) for p in pts]
+    for _ in range(iters):
+        mexeu = False
+        for i in range(1, len(pts) - 1):
+            p = np.array(pts[i])
+            d = np.linalg.norm(Q - p, axis=1)
+            viz = d < 1.4
+            if not viz.any() or d.min() > folga:
+                continue
+            c = Q[viz].mean(axis=0)
+            n = p - c
+            nl = np.linalg.norm(n)
+            if nl < 1e-6:
+                continue
+            n /= nl
+            # anda pela normal até a pele mais próxima ficar a 'folga'
+            for passo in np.linspace(0.05, 2.5, 50):
+                q = p + n * passo
+                if np.linalg.norm(Q - q, axis=1).min() >= folga:
+                    pts[i] = Vector(q)
+                    mexeu = True
+                    break
+        if not mexeu:
+            break
+    return pts
+
+
+def _alca(kit):
+    return kit.cil_movel(0.14, kit.preto, 12)
+
+
+def _por_alca(o, h, T, sf, larg=0.55):
+    g = T @ h.pegada(sf)
+    e = (T.to_3x3() @ h.eixo_pegada(sf)).normalized()
+    Kit.por_cil(o, g - e * larg, g + e * larg)
+    return g, e
+
+
+def _ponto_sola(h, T, sf, P, ef, fora=0.0):
+    """Ponto sob o arco do pé (entre o calcanhar e a base dos dedos), na sola; fora: deslocamento lateral (+ = por fora)."""
+    a = T @ h.cabeca("foot" + sf)
+    t3 = T @ h.cabeca("toe3-1" + sf)
+    c = a + (t3 - a) * 0.45
+    pts = P[h.px_partes[ef]]
+    z = float(pts[:, 2].min())
+    sx = 1 if sf == ".L" else -1
+    return Vector((c.x + sx * fora, c.y, z + 0.03))
+
+
 def _elastico(kit, ctx, h, pr, am):
     ate = pr.get("ate")
-    bat = "battle" in ctx.id
+    if "battle" in ctx.id or pr.get("naval"):
+        _corda_naval(kit, ctx, h, pr)
+        return
     if pr.get("de") == "pernas":
         _miniband(kit, ctx, h, pr)
         return
     if isinstance(ate, list) and pr.get("abre"):
         _elastico_duplo(kit, ctx, h, pr)
+        return
+    lados = {"f": (".L",), "t": (".R",)}.get(_qual_mao(pr) if pr.get("maos") else "ambas", (".L", ".R"))
+    if pr.get("de") == "mao_f":
+        lados = (".L",)
+    elif pr.get("de") == "mao_t":
+        lados = (".R",)
+    if ctx.barra is not None and (pr.get("de") == "barra" or "assistida" in ctx.id):
+        _elastico_barra(kit, ctx, h, pr)
         return
     if isinstance(ate, list):
         A = ctx.p3(*ate[:3])
@@ -1588,58 +1763,63 @@ def _elastico(kit, ctx, h, pr, am):
         else:
             A.z = max(A.z, 0.3)
             kit.toro(A, 0.35, 0.08, kit.metal)
-        n = 14 if bat else 1
-        segs = {sf: [kit.cil_movel(0.2 if bat else 0.08, kit.preto if bat else kit.brasa, 10) for _ in range(n)] for sf in (".L", ".R")}
+        segs = {sf: _fio(kit, 10, 0.08, kit.brasa) for sf in lados}
+        tri = {sf: _fio(kit, 2, 0.06, kit.brasa) for sf in lados}
+        alcas = {sf: _alca(kit) for sf in lados}
 
         def upd(est):
-            gL, gR = _maos(h, est)
-            fase = est["tau"] / max(ctx.trilhas.T, 1e-3) * 2 * math.pi
-            for sf, g in ((".L", gL), (".R", gR)):
+            h.restaurar(est["est"])
+            T = est["T"]
+            for sf in lados:
+                g, e = _por_alca(alcas[sf], h, T, sf)
                 fimA = A + X * (0.25 if sf == ".L" else -0.25)
-                pts = []
-                for i in range(n + 1):
-                    s = i / n
-                    p = g.lerp(fimA, s)
-                    if bat:
-                        p.z += math.sin(fase * 2 - s * 9) * 0.9 * (1 - s) * min(1, s * 4)
-                        p.z = max(p.z, 0.2)
-                    pts.append(p)
-                for o, p, q in zip(segs[sf], pts[:-1], pts[1:]):
-                    Kit.por_cil(o, p, q)
+                q = g + (fimA - g).normalized() * 0.75
+                Kit.por_cil(tri[sf][0], g + e * 0.5, q)
+                Kit.por_cil(tri[sf][1], g - e * 0.5, q)
+                pts = [q.lerp(fimA, i / 8) for i in range(9)]
+                _por_fio(segs[sf], contornar(h, T, pts, ("mao_f", "mao_t", "antebraco_f", "antebraco_t")))
         kit.moveis.append(upd)
         return
     if ate == "pes":
-        segs = {sf: kit.cil_movel(0.08, kit.brasa, 10) for sf in (".L", ".R")}
+        segs = {sf: _fio(kit, 8, 0.08, kit.brasa) for sf in lados}
+        sola = {sf: kit.cil_movel(0.08, kit.brasa, 10) for sf in lados}
+        alcas = {sf: _alca(kit) for sf in lados}
 
         def upd(est):
             h.restaurar(est["est"])
             T = est["T"]
             P = h.proxy(T)
             for sf, ef in ((".L", "pe_f"), (".R", "pe_t")):
-                g = T @ h.pegada(sf)
-                pts = P[h.px_partes[ef]]
-                c = pts[pts[:, 2] < pts[:, 2].min() + 0.2].mean(axis=0)
-                Kit.por_cil(segs[sf], g, Vector(c) + Vector((0, 0, 0.05)))
+                if sf not in lados:
+                    continue
+                g, e = _por_alca(alcas[sf], h, T, sf)
+                fora = _ponto_sola(h, T, sf, P, ef, 0.6)
+                dentro = _ponto_sola(h, T, sf, P, ef, -0.6)
+                Kit.por_cil(sola[sf], fora, dentro)  # passa sob a sola, no arco do pé
+                sobe = fora + Vector((0, 0, 0.35))
+                pts = [g.lerp(sobe, i / 7) for i in range(8)] + [fora]
+                _por_fio(segs[sf], contornar(h, T, pts, ("mao_f", "mao_t", "antebraco_f", "antebraco_t", "pe_f", "pe_t")))
         kit.moveis.append(upd)
         return
     if pr.get("de") == "costas":
         n = 16
-        segs = [kit.cil_movel(0.11, kit.brasa, 10) for _ in range(n)]
+        segs = _fio(kit, n, 0.11, kit.brasa)
+        alcas = {sf: _alca(kit) for sf in (".L", ".R")}
 
         def upd_c(est):
-            # mão -> por trás do cotovelo -> sobre as escápulas -> outra mão (por fora dos braços, visível)
+            # mão -> axila -> escápulas -> outra axila -> outra mão (por fora dos braços, sem passar pelo cotovelo)
             h.restaurar(est["est"])
             T = est["T"]
             R_up = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
             tras = (T.to_3x3() @ (R_up @ Vector((0, 1, 0)))).normalized()
             cima = (T.to_3x3() @ (R_up @ Vector((0, 0, 1)))).normalized()
-            ctrl = [T @ h.pegada(".L"), T @ h.cabeca("lowerarm01.L") + tras * 0.55, T @ h.cabeca("upperarm01.L") + tras * 1.0 + cima * 0.2,
-                     T @ h.cabeca("upperarm01.R") + tras * 1.0 + cima * 0.2, T @ h.cabeca("lowerarm01.R") + tras * 0.55,
-                     T @ h.pegada(".R")]
-            # Catmull-Rom pelos pontos de controle
+            for sf in (".L", ".R"):
+                _por_alca(alcas[sf], h, T, sf)
+            ctrl = [T @ h.pegada(".L"), T @ h.cabeca("upperarm01.L") + tras * 1.1 - cima * 0.5,
+                    T @ h.cabeca("spine01") + tras * 1.3, T @ h.cabeca("upperarm01.R") + tras * 1.1 - cima * 0.5, T @ h.pegada(".R")]
             pts = []
             m = len(ctrl)
-            por = n // (m - 1)
+            por = 6
             for i in range(m - 1):
                 p0, p1, p2, p3 = ctrl[max(i - 1, 0)], ctrl[i], ctrl[i + 1], ctrl[min(i + 2, m - 1)]
                 for j in range(por):
@@ -1647,20 +1827,93 @@ def _elastico(kit, ctx, h, pr, am):
                     t2, t3 = t * t, t * t * t
                     pts.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3))
             pts.append(ctrl[-1])
-            for k_, o in enumerate(segs):
-                a_, b_ = pts[min(k_, len(pts) - 2)], pts[min(k_ + 1, len(pts) - 1)]
-                Kit.por_cil(o, a_, b_)
+            _por_fio(segs, contornar(h, T, pts, ("mao_f", "mao_t")))
         kit.moveis.append(upd_c)
         return
-    # entre as mãos
-    a1, a2 = kit.cil_movel(0.09, kit.brasa, 10), kit.cil_movel(0.09, kit.brasa, 10)
+    # entre as mãos (band pull-apart): contorna o peito quando as mãos passam do plano dos ombros
+    segs = _fio(kit, 10, 0.09, kit.brasa)
 
     def upd(est):
-        gL, gR = _maos(h, est)
-        meio = (gL + gR) / 2
-        Kit.por_cil(a1, gL, meio)
-        Kit.por_cil(a2, meio, gR)
+        h.restaurar(est["est"])
+        T = est["T"]
+        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
+        pts = [gL.lerp(gR, i / 10) for i in range(11)]
+        _por_fio(segs, contornar(h, T, pts, ("mao_f", "mao_t"), folga=0.25))
     kit.moveis.append(upd)
+
+
+def _elastico_barra(kit, ctx, h, pr):
+    """Barra assistida: elástico em laço preso no centro da barra, descendo até o pé (ou joelho) apoiado nele."""
+    b3 = ctx.ref.get("barra3") or ctx.p3(*ctx.barra)
+    ef, sf = ("pe_t", ".R") if pr.get("ate", "pe_t") != "pe_f" else ("pe_f", ".L")
+    segs = [_fio(kit, 10, 0.1, kit.brasa) for _ in range(2)]
+    sola = kit.cil_movel(0.1, kit.brasa, 10)
+    no = kit.toro(b3, 0.3, 0.1, kit.brasa, (0, 1, 0))
+    _ = no
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        P = h.proxy(T)
+        a = _ponto_sola(h, T, sf, P, ef, 0.55)
+        b = _ponto_sola(h, T, sf, P, ef, -0.55)
+        Kit.por_cil(sola, a, b)
+        for seg, top, bot in zip(segs, (b3 + X * 0.3, b3 - X * 0.3), (a, b)):
+            pts = [top.lerp(bot, i / 9) for i in range(10)]
+            _por_fio(seg, contornar(h, T, pts, ("pe_f", "pe_t"), folga=0.3))
+    kit.moveis.append(upd)
+
+
+def _corda_naval(kit, ctx, h, pr):
+    """Corda naval: dois cabos grossos ancorados longe à frente, deitados no chão, com a onda que a mão gera viajando até
+    a âncora (amplitude = sobe-desce da mão, defasada pela distância; lados alternados conforme a mão)."""
+    ate = pr.get("ate") or [15, 0.3]
+    A = ctx.p3(*ate[:2])
+    A.z = ctx.z0 + 0.25
+    kit.cil((-1.2, A.y, ctx.z0 + 0.25), (1.2, A.y, ctx.z0 + 0.25), 0.3, kit.metal, 16)
+    kit.caixa((0, A.y, ctx.z0 + 0.15), (3.0, 1.0, 0.3), kit.quadro, 0.05)
+    estados = ctx._estados
+    T_ = ctx.trilhas.T
+    hist = {}
+    for sf in (".L", ".R"):
+        tz = []
+        for est in estados:
+            h.restaurar(est["est"])
+            tz.append((est["tau"] % T_, (est["T"] @ h.pegada(sf)).z))
+        tz.sort()
+        ts, zs = np.array([t for t, _ in tz]), np.array([z for _, z in tz])
+        hist[sf] = (ts, zs, float(zs.mean()))
+    segs = {sf: _fio(kit, 28, 0.2, kit.preto) for sf in (".L", ".R")}
+    v_onda = 18.0  # dm/s
+
+    def zmao(sf, t):
+        ts, zs, m = hist[sf]
+        return float(np.interp(t % T_, ts, zs, period=T_)) - m
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        for sf, sx in ((".L", 1), (".R", -1)):
+            g = T @ h.pegada(sf)
+            fim = Vector((sx * 0.8, A.y, A.z))
+            L = (fim - g).length
+            pts = []
+            for i in range(29):
+                sv = i / 28
+                p = g.lerp(fim, sv)
+                chao = mov_suave(sv, 0.0, 0.22)
+                p.z = g.z * (1 - chao) + A.z * chao
+                atraso = sv * L / v_onda
+                p.z += zmao(sf, est["tau"] - atraso) * math.exp(-1.6 * sv) * chao * 1.3
+                p.z = max(p.z, ctx.z0 + 0.2)
+                pts.append(p)
+            _por_fio(segs[sf], pts)
+    kit.moveis.append(upd)
+
+
+def mov_suave(u, a=0.0, b=1.0):
+    t = min(1.0, max(0.0, (u - a) / (b - a)))
+    return t * t * (3 - 2 * t)
 
 
 def _elastico_duplo(kit, ctx, h, pr):
@@ -1747,6 +2000,19 @@ def _barra(kit, ctx, h):
 
 
 def _halteres(kit, ctx, h, maos="ambas"):
+    if "halter_unico" in (getattr(ctx, "impl", None) or {}):
+        o = halter_peca(kit)
+        o["foco"] = 1
+
+        def upd_u(est):
+            if "halter_unico" in est["extras"]:
+                c, d = est["extras"]["halter_unico"]
+            else:
+                gL, gR = _maos(h, est)
+                c, d = (gL + gR) / 2, (gL - gR).normalized()
+            o.matrix_world = Matrix.Translation(c) @ _alinhar(X, d)
+        kit.moveis.append(upd_u)
+        return
     lados = {"f": (".L",), "t": (".R",)}.get(maos, (".L", ".R"))
     hs = {sf: halter_peca(kit) for sf in lados}
     for o in hs.values():
@@ -1827,8 +2093,19 @@ def _kettlebell(kit, ctx, h, maos="ambas"):
                     amostra[j] = d.copy()
         dirs = {id(est): Vector(amostra[int(round((est["tau"] % T) / dt)) % nps]) for est in estados}
 
+    goblet = "goblet" in ctx.id
+
     def upd(est):
         c, ante = alvo(est)
+        if goblet:
+            # goblet: sino abaixo das mãos, encostado no peito (cada palma num chifre da alça)
+            h.restaurar(est["est"])
+            T = est["T"]
+            Rs = T.to_3x3() @ h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
+            tras = (Rs @ Vector((0, 1, 0))).normalized()
+            d = (Vector((0, 0, -1)) + tras * 0.35).normalized()
+            kb.matrix_world = Matrix.Translation(c + Vector((0, 0, 0.25))) @ _alinhar(Vector((0, 0, -1)), d)
+            return
         if dirs is not None and id(est) in dirs:
             d = dirs[id(est)]
         else:
@@ -1885,45 +2162,113 @@ def _saco(kit, ctx, h, pr, estados):
 
 
 def _bola(kit, ctx, h):
-    b = kit.esfera((0, 0, 0), 1.1, kit.brasa)
+    """Medicine ball entre as palmas (centro calculado em pegada_implementos); com "voo": [i, j] a bola sai das mãos na
+    chave i, voa em parábola (ou quica no chão / no ponto "quica": [x, y]) e volta às mãos na chave j."""
+    b = kit.esfera((0, 0, 0), RAIO_BOLA, kit.brasa)
     b["foco"] = 1
+    estados = getattr(ctx, "_estados", None) or []
+    T_ = ctx.trilhas.T
 
-    def upd(est):
+    def centro_maos(est):
+        if "bola" in est["extras"]:
+            return est["extras"]["bola"]
         h.restaurar(est["est"])
         T = est["T"]
-        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
-        pal = Vector((0, 0, 0))
-        for sf, sx in ((".L", 1), (".R", -1)):
-            R = h.rot("wrist" + sf) @ h.rest_inv["wrist" + sf].to_3x3()
-            pal += T.to_3x3() @ (R @ h.ref_mao[sf].col[2])
-        c = (gL + gR) / 2 + (pal / 2) * 0.9
+        return (T @ h.palma_c(".L") + T @ h.palma_c(".R")) / 2
+
+    voo = getattr(ctx, "bola_voo", None)
+    if voo and estados:
+        a, bb, quica = voo
+
+        def perto(t):
+            return min(estados, key=lambda e: min(abs(e["tau"] - t) % T_, T_ - abs(e["tau"] - t) % T_))
+        # soltura/retomada: últimos/primeiros quadros com a bola nas mãos
+        p0 = centro_maos(perto(a))
+        p1 = centro_maos(perto(bb))
+        D = (bb - a) % T_
+        g = 98.1
+        if quica is not None:
+            q = ctx.p3(*quica[:2]) if isinstance(quica, list) else (p0 + p1) / 2
+            if not isinstance(quica, list):
+                q.z = ctx.z0 + RAIO_BOLA
+            pernas = [(p0, q, D * 0.5), (q, p1, D * 0.5)]
+        else:
+            pernas = [(p0, p1, D)]
+
+        def no_voo(x):
+            for pa, pb, d in pernas:
+                if x <= d or (pa, pb, d) == pernas[-1]:
+                    x = min(x, d)
+                    v0 = (pb - pa) / d - Vector((0, 0, -g)) * (0.5 * d)
+                    return pa + v0 * x + Vector((0, 0, -g)) * (0.5 * x * x)
+                x -= d
+            return p1
+    else:
+        no_voo = None
+
+    def upd(est):
+        no_ar, _ = bola_no_ar(ctx, est["tau"])
+        if no_ar and no_voo is not None:
+            x = (est["tau"] - voo[0]) % T_
+            c = no_voo(x)
+        else:
+            c = centro_maos(est)
+        c = Vector((c.x, c.y, max(c.z, ctx.z0 + RAIO_BOLA)))
         b.matrix_world = Matrix.Translation(c)
     kit.moveis.append(upd)
 
 
+def _picos_salto(ctx):
+    """Instantes de pico dos saltos no ciclo (meio das fases de voo; sem voo: chaves de maior 'ay')."""
+    if getattr(ctx, "voos", None):
+        T_ = ctx.trilhas.T
+        return sorted(((a + ((b - a) % T_) / 2) % T_) for a, b in ctx.voos)
+    ays = [c["q"]["ay"] for c in ctx.chaves]
+    m = max(ays)
+    if m <= 0:
+        return [0.0]
+    return [float(ctx.trilhas.t0[i]) for i, v in enumerate(ays) if v >= m * 0.8]
+
+
 def _corda(kit, ctx, h):
-    n = 18
+    """Corda de pular: manoplas nas mãos; a corda sai de cada mão para fora dos ombros e gira em volta do corpo num círculo
+    (eixo lateral na altura das mãos), uma volta por salto, passando sob os pés só no pico do voo (nunca pelo corpo)."""
+    n = 26
     segs = [kit.cil_movel(0.05, kit.brasa, 8) for _ in range(n)]
+    mans = {sf: kit.cil_movel(0.15, kit.preto, 12) for sf in (".L", ".R")}
+    picos = _picos_salto(ctx)
+    T_ = ctx.trilhas.T
+
+    def fase(tau):
+        t = tau % T_
+        ps = picos + [picos[0] + T_]
+        for k_ in range(len(ps) - 1):
+            a, b = ps[k_], ps[k_ + 1]
+            if a <= t < b or (k_ == 0 and t < a):
+                if t < a:
+                    t += T_
+                    a, b = ps[-2], ps[-1]
+                return 2 * math.pi * (t - a) / (b - a)
+        return 0.0
 
     def upd(est):
         h.restaurar(est["est"])
         T = est["T"]
-        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
-        r = T @ h.cabeca("root")
-        fase = est["tau"] / max(ctx.trilhas.T / 2, 1e-3) * 2 * math.pi
-        C = Vector((0, r.y, r.z + 0.6))
-        R = r.z + 0.45 - ctx.z0
-        M = C + Vector((0, -math.sin(fase) * R * 0.75, -math.cos(fase) * R))
-        M.z = max(M.z, ctx.z0 + 0.06)
-        meio = (gL + gR) / 2
-        ctrl = M * 2 - meio
+        gL, _ = _por_alca(mans[".L"], h, T, ".L", 0.6)
+        gR, _ = _por_alca(mans[".R"], h, T, ".R", 0.6)
+        C = (gL + gR) / 2
+        R = max(C.z - ctx.z0 - 0.08, 3.0)
+        phi = fase(est["tau"])  # 0 = corda embaixo (pico do salto); gira para a frente
+        d = Vector((0, -math.sin(phi), -math.cos(phi)))
+        W = max(abs(gL.x - gR.x) / 2 + 0.5, 2.4)
         pts = []
         for i in range(n + 1):
-            s = i / n
-            p = gL * (1 - s) ** 2 + ctrl * (2 * s * (1 - s)) + gR * s * s
-            # abre lateralmente para passar por fora do corpo
-            p.x += math.sin(s * math.pi) * 0.0
+            sv = i / n
+            bb = math.sin(math.pi * sv) ** 0.5
+            arco = Vector((0, C.y, C.z)) + X * (W * math.cos(math.pi * sv)) + d * R
+            p = gL.lerp(gR, sv) * (1 - bb) + arco * bb
+            p.z = max(p.z, ctx.z0 + 0.05)
             pts.append(p)
-        for o, p, q in zip(segs, pts[:-1], pts[1:]):
-            Kit.por_cil(o, p, q)
+        for o, a_, b_ in zip(segs, pts[:-1], pts[1:]):
+            Kit.por_cil(o, a_, b_)
     kit.moveis.append(upd)
