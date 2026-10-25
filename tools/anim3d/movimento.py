@@ -124,11 +124,12 @@ def suave(u, a=0.0, b=1.0):
 
 # ------------------------------------------------------------------ poses
 
-ANGULOS = ("t", "c", "tr", "rol", "inc", "cinc", "cr", "bfa", "bta", "afa", "ata", "pfa", "pta", "cfa", "cta", "cfl", "pel", "trp")
+ANGULOS = ("t", "c", "tr", "rol", "inc", "cinc", "cr", "bfa", "bta", "afa", "ata", "pfa", "pta", "cfa", "cta", "cfl", "pel", "trp",
+           "puf", "put", "pdf", "pdt", "trt")
 LINEARES = ("x", "z", "ay", "oe", "pro")
 LISTAS = {"bf": 2, "bt": 2, "pf": 3, "pt": 3}
 PADRAO = {"x": 0.0, "z": 0.0, "ay": 0.0, "oe": 0.0, "pro": 0.0, "t": 180.0, "c": 180.0, "tr": 0.0, "rol": 0.0, "inc": 0.0, "cinc": 0.0,
-          "cr": 0.0, "cfl": 0.0, "pel": 0.0, "trp": 0.0,
+          "cr": 0.0, "cfl": 0.0, "pel": 0.0, "trp": 0.0, "puf": 0.0, "put": 0.0, "pdf": 0.0, "pdt": 0.0, "trt": 0.0,
           "bfa": 0.0, "bta": 0.0, "afa": 0.0, "ata": 0.0, "pfa": 0.0, "pta": 0.0, "cfa": 0.0, "cta": 0.0, "bf": [0.0, 0.0], "bt": [0.0, 0.0], "pf": [0.0, 0.0, 90.0], "pt": [0.0, 0.0, 90.0]}
 
 
@@ -153,7 +154,14 @@ def normalizar(p):
         q["cta"] = q["pta"]
     q["y"] = p.get("y")
     q["apoio"] = p.get("apoio")
+    # campos discretos por quadro (não interpolados): estado das mãos, mão presa ao corpo, giro da mão apoiada
+    for k in DISCRETOS:
+        if k in p:
+            q[k] = p[k]
     return q
+
+
+DISCRETOS = ("maos", "segura", "dedos", "solta")
 
 
 # direção de um segmento (espaço do esqueleto 3D: frente = -y, cima = +z, lado "f" = +x) a partir de ângulo 2D + abdução

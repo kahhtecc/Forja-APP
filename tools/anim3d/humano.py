@@ -111,6 +111,17 @@ def _wrap(a):
     return (a + 180.0) % 360.0 - 180.0
 
 
+def limite_suave(x, lo, hi, joelho=12.0):
+    """Limite articular suave: igual a x no meio da faixa e se aproxima assintoticamente de lo/hi (sem quina)."""
+    if x > hi - joelho:
+        e = x - (hi - joelho)
+        return hi - joelho + joelho * math.tanh(e / joelho)
+    if x < lo + joelho:
+        e = (lo + joelho) - x
+        return lo + joelho - joelho * math.tanh(e / joelho)
+    return x
+
+
 def _clamp(x, a, b):
     return a if x < a else b if x > b else x
 
@@ -205,6 +216,7 @@ class Humano:
         self._preparar_fk()
         self._preparar_maos()
         self._preparar_proxy()
+        self._calibrar_pegada()
 
     def _subdividir_e_esculpir(self):
         """Subdivide a malha em repouso (pesos interpolados) e aplica o relevo muscular (anatomia.py)."""
@@ -244,8 +256,11 @@ class Humano:
             self.partes["joelho_" + lado] = (np.linalg.norm(V2 - jo, axis=1) < 0.75) & (sm(["lowerleg01" + sf, "upperleg02" + sf]) > 0.5)
             self.partes["antebraco_" + lado] = sm(["lowerarm01" + sf, "lowerarm02" + sf]) > 0.5
             self.partes["braco_" + lado] = sm(["upperarm01" + sf, "upperarm02" + sf]) > 0.5
+            self.partes["coxa_" + lado] = sm(["upperleg01" + sf, "upperleg02" + sf]) > 0.5
+            self.partes["canela_" + lado] = sm(["lowerleg01" + sf, "lowerleg02" + sf]) > 0.5
         self.partes["tronco"] = sm(["spine01", "spine02", "spine03", "spine04", "spine05", "root", "pelvis.L", "pelvis.R",
                                     "breast.L", "breast.R", "clavicle.L", "clavicle.R", "neck01", "neck02", "neck03"]) > 0.5
+        self.partes["pescoco"] = sm(["neck01", "neck02", "neck03"]) > 0.5
         self.partes["cabeca"] = sm(["head"] + [b for b in W if b.startswith(("jaw", "special", "levator", "oris", "oculi",
                                                                                "orbicularis", "temporalis", "risorius", "eye", "tongue"))]) > 0.5
         a = me.attributes.new("cavidade", "FLOAT", "POINT")
@@ -397,11 +412,15 @@ class Humano:
             palma = dmao.cross(pol).normalized() * sx
             F = Matrix((dmao, pol, palma)).transposed()
             self.ref_mao[sufixo] = F
-            # centro da pegada (onde a barra/halter fica) e centro da palma, no referencial do osso do punho
-            f3, f2, f5 = J("finger3-1" + sufixo), J("finger2-1" + sufixo), J("finger5-1" + sufixo)
-            peg = punho + (f3 - punho) * 0.62 + palma * 0.22
+            # referencial da pegada: eixo do implemento = linha dos nós dos dedos (oblíqua na palma, como na mão real)
+            kl = atravs.copy()
+            pk = (palma - kl * palma.dot(kl)).normalized()
+            self.__dict__.setdefault("ref_peg", {})[sufixo] = Matrix((kl, pk, kl.cross(pk))).transposed()
             Rr = self.rest["wrist" + sufixo].to_3x3()
-            self.__dict__.setdefault("off_peg", {})[sufixo] = Rr.inverted() @ (peg - punho)
+            self.__dict__.setdefault("kl_local", {})[sufixo] = Rr.inverted() @ kl
+            # centro da palma (mão espalmada numa superfície/bola), no referencial do punho
+            f3 = J("finger3-1" + sufixo)
+            self.__dict__.setdefault("off_palma", {})[sufixo] = Rr.inverted() @ ((f3 - punho) * 0.55 + palma * 0.32)
             for f in range(1, 6):
                 for j in range(1, 4):
                     nome = f"finger{f}-{j}{sufixo}"
@@ -415,14 +434,127 @@ class Humano:
                         eixo = atravs * sx
                     self._eixo_dedo[nome] = (b.matrix_local.to_3x3().inverted() @ eixo).normalized()
 
-    # dedos: -1 = espalmados (apoio), 0 = relaxados, 1 = segurando (barra/halter/cabo)
-    CURVA = {"plana": ((3, 4, 2), (6, 4, 3)), "rel": ((16, 20, 14), (10, 12, 8)), "peg": ((62, 78, 52), (28, 34, 28))}
+    RAIOS_PEGA = (0.10, 0.13, 0.16, 0.20, 0.25)  # raios de empunhadura calibrados (corda, barra, halter, pegador, grosso)
+
+    def _tunel(self, sf, dedos=(2, 3, 4, 5)):
+        """Centro e eixo do túnel formado pelos dedos (círculo pelas articulações de cada dedo, como no qa_corpo)."""
+        kl = (self.cabeca("finger2-1" + sf) - self.cabeca("finger5-1" + sf)).normalized()
+        cs = []
+        for f in dedos:
+            P = [self.cabeca(f"finger{f}-{j}{sf}") for j in (1, 2, 3)] + [self.cauda(f"finger{f}-3{sf}")]
+            o = P[0]
+            u = P[2] - o
+            u = (u - kl * u.dot(kl)).normalized()
+            v = kl.cross(u)
+            p2 = np.array([[(p - o).dot(u), (p - o).dot(v)] for p in P])
+            A = np.c_[2 * p2, np.ones(len(p2))]
+            s_ = np.linalg.lstsq(A, (p2 ** 2).sum(1), rcond=None)[0]
+            cs.append(o + u * float(s_[0]) + v * float(s_[1]))
+        return sum(cs, Vector()) / len(cs), kl
+
+    def _curvar(self, sf, escalas):
+        """Dedos na curva de pegada com uma escala por dedo (1..5)."""
+        for f in range(1, 6):
+            cur = self.CURVA["peg"][f == 1]
+            for j in range(1, 4):
+                nome = f"finger{f}-{j}{sf}"
+                if nome in self._eixo_dedo:
+                    self.set_local(nome, Quaternion(self._eixo_dedo[nome], math.radians(cur[j - 1] * escalas[f - 1])))
+
+    def _calibrar_pegada(self):
+        """Pegada real: para cada raio de empunhadura, a curvatura de CADA dedo é ajustada para a pele encostar no cabo sem
+        atravessá-lo (o mínimo é mais curto e fecharia para dentro do cabo), e o centro da pegada é o centro do túnel dos
+        dedos médio/anelar (na prega da base dos dedos). O polegar fecha por cima. Calibrado na mão esquerda e espelhado."""
+        self.zerar()
+        sf = ".L"
+        dom = [self.px_nomes[i] for i in self.px_ossos[:, 0]]
+        # pele das falanges média e distal de cada dedo (a base do dedo sempre encosta no cabo; quem fecha é a ponta)
+        self._px_dedo = {f: np.array([d.startswith((f"finger{f}-2", f"finger{f}-3")) and d.endswith(sf) for d in dom]) for f in range(1, 6)}
+        self._px_mao = np.where(np.any(np.stack(list(self._px_dedo.values())), axis=0))[0]
+        self._px_dedo = {f: m[self._px_mao] for f, m in self._px_dedo.items()}
+        self.peg_cal = []
+        for r in self.RAIOS_PEGA:
+            esc = [1.0] * 5
+
+            def pele_dedo(f):
+                return self.proxy(sel=self._px_mao)[self._px_dedo[f]]
+
+            def raio_min(f, c, kl):
+                Q = pele_dedo(f) - np.array(c)
+                t = Q @ np.array(kl)
+                rad = np.linalg.norm(Q - np.outer(t, np.array(kl)), axis=1)
+                return float(rad.min()) if len(rad) else 9.0
+            # 1) médio e anelar definem o túnel: escala comum até a pele interna ficar a r do eixo
+            lo, hi = 0.35, 1.45
+            for _ in range(11):
+                s_ = (lo + hi) / 2
+                esc[1:5] = [s_] * 4
+                self._curvar(sf, esc)
+                c, kl = self._tunel(sf, (3, 4))
+                rm = min(raio_min(3, c, kl), raio_min(4, c, kl))
+                if rm < r + 0.004:
+                    hi = s_
+                else:
+                    lo = s_
+            esc[1:5] = [lo] * 4
+            self._curvar(sf, esc)
+            c, kl = self._tunel(sf, (3, 4))
+            # 2) cada dedo (indicador, mínimo e polegar) fecha até encostar no cabo
+            for f in (2, 5, 1):
+                lo2, hi2 = 0.2, 1.6
+                for _ in range(11):
+                    s_ = (lo2 + hi2) / 2
+                    esc[f - 1] = s_
+                    self._curvar(sf, esc)
+                    if raio_min(f, c, kl) < r + 0.004:
+                        hi2 = s_
+                    else:
+                        lo2 = s_
+                esc[f - 1] = lo2
+            self._curvar(sf, esc)
+            off = self.rot("wrist" + sf).inverted() @ (c - self.cabeca("wrist" + sf))
+            self.peg_cal.append((r, list(esc), off))
+        self.raio_mao = {".L": 0.15, ".R": 0.15}
+        self.zerar()
+
+    def _cal_raio(self, r):
+        """(escalas dos dedos, off_peg da mão esquerda) interpolados para o raio r."""
+        cal = self.peg_cal
+        if r <= cal[0][0]:
+            return cal[0][1], cal[0][2]
+        for (r0, e0, o0), (r1, e1, o1) in zip(cal, cal[1:]):
+            if r <= r1:
+                w = (r - r0) / (r1 - r0)
+                return [a + (b - a) * w for a, b in zip(e0, e1)], o0.lerp(o1, w)
+        return cal[-1][1], cal[-1][2]
+
+    @property
+    def off_peg(self):
+        out = {}
+        for sf in (".L", ".R"):
+            o = self._cal_raio(self.raio_mao[sf])[1]
+            out[sf] = o.copy() if sf == ".L" else Vector((-o.x, o.y, o.z))
+        return out
+
+    # dedos: -1 = espalmados (apoio), 0 = relaxados, 0,4 = semifechados (corrida), 1 = segurando (barra/halter/cabo),
+    # PUNHO (1,6) = punho fechado sem objeto (socos). Curvas por falange (proximal, média, distal); 2ª tupla = polegar.
+    CURVA = {"plana": ((3, 4, 2), (6, 4, 3)), "rel": ((9, 12, 8), (8, 9, 6)), "peg": ((62, 78, 52), (40, 34, 30)),
+             "punho": ((88, 100, 70), (52, 40, 34))}
+    PUNHO = 1.6
 
     def dedos(self, sufixo, v):
         for f in range(1, 6):
             pol = f == 1
-            a, b = (self.CURVA["rel"][pol], self.CURVA["peg"][pol]) if v >= 0 else (self.CURVA["rel"][pol], self.CURVA["plana"][pol])
-            w = abs(v)
+            peg = self.CURVA["peg"][pol]
+            if getattr(self, "peg_cal", None):
+                e_ = self._cal_raio(self.raio_mao[sufixo])[0][f - 1]
+                peg = tuple(x * e_ for x in peg)
+            if v > 1.0:
+                a, b, w = peg, self.CURVA["punho"][pol], min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
+            elif v >= 0:
+                a, b, w = self.CURVA["rel"][pol], peg, v
+            else:
+                a, b, w = self.CURVA["rel"][pol], self.CURVA["plana"][pol], -v
             for j in range(1, 4):
                 nome = f"finger{f}-{j}{sufixo}"
                 if nome not in self._eixo_dedo:
@@ -441,25 +573,62 @@ class Humano:
         R = Ft @ Fr.transposed()
         return R @ self.rest["wrist" + sufixo].to_3x3()
 
-    def rot_pegada(self, sufixo, eixo, supinada=False):
-        """Mão fechada em volta de uma barra de eixo 'eixo' (esqueleto), punho neutro (alinhado ao antebraço)."""
+    def rot_pegada(self, sufixo, eixo, supinada=False, f=None):
+        """Mão fechada em volta de uma barra de eixo 'eixo' (esqueleto): a linha dos nós dos dedos fica ao longo da barra
+        e a palma de frente para o antebraço (punho neutro). f: direção do antebraço (padrão: a atual)."""
         sx = 1 if sufixo == ".L" else -1
-        f = (self.cabeca("wrist" + sufixo) - self.cabeca("lowerarm01" + sufixo)).normalized()
+        if f is None:
+            f = (self.cabeca("wrist" + sufixo) - self.cabeca("lowerarm01" + sufixo)).normalized()
         th = eixo.normalized() * (sx if supinada else -sx)
-        th = th - f * th.dot(f)
-        if th.length < 1e-3:
-            th = FRENTE - f * FRENTE.dot(f)
-        th.normalize()
-        palma = f.cross(th) * sx
-        return self.rot_mao(sufixo, f, palma)
+        thp = th - f * th.dot(f)
+        if thp.length < 1e-3:
+            thp = FRENTE - f * FRENTE.dot(f)
+        thp.normalize()
+        palma = f.cross(thp) * sx
+        pa = (palma - th * palma.dot(th)).normalized()
+        Ft = Matrix((th, pa, th.cross(pa))).transposed()
+        R = Ft @ self.ref_peg[sufixo].transposed()
+        # pegada aberta/fechada (antebraço oblíquo à barra): o punho desvia no máximo ~12° e o resto vira cabo cruzando a
+        # palma na diagonal (até 24°), como na mão real; nunca o desvio radial/ulnar extremo
+        dm = (R @ self.ref_mao[sufixo].col[0]).normalized()
+        pn = (R @ self.ref_mao[sufixo].col[2]).normalized()
+        fp = f - pn * f.dot(pn)
+        if fp.length > 1e-3:
+            fp.normalize()
+            ang = math.atan2(dm.cross(fp).dot(pn), dm.dot(fp))
+            exc = abs(ang) - math.radians(12)
+            if exc > 0:
+                R = Quaternion(pn, math.copysign(min(exc, math.radians(24)), ang)).to_matrix() @ R
+        return R @ self.rest["wrist" + sufixo].to_3x3()
+
+    def punho(self, sf, flexao=0.0, desvio=0.0):
+        """Articulação do punho independente do antebraço: flexão (+, palma para o antebraço) / extensão (-) e desvio
+        radial (+, para o polegar) / ulnar (-), em graus, com limite anatômico suave (AAOS: flexão 80, extensão 70,
+        radial 20, ulnar 30)."""
+        if not flexao and not desvio:
+            return
+        flexao = limite_suave(flexao, -70.0, 80.0)
+        desvio = limite_suave(desvio, -30.0, 20.0)
+        R = self.rot("wrist" + sf)
+        Rr = R @ self.rest_inv["wrist" + sf].to_3x3()
+        F = self.ref_mao[sf]
+        dm, pol, pa = (Rr @ F.col[0]).normalized(), (Rr @ F.col[1]).normalized(), (Rr @ F.col[2]).normalized()
+        q = Quaternion(dm.cross(pa).normalized(), math.radians(flexao)) @ Quaternion(dm.cross(pol).normalized(), math.radians(desvio))
+        self.set_rot("wrist" + sf, q.to_matrix() @ R)
 
     def pegada(self, sufixo):
-        """Centro da pegada (espaço do esqueleto)."""
+        """Centro da pegada (espaço do esqueleto): centro do túnel dos dedos fechados."""
         return self.cabeca("wrist" + sufixo) + self.rot("wrist" + sufixo) @ self.off_peg[sufixo]
 
+    def palma_c(self, sufixo):
+        """Centro da palma (espaço do esqueleto): ponto que encosta numa superfície/bola com a mão aberta."""
+        return self.cabeca("wrist" + sufixo) + self.rot("wrist" + sufixo) @ self.off_palma[sufixo]
+
     def eixo_polegar(self, sufixo):
-        R = self.rot("wrist" + sufixo) @ self.rest_inv["wrist" + sufixo].to_3x3()
-        return (R @ self.ref_mao[sufixo].col[1]).normalized()
+        """Eixo da empunhadura na mão (linha dos nós dos dedos, do mínimo para o indicador), espaço do esqueleto."""
+        return (self.rot("wrist" + sufixo) @ self.kl_local[sufixo]).normalized()
+
+    eixo_pegada = eixo_polegar
 
     # ---------------------------------------------------------- representação simplificada (pele) para contatos
     def _preparar_proxy(self):
@@ -481,15 +650,16 @@ class Humano:
         self.px_rest = np.concatenate([self.verts[idx], np.ones((len(idx), 1))], axis=1)
         self.px_partes = {k: v[idx] for k, v in self.partes.items()}
 
-    def proxy(self, T=None):
-        """Pontos da pele (amostra) posados, no espaço do mundo (ou do esqueleto se T é None)."""
+    def proxy(self, T=None, sel=None):
+        """Pontos da pele (amostra) posados, no espaço do mundo (ou do esqueleto se T é None). sel: índices (subconjunto)."""
         self._fk()
         S = np.array([np.array(self.P[b] @ self.rest_inv[b]) for b in self.px_nomes])
         if T is not None:
             S = np.einsum("ij,bjk->bik", np.array(T), S)
-        M = S[self.px_ossos]  # (p, K, 4, 4)
-        v = np.einsum("pkij,pj->pki", M[:, :, :3, :], self.px_rest)
-        return (v * self.px_w[:, :, None]).sum(axis=1)
+        ossos, rest, w = (self.px_ossos, self.px_rest, self.px_w) if sel is None else (self.px_ossos[sel], self.px_rest[sel], self.px_w[sel])
+        M = S[ossos]  # (p, K, 4, 4)
+        v = np.einsum("pkij,pj->pki", M[:, :, :3, :], rest)
+        return (v * w[:, :, None]).sum(axis=1)
 
     # ---------------------------------------------------------- pose
     def posar(self, p, maos=None):
@@ -530,15 +700,17 @@ class Humano:
         fr_tor = (0.2, 0.32, 0.45, 0.6, 0.8, 1.0)
         fr_trp = (1.0, 0.75, 0.5, 0.3, 0.12, 0.0)
         fr_inc = (0.1, 0.25, 0.42, 0.6, 0.8, 1.0)
-        trp = p.get("trp", 0.0)
-        for n, a, ft, fi, fp in zip(COLUNA, ang, fr_tor, fr_inc, fr_trp):
-            self.girar(n, rot_corpo(a, p["inc"] * fi, p["tr"] * ft + trp * fp))
+        fr_trt = (0.0, 0.0, 0.08, 0.3, 0.65, 1.0)  # torção só torácica (pelve e lombar paradas)
+        trp, trt = p.get("trp", 0.0), p.get("trt", 0.0)
+        tr_total = p["tr"] + trt
+        for n, a, ft, fi, fp, fz in zip(COLUNA, ang, fr_tor, fr_inc, fr_trp, fr_trt):
+            self.girar(n, rot_corpo(a, p["inc"] * fi, p["tr"] * ft + trp * fp + trt * fz))
         phi_up = ang[-1]
         # ---- pescoço e cabeça
         rel = _clamp(_wrap(p["c"] - phi_up), -62, 48)
         for n, w in zip(PESCOCO, (0.3, 0.55, 0.8, 1.0)):
-            self.girar(n, rot_corpo(phi_up + rel * w, p["inc"] + p["cinc"] * w, p["tr"] + p["cr"] * w))
-        R_up = rot_corpo(phi_up, p["inc"], p["tr"])
+            self.girar(n, rot_corpo(phi_up + rel * w, p["inc"] + p["cinc"] * w, tr_total + p["cr"] * w))
+        R_up = rot_corpo(phi_up, p["inc"], tr_total)
         up_t, fw_t = R_up @ CIMA, R_up @ FRENTE
         # ---- braços (com cintura escapular)
         dirs = {}
@@ -567,6 +739,7 @@ class Humano:
             for n in ("lowerarm01", "lowerarm02"):
                 self.apontar(n + sf, da)
             self.apontar("wrist" + sf, da)
+            self.punho(sf, p.get("pu" + lado, 0.0), p.get("pd" + lado, 0.0))
             # ---- pernas
             c_, sh, pe = p["p" + lado]
             pa = p["p" + lado + "a"]
@@ -975,7 +1148,12 @@ class Contexto:
     def __init__(self, h, anim, k, grupo):
         self.h, self.anim, self.k = h, anim, k
         self.id = anim["id"]
-        self.props = anim.get("props", [])
+        self.props = [dict(pr) for pr in anim.get("props", [])]
+        if "roda-abdominal" in self.id:
+            # compatibilidade: dados antigos usavam uma bola no lugar da roda abdominal
+            self.props = [({"tipo": "roda", "em": "maos"} if pr.get("tipo") == "bola" else pr) for pr in self.props]
+            if not any(pr.get("tipo") == "roda" for pr in self.props):
+                self.props.append({"tipo": "roda", "em": "maos"})
         tipos = {pr.get("tipo") for pr in self.props}
         self.tipos = tipos
         self.z0 = 0.0
@@ -994,13 +1172,33 @@ class Contexto:
                 ocup.add(em[-1])
         if "corda" in tipos or any(x in self.id for x in ("supino-maquina", "peck-deck", "voador", "desenvolvimento-maquina")):
             ocup |= {"f", "t"}  # pegadores das alavancas da máquina
+        ocup |= aparelhos.maos_em_pegadores(self)  # guidão, manoplas, corrimão, pegadores de máquina, trenó, roda
         self.ocupadas = ocup
+        # bola medicinal: palmas abertas na superfície da bola (não punho fechado)
+        self.estado_ocupada = -0.35 if ("bola" in tipos and "roda" not in tipos) else 1.0
+        self.raio_pega = aparelhos.raio_pega(self)
+        # mão livre (sem implemento nem apoio): relaxada e levemente fechada; punho fechado nas lutas; semifechada correndo
+        modo = anim.get("maos")
+        if modo is None:
+            if any(x in self.id for x in ("sombra", "saco", "boxe", "luta", "sprawl")):
+                modo = "punho"
+            elif any(x in self.id for x in ("corrida", "caminhada", "tiros", "tempo-run", "longao", "prova", "educativos",
+                                             "sprint", "skipping", "polichinelo", "carioca", "chute-gluteo", "salto", "jump",
+                                             "bound", "burpee", "agachamento-salto", "monster")):
+                modo = "semi"
+            else:
+                modo = "rel"
+        if isinstance(modo, dict):
+            self.mao_livre = {l_: _estado_mao(modo.get(l_), ESTADOS_MAO["rel"]) for l_ in ("f", "t")}
+        else:
+            self.mao_livre = {l_: _estado_mao(modo, ESTADOS_MAO["rel"]) for l_ in ("f", "t")}
         self.props_maos = bool(ocup)
         self.barra = None
         for pr in self.props:
             if pr.get("tipo") == "barra_fixa":
                 self.barra = (pr.get("x", 0), pr.get("y", 21))
         self.paralelas = self.barra is not None and "paralela" in self.id
+        self.pendurado = self.barra is not None and not self.paralelas and anim.get("fixo") != "pes"
         self.barra_livre = "barra" in tipos  # barra olímpica nas mãos
         self.barra_modo = barra_modo(anim)
         self.rolar = bool(anim.get("rolar"))  # piso rolante (locomoção no lugar: o chão corre sob o pé de apoio)
@@ -1123,15 +1321,34 @@ def mao_apoiada_rot(h, T, sf):
     return h.rot_mao(sf, Ti @ hd, Ti @ Vector((0, 0, -1)))
 
 
-def estado_maos(ctx, apoio):
+ESTADOS_MAO = {"aberta": -0.45, "espalmada": -1.0, "rel": 0.12, "semi": 0.45, "fechada": 1.0, "pegada": 1.0, "punho": Humano.PUNHO}
+
+
+def _estado_mao(v, padrao):
+    if v is None:
+        return padrao
+    if isinstance(v, str):
+        return ESTADOS_MAO.get(v, padrao)
+    return float(v)
+
+
+def estado_maos(ctx, apoio, q=None):
+    """Estado dos dedos por mão: -1 apoiada (espalmada), 1 segurando, 1,6 punho fechado, 0,45 semifechada, 0,12 relaxada.
+    q["maos"] (por quadro) ou anim["maos"] (por animação): "punho" | "semi" | "rel" | "aberta" | número | {"f": .., "t": ..}."""
     v = {}
+    pq = (q or {}).get("maos")
     for lado, sf, _ in LADOS:
         if apoio.get(lado):
             v[sf] = -1.0
         elif lado in ctx.ocupadas or ctx.barra is not None:
-            v[sf] = 1.0
+            v[sf] = ctx.estado_ocupada
         else:
-            v[sf] = 0.0
+            v[sf] = ctx.mao_livre[lado]
+        if pq is not None and not apoio.get(lado):
+            v[sf] = _estado_mao(pq.get(lado) if isinstance(pq, dict) else pq, v[sf])
+        seg = (q or {}).get("segura") or {}
+        if ("mao_" + lado) in seg and not apoio.get(lado):
+            v[sf] = 0.55 if seg["mao_" + lado] in ALVOS_SEGURA_PEGA else 0.05
     return v
 
 
@@ -1237,7 +1454,7 @@ def colocar_chave(h, ctx, q):
         apoio = {lado: ("mao_" + lado) in q["apoio"] for lado in ("f", "t")}
     q = dict(q)
     q["_qb"] = _quadril_baixo(p2)
-    maos = estado_maos(ctx, apoio)
+    maos = estado_maos(ctx, apoio, q)
     h.posar(q, maos)
     T = Matrix.Identity(4)
     root0 = h.cabeca("root")
@@ -1302,8 +1519,8 @@ def colocar_chave(h, ctx, q):
             T = Matrix.Translation((0, 0, ctx.z0 - zmin)) @ T  # altura dada não pode enterrar joelhos/pés
     if q["z"]:
         T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
-    # 4) barra fixa: mãos na barra
-    if ctx.barra is not None and "barra3" in ref and math.dist(p2["mao_f"], ctx.barra) < 1.6:
+    # 4) barra fixa: mãos na barra (em todo quadro: quem pendura não solta a barra)
+    if ctx.barra is not None and "barra3" in ref:
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
         b3 = ref["barra3"]
         pes_chao = min(p2["ponta_f"][1], p2["calcanhar_f"][1]) < 0.35 and q["y"] is None
@@ -1320,7 +1537,8 @@ def colocar_chave(h, ctx, q):
             T = Matrix.Translation((0, b3.y - g.y, b3.z - g.z)) @ T
         else:
             T = Matrix.Translation((0, 0, b3.z - g.z)) @ T
-        segurar_barra(h, ctx, T)
+        T = segurar_barra(h, ctx, T)
+        T = cabeca_atras_da_barra(h, ctx, T)
     if chave3 is not None and "ancora" not in ref:
         ref["ancora"] = chave3(T).y
     if "quad" not in ref:
@@ -1378,8 +1596,24 @@ def repousar(h, ctx, T, q):
 
 
 def segurar_barra(h, ctx, T):
-    """IK: cada mão alcança a barra fixa (ou as paralelas) com a pegada fechada em volta dela."""
+    """IK: cada mão alcança a barra fixa (ou as paralelas) com a pegada fechada em volta dela. Pendurado: se os braços
+    esticados não alcançam, o corpo sobe o que falta (o peso fica nas mãos). Devolve T."""
     b3 = ctx.ref["barra3"]
+    _segurar_barra(h, ctx, T, b3)
+    if ctx.pendurado:
+        for _ in range(2):
+            res = Vector()
+            for sf in (".L", ".R"):
+                g = T @ h.pegada(sf)
+                res += Vector((0, b3.y - g.y, b3.z - g.z)) / 2
+            if res.length < 0.002:
+                break
+            T = Matrix.Translation(res) @ T
+            _segurar_barra(h, ctx, T, b3)
+    return T
+
+
+def _segurar_barra(h, ctx, T, b3):
     Ti = T.inverted()
     for _ in range(2):
         for sf in (".L", ".R"):
@@ -1393,6 +1627,29 @@ def segurar_barra(h, ctx, T):
             R = h.rot_pegada(sf, eixo, ctx.supinada and not ctx.paralelas)
             alvo = Ti @ alvo_m - R @ h.off_peg[sf]
             h.ik("braco", sf, alvo, R)
+
+
+def cabeca_atras_da_barra(h, ctx, T, folga=0.32):
+    """Pendurado na barra fixa: a cabeça e o pescoço nunca atravessam a barra. Quando chegam perto, o corpo vai para
+    trás (a barra fica à frente do rosto/pescoço, como no movimento real) e as mãos continuam presas por IK."""
+    if ctx.barra is None or ctx.paralelas or "barra3" not in ctx.ref or not ctx.pendurado:
+        return T
+    b3 = ctx.ref["barra3"]
+    P = h.proxy(T)
+    m = h.px_partes["cabeca"] | h.px_partes["pescoco"]
+    Q = P[m]
+    raio = 0.16 + folga
+    dz = Q[:, 2] - b3.z
+    perto = np.abs(dz) < raio
+    if not perto.any():
+        return T
+    # deslocamento mínimo em +y (para trás) que deixa todos os pontos fora do círculo de folga em volta da barra
+    need = b3.y + np.sqrt(np.maximum(raio * raio - dz[perto] ** 2, 0.0)) - Q[perto, 1]
+    d = float(need.max())
+    if d <= 1e-3:
+        return T
+    T = Matrix.Translation((0, min(d, 2.5), 0)) @ T
+    return segurar_barra(h, ctx, T)
 
 
 def encaixar(h, ctx, T, apoio):
@@ -1439,11 +1696,7 @@ def efetores_chave(h, ctx, T, apoio, declarado=None):
             contato = zb > ctx.z0 + 1e-3 and inf["zbola"] - zb < 0.3
         if membro == "braco":
             if ctx.barra is not None and "barra3" in ctx.ref:
-                g = T @ h.pegada(sf)
-                b3 = ctx.ref["barra3"]
-                d = abs(g.z - b3.z) + (0 if ctx.paralelas else abs(g.y - b3.y))
-                if d < 0.5:
-                    contato = True
+                contato = True  # mãos presas na barra fixa / paralelas em todo quadro
             elif ef[-1] in ctx.ocupadas:
                 contato = False
             else:
@@ -1489,6 +1742,8 @@ def plantar(h, ctx, T, chaves, i, j, u):
     ea, eb = chaves[i]["ef"], chaves[j]["ef"]
     rolar = ctx.rolar
     for ef, membro, sf in EFETORES:
+        if membro == "braco" and ctx.barra is not None and "barra3" in ctx.ref:
+            continue  # mãos na barra fixa: segurar_barra cuida delas
         a, b = ea[ef], eb[ef]
         dist = (a["ponta"] - b["ponta"]).length  # pelo pivô do apoio (calcanhar subindo não é passo)
         fim = _fim(membro, sf)
@@ -1663,6 +1918,74 @@ def dedos_pes(h, ctx, T):
                 continue
             nova = d.lerp(alvo, w * mov.suave(-d.z, 0.0, 0.08))
             h.apontar(n, Ti3 @ nova.normalized())
+
+
+# mão segurando uma parte do corpo ("segura": {"mao_f": "pe_f", ...}): ponto anatômico = (osso, osso seguinte, fração)
+ALVOS_SEGURA = {
+    "pe": ("foot", "toe3-1", 0.45), "tornozelo": ("foot", None, 0.0), "canela": ("lowerleg01", "foot", 0.3),
+    "joelho": ("lowerleg01", None, 0.0), "coxa": ("upperleg01", "lowerleg01", 0.62), "cotovelo": ("lowerarm01", None, 0.0),
+    "braco": ("upperarm01", "lowerarm01", 0.55), "punho": ("wrist", None, 0.0), "ombro": ("upperarm01", None, 0.0),
+}
+ALVOS_SEGURA_PEGA = {"pe_f", "pe_t", "tornozelo_f", "tornozelo_t", "canela_f", "canela_t", "coxa_f", "coxa_t", "punho_f", "punho_t",
+                     "braco_f", "braco_t"}
+
+
+def ponto_segura(h, nome):
+    """Ponto anatômico (espaço do esqueleto) de um alvo de "segura": pe_f, canela_t, joelho_f, coxa_t, cotovelo_f,
+    quadril_f (crista ilíaca/cintura), nuca, cabeca, peito."""
+    if nome in ("nuca", "cabeca"):
+        a, b = h.cabeca("head"), h.cauda("head")
+        return a + (b - a) * (0.15 if nome == "nuca" else 0.55)
+    if nome == "peito":
+        return h.cabeca("spine01")
+    base, lado = nome.rsplit("_", 1)
+    sf = ".L" if lado == "f" else ".R"
+    if base in ("quadril", "cintura"):
+        r, sp = h.cabeca("root"), h.cabeca("spine03")
+        q = h.cabeca("upperleg01" + sf)
+        return q + (sp - r).normalized() * 1.1
+    o1, o2, fr = ALVOS_SEGURA[base]
+    a = h.cabeca(o1 + sf)
+    return a if o2 is None else a + (h.cabeca(o2 + sf) - a) * fr
+
+
+def segurar_corpo(h, ctx, T, tau):
+    """Mão presa a uma parte do corpo (pé, canela, joelho, coxa, cotovelo, cintura, nuca): a palma encosta na pele mais
+    próxima do ponto anatômico, de frente para ela, por IK do braço; peso contínuo entre quadros-chave."""
+    i, u = ctx.trilhas.segmento(tau)
+    n = len(ctx.chaves)
+    sa = ctx.chaves[i]["q"].get("segura") or {}
+    sb = ctx.chaves[(i + 1) % n]["q"].get("segura") or {}
+    if not sa and not sb:
+        return
+    P = h.proxy()  # espaço do esqueleto
+    for lado, sf, _ in LADOS:
+        ef = "mao_" + lado
+        wa, wb = (1.0 if ef in sa else 0.0), (1.0 if ef in sb else 0.0)
+        w = _lerp(wa, wb, mov.suave(u))
+        if w < 1e-3:
+            continue
+        nome = sb.get(ef) if u > 0.5 and ef in sb else sa.get(ef, sb.get(ef))
+        A = ponto_segura(h, nome)
+        pc = h.palma_c(sf)
+        m = ~(h.px_partes["mao_f"] | h.px_partes["mao_t"] | h.px_partes["antebraco_" + lado])
+        idx = np.where(m & (np.linalg.norm(P - np.array(A), axis=1) < 1.0))[0]
+        if not len(idx):
+            continue
+        S = P[idx[np.argmin(np.linalg.norm(P[idx] - np.array(pc), axis=1))]]
+        S = Vector(S)
+        nrm = S - A
+        nrm = nrm.normalized() if nrm.length > 1e-4 else (pc - A).normalized()
+        alvo_pc = pc.lerp(S + nrm * 0.1, w)
+        ante = (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized()
+        dd = ante - nrm * ante.dot(nrm)
+        if dd.length < 1e-3:
+            dd = Vector((0, 0, 1)) - nrm * nrm.z
+        R_alvo = h.rot_mao(sf, dd.normalized(), -nrm)
+        R0 = h.rot("wrist" + sf).to_quaternion()
+        R = R0.slerp(R_alvo.to_quaternion(), w).to_matrix()
+        for _ in range(2):
+            h.ik("braco", sf, alvo_pc - R @ h.off_palma[sf], R)
 
 
 def ax_dot(v, e):
@@ -1853,6 +2176,7 @@ def ancorar_apoios(ctx):
 
 def preparar_anim(h, anim, k, grupo):
     ctx = Contexto(h, anim, k, grupo)
+    h.raio_mao = dict(ctx.raio_pega)  # curvatura dos dedos e centro da pegada calibrados para o cabo do implemento
     if grupo == "Trapézio" and not any("oe" in q for q in anim["quadros"]):
         for i_q, q in enumerate(anim["quadros"]):
             q["oe"] = 0 if i_q == 0 else 1
@@ -1990,8 +2314,9 @@ def finalizar(h, ctx, T, tau, seg, maos):
         i, j, u = seg
         ctx._livre = {}
         pesos = plantar(h, ctx, T, ctx.chaves, i, j, u)
-        if ctx.barra is not None and "barra3" in ctx.ref and all(ctx.chaves[x]["ef"]["mao_f"]["contato"] for x in (i, j)):
-            segurar_barra(h, ctx, T)
+        if ctx.barra is not None and "barra3" in ctx.ref:
+            T = segurar_barra(h, ctx, T)
+            T = cabeca_atras_da_barra(h, ctx, T)
     if pesos:
         T = assentar_apoios(h, ctx, T, pesos)
         T2 = alcancar_apoios(h, ctx, T, pesos, seg)
@@ -2018,6 +2343,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
             T = Matrix.Translation((0, 0, (ctx.z0 - zmin) * w_livre)) @ T
     if ctx.barra_livre:
         extras["barra"] = corrigir_barra(h, ctx, T)
+    segurar_corpo(h, ctx, T, tau)
+    aparelhos.depois_ik(ctx, h, T, tau, extras)
     dedos_pes(h, ctx, T)
     return {"T": T.copy(), "est": h.estado(), "tau": tau, "extras": extras, "pesos": pesos}
 

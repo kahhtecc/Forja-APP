@@ -209,12 +209,329 @@ def halter_peca(kit):
     return kit.grupo_movel(ps)
 
 
+# ------------------------------------------------------------------ pegadores (mãos fechadas em aparelhos)
+
+MAQ_ASSENTO = ("leg-press", "extensora", "cadeira-flexora", "abdutora", "adutora")
+
+
+def maos_em_pegadores(ctx):
+    """Lados cujas mãos seguram um pegador/guidão/manopla/corrimão do aparelho (o motor faz a IK até ele)."""
+    idd, t = ctx.id, ctx.tipos
+    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t
+            or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "escada", "sled",
+                                                      "roda-abdominal"))
+            or idd.startswith("hack")):
+        return {"f", "t"}
+    return set()
+
+
+def raio_pega(ctx):
+    """Raio da empunhadura (dm) que cada mão segura: define a curvatura calibrada dos dedos."""
+    t, idd = ctx.tipos, ctx.id
+    r = 0.15
+    if "barra_fixa" in t or "barra" in t:
+        r = 0.15
+    elif "kettlebell" in t:
+        r = 0.13
+    elif "cabo" in t:
+        r = 0.12 if tipo_cabo(ctx) == "corda" else 0.15
+    elif "elastico" in t or "corda" in t:
+        r = 0.15
+    elif "bike" in t or "roda" in t or _tipo_pegador(ctx) is not None:
+        r = 0.2
+    elif any(x in idd for x in ("supino-maquina", "peck-deck", "voador", "desenvolvimento-maquina")):
+        r = 0.2
+    return {".L": r, ".R": r}
+
+
+def _tipo_pegador(ctx):
+    idd = ctx.id
+    if "roda" in ctx.tipos or "roda-abdominal" in idd:
+        return "roda"
+    if "treno" in ctx.tipos or "sled" in idd:
+        return "treno"
+    if "escada" in ctx.tipos or "escada" in idd:
+        return "escada"
+    if "eliptico" in ctx.tipos or "eliptico" in idd:
+        return "eliptico"
+    if "mesa-flexora" in idd:
+        return "mesa"
+    if "panturrilha-sentado" in idd:
+        return "coxa"
+    if idd.startswith("hack"):
+        return "hack"
+    if any(s_ in idd for s_ in MAQ_ASSENTO):
+        return "assento"
+    return None
+
+
+def preparar_pegadores(ctx, h):
+    """Pegadores fixos no mundo (calculados no quadro-chave 0) ou presos ao corpo/aparelho móvel (calculados por quadro).
+    ctx.pegadores = {"tipo": .., ".L"/".R": (posição, eixo)} para os fixos."""
+    tipo = _tipo_pegador(ctx)
+    ctx.pegadores = None
+    if tipo is None or not ctx.chaves:
+        return
+    c0 = ctx.chaves[0]
+    h.restaurar(c0["est"])
+    T = c0["T"]
+    r = T @ h.cabeca("root")
+    cfg = {"tipo": tipo}
+    if tipo == "assento":
+        # barras laterais do assento, ao lado do quadril (pegada neutra)
+        # leg press (encosto reclinado, braço para a frente): pegador transversal; cadeiras (braço pendente): longitudinal
+        e = Vector((1, 0, 0)) if "leg-press" in ctx.id else Vector((0, 1, 0))
+        for sf, sx in ((".L", 1), (".R", -1)):
+            cfg[sf] = (Vector((sx * 2.55, r.y - 0.1, r.z - 0.55)), e)
+    elif tipo == "mesa":
+        b = [pr for pr in ctx.props if pr.get("tipo") == "banco"]
+        b = b[0] if b else {"x": 0, "w": 8, "h": 4}
+        a_, b_ = ctx.p3(b.get("x", 0), 0), ctx.p3(b.get("x", 0) + b.get("w", 8), 0)
+        y_fr = min(a_.y, b_.y)
+        zt = (b.get("y", 0) + b.get("h", 4)) * ctx.k
+        for sf, sx in ((".L", 1), (".R", -1)):
+            cfg[sf] = (Vector((sx * 1.9, y_fr + 0.9, zt - 0.9)), Vector((1, 0, 0)))
+    elif tipo == "escada":
+        zs = [(T @ h.pegada(sf)).z for sf in (".L", ".R")]
+        ys = [(T @ h.pegada(sf)).y for sf in (".L", ".R")]
+        z = min(max(sum(zs) / 2, r.z + 0.6), r.z + 2.6)
+        for sf, sx in ((".L", 1), (".R", -1)):
+            cfg[sf] = (Vector((sx * 2.7, sum(ys) / 2, z)), Vector((0, 1, 0)))
+    elif tipo == "eliptico":
+        mq = [pr for pr in ctx.props if pr.get("tipo") == "maquina"]
+        toes = []
+        zs = []
+        for ch in ctx.chaves:
+            h.restaurar(ch["est"])
+            toes += [(ch["T"] @ h.cauda("toe3-1" + sf)).y for sf in (".L", ".R")]
+            zs += [(ch["T"] @ h.cabeca("spine01")).z]
+        h.restaurar(c0["est"])
+        yc = min(toes) - 1.6
+        if mq:
+            yc = min(yc, ctx.p3(mq[0].get("x", 4), 0).y)
+        cfg["yc"] = yc
+        cfg["zc"] = sum(zs) / len(zs) - 1.0
+        cfg["piv"] = {sf: Vector((sx * 1.7, yc - 0.2, cfg["zc"] - 4.5)) for sf, sx in ((".L", 1), (".R", -1))}
+    elif tipo == "treno":
+        ys, zs = [], []
+        for ch in ctx.chaves:
+            h.restaurar(ch["est"])
+            for sf in (".L", ".R"):
+                g = ch["T"] @ h.pegada(sf)
+                ys.append(g.y)
+                zs.append(g.z)
+        h.restaurar(c0["est"])
+        y = sum(ys) / len(ys)
+        z = min(max(sum(zs) / len(zs), 6.0), 13.0)
+        for sf, sx in ((".L", 1), (".R", -1)):
+            cfg[sf] = (Vector((sx * 2.1, y, z)), Vector((0, 0, 1)))
+    ctx.pegadores = cfg
+
+
+def _alvo_pegador(ctx, h, T, sf, sx):
+    """(posição no mundo, eixo no mundo) do pegador desta mão neste quadro, ou None."""
+    cfg = ctx.pegadores
+    if not cfg:
+        return None
+    tipo = cfg["tipo"]
+    if sf in cfg:
+        return cfg[sf]
+    if tipo == "coxa":
+        # alavanca da panturrilha sentado: pegadores sobre a almofada das coxas (acompanham os joelhos)
+        j = T @ h.cabeca("lowerleg01" + sf)
+        q = T @ h.cabeca("upperleg01" + sf)
+        return (j + (q - j) * 0.18 + Vector((sx * 0.55, 0, 1.25)), Vector((1, 0, 0)))
+    if tipo == "hack":
+        S = T @ h.cabeca("upperarm01" + sf)
+        u = (T @ h.cabeca("neck01") - T @ h.cabeca("root")).normalized()
+        nb = u.cross(Vector((1, 0, 0))).normalized()
+        if nb.y < 0:
+            nb = -nb
+        return (S - u * 0.2 + Vector((sx * 1.15, 0, 0)) - nb * 0.6, u)
+    if tipo == "roda":
+        g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
+        return (Vector((sx * 0.95, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
+    return None
+
+
+RAIO_RODA = 0.95
+
+
+def ik_pegadores(ctx, h, T):
+    """Mãos fechadas nos pegadores/guidão/manoplas do aparelho (IK do braço, punho alinhado ao pegador)."""
+    if not getattr(ctx, "pegadores", None):
+        return
+    Ti = T.inverted()
+    Ti3 = Ti.to_3x3()
+    for _ in range(2):
+        for sf, sx in ((".L", 1), (".R", -1)):
+            a = _alvo_pegador(ctx, h, T, sf, sx)
+            if a is None:
+                continue
+            pos, eixo = a
+            alvo_l = Ti @ pos
+            R = h.rot_pegada(sf, Ti3 @ eixo, False, f=(h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized())
+            h.ik("braco", sf, alvo_l - R @ h.off_peg[sf], R)
+
+
+def depois_ik(ctx, h, T, tau, extras):
+    """No fim de cada quadro (posição final do corpo): mãos presas a pegadores fixos no mundo, implementos de duas mãos."""
+    ik_pegadores(ctx, h, T)
+    pegada_implementos(ctx, h, T, tau, extras)
+
+
+def pegar_em(h, T, sf, pos, eixo, supinada=False, passes=2):
+    """Leva a pegada da mão até 'pos' (mundo), fechada em volta de um cabo de eixo 'eixo' (mundo)."""
+    Ti = T.inverted()
+    Ti3 = Ti.to_3x3()
+    alvo_l = Ti @ pos
+    for _ in range(passes):
+        R = h.rot_pegada(sf, Ti3 @ eixo, supinada, f=(h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized())
+        h.ik("braco", sf, alvo_l - R @ h.off_peg[sf], R)
+
+
+def preparar_implementos(ctx, h):
+    """Implementos seguros com as duas mãos e pegadores de cabo: configuração usada em pegada_implementos."""
+    cfg = {}
+    for pr in ctx.props:
+        tp = pr.get("tipo")
+        if tp == "bola" and pr.get("em", "maos") == "maos" and "roda" not in ctx.tipos and "roda-abdominal" not in ctx.id:
+            cfg["bola"] = pr
+        elif tp == "kettlebell" and _qual_mao(pr) == "ambas":
+            cfg["kettlebell"] = pr
+        elif tp == "halter" and (pr.get("unico") or "triceps-frances" in ctx.id) and _qual_mao(pr) == "ambas":
+            cfg["halter_unico"] = pr
+        elif tp == "cabo" and isinstance(pr.get("ate"), list):
+            cfg["cabo"] = pr
+    ctx.impl = cfg
+    ctx.bola_voo = None
+    if "bola" in cfg and cfg["bola"].get("voo"):
+        i0, i1 = cfg["bola"]["voo"][:2]
+        t0 = ctx.trilhas.t0
+        ctx.bola_voo = (float(t0[int(i0) % len(ctx.chaves)]), float(t0[int(i1) % len(ctx.chaves)]), cfg["bola"].get("quica"))
+
+
+RAIO_BOLA = 1.1
+
+
+def bola_no_ar(ctx, tau):
+    """(no ar?, fração do voo) para a bola com "voo": [chave_soltura, chave_retomada]."""
+    v = getattr(ctx, "bola_voo", None)
+    if not v:
+        return False, 0.0
+    a, b, _ = v
+    T = ctx.trilhas.T
+    d = (b - a) % T
+    x = (tau - a) % T
+    return (0.0 < x < d), (x / d if d > 1e-6 else 0.0)
+
+
+def tipo_cabo(ctx):
+    if "triangulo" in ctx.id or "remada-baixa" in ctx.id:
+        return "triangulo"
+    if any(s_ in ctx.id for s_ in ("triceps", "face", "abdominal")):
+        return "corda"
+    if "crossover" in ctx.id:
+        return "dupla"
+    return "barra"
+
+
+def _palmas_na_bola(ctx, h, T):
+    """Palmas abertas encostadas nos lados da bola (raio fixo): a bola fica entre as palmas; mãos afastadas demais
+    convergem por IK até a distância do diâmetro."""
+    Ti = T.inverted()
+    pc = {sf: T @ h.palma_c(sf) for sf in (".L", ".R")}
+    d = pc[".L"] - pc[".R"]
+    meio = (pc[".L"] + pc[".R"]) / 2
+    e = d.normalized() if d.length > 1e-4 else Vector((1, 0, 0))
+    R = RAIO_BOLA + 0.08
+    nrm = Vector()
+    for sf in (".L", ".R"):
+        Rr = h.rot("wrist" + sf) @ h.rest_inv["wrist" + sf].to_3x3()
+        nrm += T.to_3x3() @ (Rr @ h.ref_mao[sf].col[2])
+    if d.length >= 2 * R or nrm.length < 1e-3:
+        c = meio
+    else:
+        n_ = nrm - e * nrm.dot(e)
+        n_ = n_.normalized() if n_.length > 1e-3 else Vector((0, -1, 0))
+        c = meio + n_ * math.sqrt(max(R * R - (d.length / 2) ** 2, 0.0))
+    for sf, sx in ((".L", 1), (".R", -1)):
+        alvo = c + e * (R * sx) if d.length >= 2 * R else pc[sf]
+        nn = (c - alvo).normalized()  # palma de frente para o centro da bola
+        ante = T.to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized()
+        dd = ante - nn * ante.dot(nn)
+        if dd.length < 1e-3:
+            dd = Vector((0, 0, 1))
+        Rl = h.rot_mao(sf, Ti.to_3x3() @ dd.normalized(), Ti.to_3x3() @ nn)
+        alvo = c - nn * R
+        for _ in range(2):
+            h.ik("braco", sf, Ti @ alvo - Rl @ h.off_palma[sf], Rl)
+    return c
+
+
+def pegada_implementos(ctx, h, T, tau, extras):
+    cfg = getattr(ctx, "impl", None) or {}
+    if "bola" in cfg:
+        no_ar, _ = bola_no_ar(ctx, tau)
+        if not no_ar:
+            extras["bola"] = _palmas_na_bola(ctx, h, T)
+    if "kettlebell" in cfg:
+        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
+        c = (gL + gR) / 2
+        goblet = "goblet" in ctx.id or cfg["kettlebell"].get("goblet")
+        if goblet:
+            # pelos chifres: cada palma de um lado da alça, eixo vertical, sino encostado no peito
+            e = (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+            for sf, sx in ((".L", 1), (".R", -1)):
+                pegar_em(h, T, sf, c + e * (0.42 * sx), Vector((0, 0, 1)))
+        else:
+            e = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+            for sf, sx in ((".L", 1), (".R", -1)):
+                pegar_em(h, T, sf, c + e * (0.3 * sx), e)
+    if "halter_unico" in cfg:
+        # um halter vertical seguro pelas duas mãos (tríceps francês): mãos uma sobre a outra no cabo
+        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
+        c = (gL + gR) / 2
+        d = sum((T.to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)) for sf in (".L", ".R")), Vector()).normalized()
+        pegar_em(h, T, ".L", c + d * 0.3, d)
+        pegar_em(h, T, ".R", c - d * 0.3, d)
+        extras["halter_unico"] = (c, d)
+    if "cabo" in cfg:
+        tc = tipo_cabo(ctx)
+        A = ctx.p3(*cfg["cabo"]["ate"][:3])
+        gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
+        c = (gL + gR) / 2
+        lat = (gL - gR)
+        lat = lat.normalized() if lat.length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        if tc == "triangulo":
+            cab = (A - c).normalized()
+            eixo = cab.cross(lat).normalized()
+            for sf, sx in ((".L", 1), (".R", -1)):
+                pegar_em(h, T, sf, c + lat * (0.7 * sx), eixo)
+            extras["triangulo"] = (c, lat, eixo)
+        elif tc == "corda":
+            no = c + (A - c).normalized() * 1.2
+            for sf, g in ((".L", gL), (".R", gR)):
+                pegar_em(h, T, sf, g, (g - no).normalized(), passes=1)
+        elif tc == "barra":
+            for sf, g in ((".L", gL), (".R", gR)):
+                pegar_em(h, T, sf, g, lat, passes=1)
+    pc = getattr(ctx, "pegadores", None)
+    if pc and pc.get("tipo") == "eliptico":
+        for sf, sx in ((".L", 1), (".R", -1)):
+            g = T @ h.pegada(sf)
+            pv = pc["piv"][sf]
+            pegar_em(h, T, sf, g, (g - pv).normalized(), passes=1)
+
+
 # ------------------------------------------------------------------ preparação (antes das poses)
 
 def preparar(ctx, h):
     ctx.bike = None
     ctx.parede = None
     ctx.alavancas = preparar_alavancas(ctx, h)
+    preparar_pegadores(ctx, h)
+    preparar_implementos(ctx, h)
     for pr in ctx.props:
         if pr.get("tipo") == "parede":
             ctx.parede = _preparar_parede(ctx, h, pr)
@@ -483,8 +800,10 @@ def _blocos(kit, ctx, h, blocos, am):
                 kit.viga((0, cy, 0.2), (0, cy, zt - 1.4), 0.6, 0.6, kit.quadro)
                 kit.caixa((0, cy - 0.5, zt - 0.7), (lx * 2, 2.6, 0.7), kit.estofado, 0.25, rot=(math.radians(-35), 0, 0))
                 kit.caixa((0, cy, 0.1), (3.0, 4.0, 0.2), kit.quadro, 0.05)
+            elif any(x in idd for x in ("eliptico", "escada", "sled")):
+                continue  # aparelho dedicado (desenhado em _extras_maquina)
             else:
-                # coluna de máquina (elíptico, escada, hack): poste + console
+                # coluna de máquina (hack etc.): poste + console
                 kit.viga((0, cy, 0.2), (0, cy, zt - 1.2), 0.7, 0.9, kit.quadro)
                 kit.caixa((0, cy, zt - 0.6), (3.0, 1.2, 1.2), kit.preto, 0.2)
                 kit.caixa((0, cy, 0.1), (4.0, 3.0, 0.2), kit.quadro, 0.05)
@@ -680,10 +999,142 @@ def _extras_maquina(kit, ctx, h, am, estados):
         _almofadas_joelho(kit, ctx, h, fora="abdutora" in idd)
     if "remo-ergometro" in idd:
         _assento_remo(kit, ctx, h)
-    if "eliptico" in idd:
+    if "eliptico" in idd or "eliptico" in ctx.tipos:
         _eliptico(kit, ctx, h, am)
     if "scott" in idd:
         _apoio_scott(kit, ctx, h)
+    _pegadores(kit, ctx, h)
+    if "roda" in ctx.tipos:
+        _roda(kit, ctx, h)
+
+
+def _pegadores(kit, ctx, h):
+    """Pegadores das máquinas/aparelhos onde as mãos se fecham (fixos no mundo ou presos à alavanca)."""
+    cfg = getattr(ctx, "pegadores", None)
+    if not cfg:
+        return
+    tipo = cfg["tipo"]
+    Y, Z = Vector((0, 1, 0)), Vector((0, 0, 1))
+    if tipo == "assento":
+        for sf, sx in ((".L", 1), (".R", -1)):
+            p, e = cfg[sf]
+            if abs(e.x) > 0.5:
+                kit.cil(p - X * 0.6, p + X * 0.6, 0.2, kit.preto, 16)
+                kit.viga(p - X * (sx * 0.6), Vector((sx * 1.4, p.y + 0.6, p.z - 0.6)), 0.3, 0.3, kit.quadro)
+            else:
+                kit.cil(p - e * 0.85, p + e * 0.85, 0.2, kit.preto, 16)
+                kit.viga(p + e * 0.85, Vector((sx * 1.5, p.y + 0.85, p.z - 0.7)), 0.3, 0.3, kit.quadro)
+                kit.viga(p - e * 0.85, Vector((sx * 1.5, p.y - 0.85, p.z - 0.7)), 0.3, 0.3, kit.quadro)
+    elif tipo == "mesa":
+        for sf, sx in ((".L", 1), (".R", -1)):
+            p, e = cfg[sf]
+            kit.cil(p - e * 0.7, p + e * 0.7, 0.2, kit.preto, 16)
+            kit.viga(p - e * sx * 0.7, Vector((sx * 0.9, p.y, p.z + 0.85)), 0.3, 0.3, kit.quadro)
+    elif tipo == "escada":
+        for sf, sx in ((".L", 1), (".R", -1)):
+            p, e = cfg[sf]
+            a, b = p - Y * 3.2, p + Y * 2.2
+            kit.cil(a, b, 0.17, kit.metal, 16)
+            kit.cil(Vector((a.x, a.y, a.z)), Vector((a.x, a.y - 0.6, 0.2)), 0.2, kit.quadro, 12)
+            kit.cil(Vector((b.x, b.y, b.z)), Vector((b.x, b.y, 0.2)), 0.2, kit.quadro, 12)
+        _escada(kit, ctx, h, cfg)
+    elif tipo == "treno":
+        _treno(kit, ctx, h, cfg)
+    elif tipo == "coxa":
+        pad = kit.cil_movel(0.55, kit.estofado, 24)
+        peg = {sf: kit.cil_movel(0.2, kit.preto, 14) for sf in (".L", ".R")}
+        hastes = [kit.cil_movel(0.16, kit.quadro, 12) for _ in range(2)]
+
+        def upd(est):
+            h.restaurar(est["est"])
+            T = est["T"]
+            jL, jR = T @ h.cabeca("lowerleg01.L"), T @ h.cabeca("lowerleg01.R")
+            qL = T @ h.cabeca("upperleg01.L")
+            j = (jL + jR) / 2
+            c = j + (qL - jL) * 0.16 + Vector((0, 0, 0.95))
+            Kit.por_cil(pad, Vector((-2.4, c.y, c.z)), Vector((2.4, c.y, c.z)))
+            for (sf, sx), o in zip(((".L", 1), (".R", -1)), hastes):
+                a_ = _alvo_pegador(ctx, h, T, sf, sx)
+                Kit.por_cil(peg[sf], a_[0] - a_[1] * 0.6, a_[0] + a_[1] * 0.6)
+                Kit.por_cil(o, Vector((sx * 2.5, c.y, c.z)), Vector((sx * 2.5, c.y - 2.2, 0.2)))
+        kit.moveis.append(upd)
+    elif tipo == "hack":
+        pass  # pegadores desenhados em _hack (presos às ombreiras)
+
+
+def _roda(kit, ctx, h):
+    """Roda abdominal: disco no chão sob as mãos, eixo lateral com manoplas; gira conforme anda (ângulo = desloc./raio)."""
+    R = RAIO_RODA
+    ps = [kit.disco((0, 0, 0), R, 0.55, kit.borracha, verts=40), kit.disco((0, 0, 0), R * 0.62, 0.6, kit.brasa, verts=32)]
+    for a in range(3):
+        ang = a * math.pi / 3
+        ps.append(kit.caixa((0, 0, 0), (0.62, 2 * R * 0.6, 0.1), kit.metal, 0.02, rot=(ang, 0, 0)))
+    disco = kit.grupo_movel(ps)
+    eixo = kit.cil_movel(0.08, kit.metal, 10)
+    mans = {sf: kit.cil_movel(0.2, kit.preto, 14) for sf in (".L", ".R")}
+    y0 = {}
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
+        c = Vector((0, g.y, ctx.z0 + R))
+        y0.setdefault("y", g.y)
+        ang = (g.y - y0["y"]) / R
+        disco.matrix_world = Matrix.Translation(c) @ Matrix.Rotation(ang, 4, "X")
+        Kit.por_cil(eixo, c - X * 1.35, c + X * 1.35)
+        for sf, sx in ((".L", 1), (".R", -1)):
+            Kit.por_cil(mans[sf], c + X * (sx * 0.38), c + X * (sx * 1.4))
+    kit.moveis.append(upd)
+
+
+def _treno(kit, ctx, h, cfg):
+    """Trenó (sled): base com esquis no chão, dois postes verticais (onde as mãos seguram) e anilhas sobre a base."""
+    pL, _ = cfg[".L"]
+    y = pL.y
+    zt = pL.z + 1.6
+    yb = y - 2.0
+    for sx in (-1, 1):
+        kit.viga((sx * 2.0, yb - 2.2, 0.12), (sx * 2.0, yb + 2.2, 0.12), 0.35, 0.24, kit.metal)  # esquis
+        kit.cil((sx * 2.1, y, 0.3), (sx * 2.1, y, zt), 0.19, kit.metal, 16)  # postes (pegadores)
+        kit.cil((sx * 2.1, y, 0.5), (sx * 1.4, yb, 0.5), 0.15, kit.quadro, 12)
+    kit.caixa((0, yb, 0.4), (4.0, 3.6, 0.3), kit.quadro, 0.05)
+    kit.cil((0, yb, 0.55), (0, yb, 2.4), 0.2, kit.metal, 12)
+    for i in range(3):
+        kit.disco((0, yb, 0.8 + i * 0.45), 2.0, 0.4, kit.borracha, eixo=(0, 0, 1), verts=40)
+    kit.cil((-2.1, y, zt - 0.2), (2.1, y, zt - 0.2), 0.15, kit.quadro, 12)
+
+
+def _escada(kit, ctx, h, cfg):
+    """Stair climber: escada rolante de degraus largos à frente; os pés pisam sempre num degrau (o degrau acompanha o pé)."""
+    p, _ = cfg[".L"]
+    est0 = ctx._estados
+    ys = []
+    for est in est0[:: max(1, len(est0) // 8)]:
+        h.restaurar(est["est"])
+        ys += [(est["T"] @ h.cabeca("toe3-1" + sf)).y for sf in (".L", ".R")]
+    yf = min(ys) - 1.4
+    # estrutura: laterais inclinadas + console na altura do peito
+    for sx in (-1, 1):
+        kit.viga((sx * 2.9, yf, 0.2), (sx * 2.9, yf - 0.6, p.z + 2.0), 0.5, 0.6, kit.quadro)
+        kit.viga((sx * 2.9, yf + 5.5, 0.15), (sx * 2.9, yf - 0.4, 0.15), 0.5, 0.3, kit.quadro)
+    kit.caixa((0, yf - 0.6, p.z + 2.3), (5.4, 1.2, 1.0), kit.preto, 0.2, rot=(math.radians(-25), 0, 0))
+    kit.caixa((0, yf - 0.3, 2.5), (4.6, 0.8, 5.0), kit.quadro, 0.1)
+    degs = {sf: kit.caixa((0, 0, 0), (2.2, 2.6, 0.3), kit.borracha, 0.05) for sf in (".L", ".R")}
+    rods = {sf: kit.cil_movel(0.15, kit.metal, 10) for sf in (".L", ".R")}
+
+    def upd(est):
+        h.restaurar(est["est"])
+        T = est["T"]
+        P = h.proxy(T)
+        for sf, ef, sx in ((".L", "pe_f", 1), (".R", "pe_t", -1)):
+            pts = P[h.px_partes[ef]]
+            z = float(pts[:, 2].min())
+            sol = pts[pts[:, 2] < z + 0.25].mean(axis=0)
+            c = Vector((sx * 1.15, sol[1] - 0.2, z - 0.15))
+            degs[sf].matrix_world = Matrix.Translation(c)
+            Kit.por_cil(rods[sf], c + Vector((0, -1.0, 0)), Vector((sx * 1.15, yf - 0.2, c.z * 0.5 + 0.3)))
+    kit.moveis.append(upd)
 
 
 def _apoio_scott(kit, ctx, h):
@@ -711,14 +1162,22 @@ def _apoio_scott(kit, ctx, h):
 
 
 def _eliptico(kit, ctx, h, am):
-    """Elíptico: pedais sob os pés, bielas até a coluna da frente e alças móveis presas às mãos."""
-    col = [p for p in ctx.props if p.get("tipo") == "maquina"]
-    yc = ctx.p3(col[0].get("x", 4) + col[0].get("w", 1) / 2, 0).y if col else am[0]["root"].y - 5
-    kit.viga((0, yc, 0.2), (0, am[0]["root"].y + 5, 0.2), 0.8, 0.4, kit.quadro)
-    kit.caixa((0, am[0]["root"].y + 5, 0.15), (3.6, 1.2, 0.3), kit.quadro, 0.05)
-    ped = {sf: kit.caixa((0, 0, 0), (1.4, 3.2, 0.25), kit.borracha, 0.05) for sf in (".L", ".R")}
+    """Elíptico: coluna e console à frente dos pés (na altura do peito), trilho no chão, pedais sob os pés (o pé nunca sai
+    do pedal) com bielas até a roda da frente e alças móveis que as mãos seguram (pivô no alto da coluna)."""
+    cfg = ctx.pegadores or {}
+    yc, piv = cfg.get("yc", am[0]["root"].y - 5), cfg.get("piv", {})
+    ytr = max(a["root"].y for a in am) + 4.0
+    kit.viga((0, yc + 0.4, 0.25), (0, ytr, 0.25), 0.9, 0.4, kit.quadro)
+    kit.caixa((0, ytr, 0.15), (3.8, 1.2, 0.3), kit.quadro, 0.05)
+    kit.caixa((0, yc, 0.15), (3.8, 1.6, 0.3), kit.quadro, 0.05)
+    zc = cfg.get("zc", 13.0)
+    kit.viga((0, yc, 0.3), (0, yc - 0.8, zc - 0.6), 0.8, 0.9, kit.quadro)
+    kit.caixa((0, yc - 0.9, zc), (2.6, 1.0, 1.0), kit.preto, 0.2, rot=(math.radians(-30), 0, 0))
+    kit.disco((0, yc + 0.6, 1.6), 1.4, 1.0, kit.preto, verts=40)
+    ped = {sf: kit.caixa((0, 0, 0), (1.3, 3.2, 0.25), kit.borracha, 0.05) for sf in (".L", ".R")}
     biela = {sf: kit.cil_movel(0.16, kit.quadro, 10) for sf in (".L", ".R")}
-    alca = {sf: kit.cil_movel(0.16, kit.metal, 12) for sf in (".L", ".R")}
+    alca = {sf: kit.cil_movel(0.17, kit.metal, 12) for sf in (".L", ".R")}
+    alca_b = {sf: kit.cil_movel(0.16, kit.quadro, 10) for sf in (".L", ".R")}
 
     def upd(est):
         h.restaurar(est["est"])
@@ -727,12 +1186,14 @@ def _eliptico(kit, ctx, h, am):
         for sf, ef, sx in ((".L", "pe_f", 1), (".R", "pe_t", -1)):
             pts = P[h.px_partes[ef]]
             sol = pts[pts[:, 2] < pts[:, 2].min() + 0.25].mean(axis=0)
-            c = Vector((sx * 1.0, sol[1], sol[2] - 0.15))
+            c = Vector((sx * 1.0, sol[1], pts[:, 2].min() - 0.13))
             ped[sf].matrix_world = Matrix.Translation(c)
-            Kit.por_cil(biela[sf], c + Vector((0, -1.4, 0)), Vector((sx * 1.0, yc + 0.6, 2.4)))
+            Kit.por_cil(biela[sf], c + Vector((0, -1.4, 0)), Vector((sx * 0.9, yc + 0.6, 1.6)))
             g = T @ h.pegada(sf)
-            piv = Vector((sx * 1.6, yc + 0.4, 6.5))
-            Kit.por_cil(alca[sf], piv, g + (g - piv).normalized() * 1.0)
+            pv = piv.get(sf, Vector((sx * 1.6, yc, 7.0)))
+            e = (g - pv).normalized()
+            Kit.por_cil(alca[sf], pv, g + e * 0.9)
+            Kit.por_cil(alca_b[sf], pv, Vector((sx * 0.9, c.y - 1.2, c.z + 0.2)))
     kit.moveis.append(upd)
 
 
