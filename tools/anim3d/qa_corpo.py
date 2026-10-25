@@ -571,9 +571,400 @@ def _dist_poligono(c, H):
     return -best if dentro else best
 
 
+def _dentro(kd, p, N, lim=0.9):
+    """Profundidade (> 0) se p está dentro da pele indexada em kd: os 8 vizinhos mais próximos concordam (normais para fora)."""
+    viz = kd.find_n(p, 8)
+    if not viz or viz[0][2] > lim:
+        return 0.0
+    dentro = sum(1 for co_, k_, d_ in viz if (p - co_).dot(Vector(N[k_])) < -0.01)
+    return viz[0][2] if dentro >= 7 else 0.0
+
+
 def _kd(P, idx):
     kd = KDTree(len(idx))
     for i in idx:
         kd.insert(P[i], int(i))
     kd.balance()
     return kd
+
+
+# ------------------------------------------------------------------ registro dos achados
+
+class Registro:
+    """Junta as medidas por (tipo, sub, parte): pior valor, quadro do pior e quadros acima de aviso/erro."""
+
+    def __init__(self):
+        self.d = {}
+
+    def add(self, tipo, sub, parte, quadro, valor, aviso, erro, unidade, nome=None):
+        if valor is None or valor <= aviso:
+            return
+        k = (tipo, sub, parte)
+        r = self.d.setdefault(k, {"tipo": tipo, "sub": sub, "parte": parte, "valor": -1e9, "quadro": quadro, "n_aviso": 0,
+                                  "n_erro": 0, "aviso": aviso, "erro": erro, "unidade": unidade, "nome": nome or sub, "quadros": []})
+        r["n_aviso"] += 1
+        if valor > erro:
+            r["n_erro"] += 1
+        if len(r["quadros"]) < 400:
+            r["quadros"].append(quadro)
+        if valor > r["valor"]:
+            r["valor"], r["quadro"] = float(valor), quadro
+
+    def achados(self, min_erro=2):
+        out = []
+        for r in self.d.values():
+            nivel = "erro" if r["n_erro"] >= min_erro else "aviso"
+            u = r["unidade"]
+            v = r["valor"]
+            vs = f"{v:.1f} {u}" if u == "cm" else f"{v:.0f}{u}"
+            lim = r["erro"] if nivel == "erro" else r["aviso"]
+            ls = f"{lim:.1f} {u}" if u == "cm" else f"{lim:.0f}{u}"
+            msg = f"{r['tipo']}/{r['sub']} {r['parte']}: {r['nome']} {vs} (limite {ls}) no quadro {r['quadro']}, {r['n_aviso']} quadros"
+            out.append({"tipo": r["tipo"], "sub": r["sub"], "parte": r["parte"], "nivel": nivel, "quadro": r["quadro"],
+                        "valor": round(v, 2), "unidade": u, "limite": lim, "n_quadros": r["n_aviso"], "msg": msg})
+        return out
+
+
+def _runs(flags):
+    """Sequências (laço) de True: lista de (início, comprimento)."""
+    n = len(flags)
+    if not any(flags):
+        return []
+    if all(flags):
+        return [(0, n)]
+    out = []
+    j0 = next(i for i in range(n) if not flags[i])
+    i = (j0 + 1) % n
+    cnt = 0
+    while cnt < n:
+        if flags[i]:
+            ini, L = i, 0
+            while flags[i] and L < n:
+                L += 1
+                i = (i + 1) % n
+                cnt += 1
+            out.append((ini, L))
+        else:
+            i = (i + 1) % n
+            cnt += 1
+    return out
+
+
+NOME_PECA = {"estofado": "estofado", "quadro": "estrutura", "madeira": "caixa", "borracha": "borracha/plataforma", "metal": "metal",
+             "preto": "peça", "cinza": "parede", "tapete": "tapete", "brasa": "peça laranja", "cabo": "cabo"}
+
+
+def _nome_peca(p):
+    if p.tipo == "segurado":
+        return p.forma
+    if p.tipo == "pega":
+        return "pegador"
+    if p.tipo == "tubo":
+        return "tubo/barra fixa"
+    return NOME_PECA.get(p.mat, p.mat or "aparelho")
+
+
+def _maos_esperadas(ctx):
+    """Mãos que seguram algo: {sf: "sempre" | "barra_fixa" | "bola"}."""
+    out = {}
+    for lado in ctx.ocupadas:
+        out[".L" if lado == "f" else ".R"] = "sempre"
+    if "bola" in ctx.tipos:
+        for sf in out:
+            out[sf] = "bola"
+    if ctx.barra is not None:
+        out[".L"] = out[".R"] = "barra_fixa"
+    if getattr(ctx, "bike", None) and ctx.bike.get("guidao") is not None:
+        out[".L"] = out[".R"] = "sempre"
+    if "eliptico" in ctx.id:
+        out[".L"] = out[".R"] = "sempre"
+    return out
+
+
+def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
+    """Roda as verificações de pegada, ROM e apoio. Devolve a lista de achados (dicts)."""
+    n = len(estados)
+    reg = Registro()
+    ap = Aparelhos(kit, ctx, estados)
+    esperadas = _maos_esperadas(ctx)
+    fio_ancorado = any((pr.get("tipo") in ("cabo", "elastico") and isinstance(pr.get("ate"), list)) for pr in ctx.props)
+    m = corpo.mask
+    sub = corpo.sub
+    z0 = ctx.z0
+    nomes_reg = {"pelve": "pelve", "costas": "costas", "cabeca": "cabeça", "coxa_f": "coxa esq", "coxa_t": "coxa dir",
+                 "joelho_f": "joelho esq", "joelho_t": "joelho dir", "antebraco_f": "antebraço esq", "antebraco_t": "antebraço dir"}
+    mao_m = {".L": m["mao_f"], ".R": m["mao_t"]}
+    tronco_idx = np.where(sub & (m.get("torax", 0) | m.get("abdomen", 0) | m.get("pelve", 0) | m.get("pescoco", 0)))[0]
+    cab_idx = np.where(sub & m.get("cabeca", 0))[0]
+    braco_sub = sub & m["bracos"]
+    perna = {lado: sub & (m.get("coxa_" + lado, 0) | m.get("perna_" + lado, 0)) for lado in ("f", "t")}
+    com, zmp_ok, poligonos, suporte_extra, sem_contato, zsup = [], [], [], [], [], []
+    hover = {r: [] for r in REGIOES_POUSO}
+    cent_ant = {}
+    for j, est in enumerate(estados):
+        h.restaurar(est["est"])
+        T = est["T"]
+        kit.atualizar(est)
+        ap.ler()
+        # ---------------- ROM
+        ang = corpo.angulos()
+        for (chave, parte), v in avaliar_rom(ang, None).items():
+            a_, e_ = LIM[chave]
+            reg.add("rom", chave, parte, j, v, a_, e_, "°", NOMES_ROM[chave])
+        for sf in (".L", ".R"):
+            cs = ang.get("cotovelo_sinal" + sf)
+            if cs is not None and cs < -90 and ang["cotovelo_flexao" + sf] > 30:
+                # antebraço dobrando para o lado de trás do braço (a malha do cotovelo fica torcida/invertida)
+                reg.add("rom", "cotovelo_torcido", "cotovelo " + LADO[sf], j, -cs - 90, 0, 1e9, "°",
+                        "cotovelo dobrando para o lado de trás da malha (torção)")
+        com.append(corpo.centro_massa(T))
+        P, N = corpo.pele(T)
+        # ---------------- PEGADA
+        i_, u_ = ctx.trilhas.segmento(est["tau"])
+        j_ = (i_ + 1) % len(ctx.chaves)
+        pegas = ap.pegas()
+        maos_presas = set()
+        for sf, modo in esperadas.items():
+            lado = "f" if sf == ".L" else "t"
+            if modo == "barra_fixa" and not all(ctx.chaves[x]["ef"]["mao_" + lado]["contato"] for x in (i_, j_)):
+                continue
+            ld = "mão " + LADO[sf]
+            if modo == "bola":
+                bolas = [p for p in ap.pecas if p.tipo == "segurado" and p.forma == "bola" and p.visivel]
+                if bolas:
+                    b = bolas[0]
+                    c = np.array(b.M.translation)
+                    d = np.linalg.norm(P[mao_m[sf]] - c, axis=1)
+                    R = b.pega[1]
+                    reg.add("pegada", "dist", ld, j, (d.min() - R) * 10, 1.2, 2.0, "cm", "mão longe da bola")
+                    reg.add("pegada", "atravessa", ld, j, (R - d.min()) * 10, 0.8, 1.5, "cm", "mão dentro da bola")
+                continue
+            c_t, kl, r_t = tunel(h, T, sf)
+            fech = corpo.fechamento(sf)
+            reg.add("pegada", "dedos", ld, j, (1 - fech) * 100, 25, 50, "%", "dedos abertos segurando o implemento")
+            melhor = None
+            for (p, a, b, r, rig) in pegas:
+                d, t = _seg_dist(c_t, a, b)
+                if melhor is None or d < melhor[0]:
+                    melhor = (d, p, a, b, r, rig, t)
+            if melhor is None:
+                reg.add("pegada", "dist", ld, j, 99.0, 1.2, 2.0, "cm", "mão sem implemento")
+                continue
+            d, p, a, b, r, rig, t = melhor
+            if d < 1.5:
+                maos_presas.add(sf) if p.tipo in ("tubo", "pega") or (p.tipo == "fio" and fio_ancorado) else None
+            nome = _nome_peca(p)
+            reg.add("pegada", "dist", ld, j, d * 10, 1.2, 2.0, "cm", f"{nome} fora do túnel dos dedos")
+            if rig and d < 1.5:
+                e = (b - a).normalized()
+                reg.add("pegada", "cruzada", ld, j, _deg(math.acos(min(1.0, abs(e.dot(kl))))), 28, 40, "°",
+                        f"{nome} cruzando a mão (fora da linha dos nós dos dedos)")
+                # pele da mão dentro da empunhadura
+                A, B = np.array(a), np.array(b)
+                ab = B - A
+                Q = P[mao_m[sf]]
+                tt = np.clip((Q - A) @ ab / max(ab @ ab, 1e-9), 0, 1)
+                inn = (tt > 0.02) & (tt < 0.98)
+                if inn.any():
+                    rad = np.linalg.norm(Q[inn] - (A + np.outer(tt[inn], ab)), axis=1)
+                    reg.add("pegada", "atravessa", ld, j, (r - rad.min()) * 10, 0.6, 1.2, "cm", f"mão atravessando {nome}")
+        # ---------------- APOIO: contatos com superfícies (chão + aparelhos)
+        hz, lateral = [], 0
+        pts_sub = np.where(sub)[0]
+        chao = pts_sub[P[pts_sub, 2] < z0 + 0.15]
+        if len(chao):
+            hz.append(P[chao, :2])
+        contato_reg = set(corpo.seg[chao].tolist())
+        for p in ap.superficies:
+            if not p.visivel or p.cx is None:
+                continue
+            lo, hi = p.cx
+            sel = pts_sub[np.all((P[pts_sub] > lo - 0.15) & (P[pts_sub] < hi + 0.15), axis=1)]
+            if not len(sel):
+                continue
+            if len(sel) > 3000:
+                sel = sel[:: len(sel) // 3000 + 1]
+            for i in sel:
+                d, dentro, nw = p.mais_perto(P[i])
+                if d < 0.15 or dentro:
+                    if nw.z > 0.55:
+                        hz.append(P[i:i + 1, :2])
+                    else:
+                        lateral += 1
+                    contato_reg.add(corpo.seg[i])
+        # mão presa a algo fixo (tubo, pegador de máquina, cabo/elástico ancorado, parede)
+        for sf in (".L", ".R"):
+            if sf in esperadas and esperadas[sf] == "sempre" and fio_ancorado:
+                maos_presas.add(sf)
+        if ctx.parede is not None:
+            maos_presas.add(ctx.parede["sf"])
+        poligonos.append(_casco(np.concatenate(hz)) if hz else np.zeros((0, 2)))
+        suporte_extra.append(bool(maos_presas) or lateral >= 12 or "apoio_tornozelo" in ctx.tipos)
+        sem_contato.append(not hz and lateral == 0 and not maos_presas)
+        # ---------------- região parada no ar (parece pousada)
+        for rg in REGIOES_POUSO:
+            idx = np.where(sub & m[rg])[0]
+            if not len(idx):
+                hover[rg].append(None)
+                continue
+            Q = P[idx]
+            k0 = int(Q[:, 2].argmin())
+            q = Vector(Q[k0])
+            zs = z0
+            for p in ap.superficies:
+                if not p.visivel or p.cx is None:
+                    continue
+                lo, hi = p.cx
+                if lo[0] - 0.1 <= q.x <= hi[0] + 0.1 and lo[1] - 0.1 <= q.y <= hi[1] + 0.1 and lo[2] < q.z + 0.1:
+                    zz = p.abaixo(q + Vector((0, 0, 0.05)), q.z + 0.1)
+                    if zz is not None:
+                        zs = max(zs, zz)
+            cen = Q.mean(axis=0)
+            mov_ = np.linalg.norm(cen - cent_ant[rg]) if rg in cent_ant else 0.0
+            cent_ant[rg] = cen
+            hover[rg].append((q.z - zs, mov_, rg in contato_reg))
+        zsup.append(z0)
+        # ---------------- penetração corpo x aparelho e corpo x corpo (a cada 'passo' quadros)
+        if j % passo:
+            continue
+        for p in ap.solidos:
+            if not p.visivel or p.cx is None:
+                continue
+            lo, hi = p.cx
+            sel = pts_sub[np.all((P[pts_sub] > lo - 0.02) & (P[pts_sub] < hi + 0.02), axis=1)]
+            if p.tipo in ("segurado", "pega", "tubo"):
+                excl = np.zeros(len(P), bool)
+                for sf in esperadas:
+                    excl |= mao_m[sf]
+                sel = sel[~excl[sel]]
+            if not len(sel):
+                continue
+            if len(sel) > 4000:
+                sel = sel[:: len(sel) // 4000 + 1]
+            pior = {}
+            for i in sel:
+                d, dentro, _ = p.mais_perto(P[i])
+                if dentro:
+                    s = corpo.seg[i]
+                    if d > pior.get(s, 0.0):
+                        pior[s] = d
+            nome = _nome_peca(p)
+            for s, d in pior.items():
+                reg.add("apoio", "penetra", f"{s} x {nome}", j, d * 10, 0.8, 1.5, "cm", "pele dentro do aparelho")
+        # fio (cabo/elástico) atravessando o corpo
+        kd_corpo = None
+        for p in ap.pecas:
+            if p.tipo != "fio" or not p.visivel:
+                continue
+            a, b = p.eixo()
+            L = (b - a).length
+            if L < 1.2:
+                continue
+            if kd_corpo is None:
+                kd_corpo = _kd(P, pts_sub)
+            # ignora as pontas (mão / âncora)
+            pior = 0.0
+            for s_ in np.linspace(0.5 / L, 1 - 0.5 / L, max(3, int(L / 0.2))):
+                q = a.lerp(b, float(s_))
+                pior = max(pior, _dentro(kd_corpo, q, N, 1.5))
+            reg.add("apoio", "corpo", "cabo/elástico x corpo", j, pior * 10, 1.5, 3.0, "cm", "cabo/elástico atravessando o corpo")
+        # corpo x corpo grosseiro
+        kd_tr = _kd(P, tronco_idx)
+        kd_ca = _kd(P, cab_idx)
+        omb = {sf: np.array(T @ h.cabeca("upperarm01" + sf)) for sf in (".L", ".R")}
+        quad = {lado: np.array(T @ h.cabeca("upperleg01" + sf)) for lado, sf in (("f", ".L"), ("t", ".R"))}
+        bidx = np.where(braco_sub)[0][::2]
+        bidx = bidx[(np.linalg.norm(P[bidx] - omb[".L"], axis=1) > 1.3) & (np.linalg.norm(P[bidx] - omb[".R"], axis=1) > 1.3)]
+        piores = {}
+        for i in bidx:
+            p_ = Vector(P[i])
+            for kd, alvo in ((kd_tr, "tronco"), (kd_ca, "cabeça")):
+                dist = _dentro(kd, p_, N)
+                if dist > 0:
+                    key = (corpo.seg[i], alvo)
+                    piores[key] = max(piores.get(key, 0.0), dist)
+        for lado, outro in (("f", "t"),):
+            kd_o = _kd(P, np.where(perna[outro])[0][::2])
+            li = np.where(perna[lado])[0][::2]
+            li = li[np.linalg.norm(P[li] - quad[lado], axis=1) > 1.8]
+            for i in li:
+                p_ = Vector(P[i])
+                dist = _dentro(kd_o, p_, N)
+                if dist > 0:
+                    key = ("perna esq", "perna dir")
+                    piores[key] = max(piores.get(key, 0.0), dist)
+        for (s, alvo), d in piores.items():
+            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 2.5, 4.0, "cm", "corpo atravessando o próprio corpo")
+    # ---------------- centro de massa / ponto de momento zero x polígono de apoio
+    T_ = float(ctx.trilhas.T)
+    dt = T_ / n
+    C = np.array([list(c) for c in com])
+    Cs = (np.roll(C, 1, 0) + 2 * C + np.roll(C, -1, 0)) / 4
+    acc = (np.roll(Cs, -1, 0) - 2 * Cs + np.roll(Cs, 1, 0)) / (dt * dt)
+    voos = getattr(ctx, "voos", [])
+
+    def em_voo(tau):
+        for a, b in voos:
+            if a <= tau <= b or a <= tau + T_ <= b:
+                return True
+        return False
+    nmin = max(4, int(round(0.15 * fps)))
+    fora, dist_fora, flut = [], [], []
+    for j in range(n):
+        tau = float(estados[j]["tau"])
+        az = acc[j, 2] + G
+        balistico = az < 0.4 * G or em_voo(tau)
+        if sem_contato[j]:
+            fora.append(False)
+            dist_fora.append(0.0)
+            flut.append(not balistico)
+            continue
+        flut.append(False)
+        if suporte_extra[j] or balistico:
+            fora.append(False)
+            dist_fora.append(0.0)
+            continue
+        H_ = poligonos[j]
+        hz = C[j, 2] - zsup[j]
+        zmp = C[j, :2] - hz * acc[j, :2] / max(az, 0.4 * G)
+        d = min(_dist_poligono(zmp, H_), _dist_poligono(C[j, :2], H_))
+        fora.append(d > 0.3)
+        dist_fora.append(d)
+    for ini, L in _runs(fora):
+        if L < nmin:
+            continue
+        js = [(ini + x) % n for x in range(L)]
+        jw = max(js, key=lambda x: dist_fora[x])
+        # região suspeita: a que está mais baixa (perto de uma superfície) sem tocá-la
+        susp, gap_s = "", 1e9
+        for rg in REGIOES_POUSO:
+            hv = hover[rg][jw]
+            if hv is not None and not hv[2] and hv[0] < gap_s:
+                susp, gap_s = rg, hv[0]
+        parte = nomes_reg.get(susp, "corpo")
+        reg.add("apoio", "base", parte, jw, dist_fora[jw] * 10, 1.5, 3.0, "cm",
+                f"centro de massa fora da base de apoio ({L} quadros; {parte} a {gap_s * 10:.0f} cm da superfície)")
+        for x in js:
+            if x != jw:
+                reg.add("apoio", "base", parte, x, dist_fora[x] * 10, 1.5, 3.0, "cm")
+    for ini, L in _runs(flut):
+        if L >= nmin:
+            for x in range(L):
+                reg.add("apoio", "flutua", "corpo", (ini + x) % n, L, 0, nmin - 1, "quadros", "corpo sem nenhum apoio fora de salto")
+    # ---------------- região parada no ar
+    vlim = 0.04 * 24.0 / fps
+    nh = max(5, int(round(0.4 * fps)))
+    for rg, hv in hover.items():
+        flags = [x is not None and 0.3 < x[0] <= 1.5 and x[1] < vlim and not x[2] for x in hv]
+        for ini, L in _runs(flags):
+            if L < nh:
+                continue
+            longo = L >= max(fps * 1.0, 0.4 * n)  # parada no ar boa parte do ciclo: não é uma pausa breve (topo do abdominal)
+            for x in range(L):
+                jj = (ini + x) % n
+                sem_base = any(fora[(jj + d) % n] for d in (-2, -1, 0, 1, 2))
+                g_ = hv[jj][0] * 10
+                erro_ = 3.0 if (sem_base or (longo and g_ <= 10.0)) else 1e9
+                reg.add("apoio", "pousada", nomes_reg[rg], jj, g_, 3.0, erro_, "cm",
+                        "região parada no ar acima de uma superfície (parece apoiada)")
+    return reg.achados()

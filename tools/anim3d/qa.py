@@ -34,6 +34,7 @@ from mathutils import Vector  # noqa: E402
 
 import humano as H  # noqa: E402
 import aparelhos  # noqa: E402
+import qa_corpo as QC  # noqa: E402
 
 OSSOS = ("root", "spine03", "neck01", "head", "upperarm01.L", "upperarm01.R", "lowerarm01.L", "lowerarm01.R", "wrist.L",
          "wrist.R", "upperleg01.L", "upperleg01.R", "lowerleg01.L", "lowerleg01.R", "foot.L", "foot.R")
@@ -53,7 +54,7 @@ def pops(D, lim_rel=2.2, lim_abs=0.4):
     return out
 
 
-def avaliar(h, anim, k, grupo, fps):
+def avaliar(h, anim, k, grupo, fps, corpo=None, kit=None, so_motor=False):
     ctx = H.preparar_anim(h, anim, k, grupo)
     taus = ctx.trilhas.instantes(fps)
     estados = [H.quadro(h, ctx, t) for t in taus]
@@ -203,7 +204,18 @@ def avaliar(h, anim, k, grupo, fps):
         q2 = anim["quadros"][(i + 1) % len(anim["quadros"])]
         if q == q2:
             avisos.append(f"chaves {i} e {(i + 1) % len(anim['quadros'])} idênticas")
-    return {"erros": erros, "avisos": avisos, "quadros": n, "T": round(float(ctx.trilhas.T), 2)}
+    achados = [{"tipo": "motor", "sub": m_.split(" ")[0], "nivel": "erro", "msg": m_} for m_ in erros]
+    achados += [{"tipo": "motor", "sub": m_.split(" ")[0], "nivel": "aviso", "msg": m_} for m_ in avisos]
+    if corpo is not None and not so_motor:
+        kit.limpar()
+        aparelhos.montar(kit, ctx, h, estados)
+        bpy.context.view_layer.update()
+        novos = QC.avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit)
+        kit.limpar()
+        achados += novos
+        for a_ in novos:
+            (erros if a_["nivel"] == "erro" else avisos).append(a_["msg"])
+    return {"erros": erros, "avisos": avisos, "achados": achados, "quadros": n, "T": round(float(ctx.trilhas.T), 2)}
 
 
 def main():
@@ -215,12 +227,15 @@ def main():
     ap.add_argument("--saida", default="")
     ap.add_argument("--fps", type=float, default=24)
     ap.add_argument("--so-avisar", action="store_true")
+    ap.add_argument("--so-motor", action="store_true", help="só as verificações antigas (sem pegada/ROM/apoio)")
     a = ap.parse_args(sys.argv[1:])
     bpy.ops.wm.read_factory_settings(use_empty=True)
     H.cena(64, 1)
     h = H.Humano(a.mh)
     grupos = {e["id"]: e for e in json.load(open(a.ex))}
     k = (h.juntas[h.ossos["upperleg01.L"]["head"]][2] - h.juntas[h.ossos["foot.L"]["head"]][2]) / 8.7
+    corpo = None if a.so_motor else QC.Corpo(h)
+    kit = None if a.so_motor else aparelhos.Kit()
     ids = set(x for x in a.ids.split(",") if x)
     res = {}
     for arq in a.anim:
@@ -228,9 +243,11 @@ def main():
             if ids and anim["id"] not in ids:
                 continue
             try:
-                r = avaliar(h, anim, k, grupos.get(anim["id"], {}).get("grupo", ""), a.fps)
+                r = avaliar(h, anim, k, grupos.get(anim["id"], {}).get("grupo", ""), a.fps, corpo, kit, a.so_motor)
             except Exception as e:  # noqa: BLE001
-                r = {"erros": [f"exceção: {e!r}"], "avisos": []}
+                import traceback
+                traceback.print_exc()
+                r = {"erros": [f"exceção: {e!r}"], "avisos": [], "achados": [{"tipo": "motor", "sub": "exceção", "nivel": "erro", "msg": repr(e)}]}
             res[anim["id"]] = r
             marca = "ERRO " if r["erros"] else ("aviso" if r["avisos"] else "ok   ")
             print(marca, anim["id"], "; ".join(r["erros"] + r["avisos"]), flush=True)
