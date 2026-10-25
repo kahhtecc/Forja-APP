@@ -98,3 +98,8 @@ Ordem pedida pelo usuário: (1) agente PESQUISADOR de animação 3D profissional
 - 25/10 ~04h: animador concluiu (qa: 81 erros → 1; render run 40152840974, juntar e0fad20, conteudo2 v5). Builds finais disparados por workflow_dispatch: Android 40159620933, iOS 40159622538, Site 40159623926. Próximo: assinar APK/AAB localmente (scratchpad/assinar), revisão final, enviar tudo.
 - 25/10 04:20: ENTREGA FINAL. Android teste-32 (40159620933, 14 telas sem falha) assinado localmente → entregas/Forja-32.apk + Forja-32-play.aab (SHA-256 35:99:90…). iOS ios-23 (40159622538) → entregas/Forja-iOS-23.ipa. Conteúdo idêntico verificado por hash (conteudo2 v5, 175 mp4). Ajuste do fallback demo do iOS (semana atual). Rodada 6 CONCLUÍDA.
 - 25/10: usuário reclamou que o site tinha só 4–6 perguntas. Site refeito (7e9aaf7): web/nucleo.js = núcleo Kotlin em JS (123/123 planos idênticos, tools/web/paridade.js no CI do Pages), web/app.js com todas as telas do app. Testado com Playwright nas 11 modalidades (12–18 perguntas, sem erros). Pages run 40181465174 publicado.
+
+## RODADA 7 — animações sem nenhum bug (pedido 25/10: mão que não segura, movimentos impossíveis, apoio invisível)
+Equipe: fase 1 (em paralelo) = engenheiro de QA (qa.py: pegada, ROM anatômica, apoio/centro de massa/interpenetração → pesquisa/qa-resultado.md/json) + 3 auditores biomecânicos (pesquisa/auditoria-lote1/2/3.md, todos os 175 quadro a quadro, multi-câmera).
+Fase 2 = especialista do motor (falhas sistêmicas) → 3 animadores (um por lote*.json, sem commit, eu commito) até qa zerado. Fase 3 = revisor independente; reprovados voltam. Depois render CI (anim3d.yml), builds Android/iOS (assinar local), site, enviar.
+Se reiniciar: agentes podem ter parado por limite → SendMessage "continue".
