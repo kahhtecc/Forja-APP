@@ -43,13 +43,13 @@ G = 98.1  # dm/s²
 
 # ------------------------------------------------------------------ limites (graus): (aviso, erro)
 LIM = {
-    "joelho_flexao": (150, 160), "joelho_hiperext": (8, 15), "joelho_valgo": (15, 25),
+    "joelho_flexao": (150, 160), "joelho_hiperext": (8, 15),
     "cotovelo_flexao": (150, 160), "cotovelo_hiperext": (10, 18),
     "ombro_ext_excesso": (5, 15), "ombro_aducao_h": (50, 62), "ombro_re": (95, 110), "ombro_ri": (80, 100),
-    "antebraco_sup": (90, 110), "antebraco_pro": (90, 110),
+    "antebraco_sup": (100, 125), "antebraco_pro": (100, 125),
     "punho_flexao": (85, 100), "punho_extensao": (85, 100), "punho_radial": (25, 40), "punho_ulnar": (35, 50),
     "quadril_flexao": (125, 140), "quadril_extensao": (30, 42), "quadril_abducao": (52, 65), "quadril_aducao": (30, 40),
-    "quadril_re": (55, 75), "quadril_ri": (45, 60),
+    "quadril_re": (60, 80), "quadril_ri": (45, 60),
     "coluna_flexao": (85, 100), "coluna_extensao": (35, 50), "coluna_inclinacao": (40, 52), "coluna_rotacao": (50, 65),
     "coluna_segmento": (25, 35),
     "pescoco_flexao": (55, 70), "pescoco_extensao": (60, 75), "pescoco_inclinacao": (50, 60), "pescoco_rotacao": (80, 92),
@@ -208,14 +208,19 @@ class Corpo:
             out["quadril_abducao" + sf] = ab - self.rest_ang.get("quadril_abducao" + sf, 0.0)
             kf = _ang(t, sh)
             out["joelho_flexao" + sf] = kf - self.rest_ang.get("joelho_flexao" + sf, 0.0)
-            ant = _perp(Rr("upperleg02" + sf) @ FRENTE, tn)
+            # dobradiça do joelho no plano sagital do quadril (a patela "olha" para onde a coxa flexiona)
+            ant = _perp(tn.cross(lat_p), tn)
             sv = sh.normalized()
             out["joelho_sinal" + sf] = _deg(math.atan2(-sv.dot(ant), sv.dot(tn)))
             out["joelho_lat" + sf] = abs(_deg(math.asin(max(-1, min(1, sv.dot(tn.cross(ant)))))))
             if kf > 25:
+                # rotação do quadril (convenção de Euler da ISB: flexão, abdução, rotação): canela neutra = para trás
+                # girada pela flexão; o plano real da canela dá a rotação do fêmur (o joelho só dobra num plano)
                 b = _perp(sv, tn)
-                n0 = _perp(_swing(-up_p, tn) @ (-fw_p), tn)
-                out["quadril_rot" + sf] = -_assinado(n0, b, tn) * s  # + = rotação externa
+                phi = math.radians(fl)
+                n0 = _perp(-fw_p * math.cos(phi) - up_p * math.sin(phi), tn)
+                if n0.length > 0.5:
+                    out["quadril_rot" + sf] = -_assinado(n0, b, tn) * s  # + = rotação externa
             # ---- ombro, cotovelo, antebraço, punho
             o, c, w = C("upperarm01" + sf), C("lowerarm01" + sf), C("wrist" + sf)
             u, fa = c - o, w - c
@@ -324,9 +329,8 @@ def avaliar_rom(ang, lado_sf):
         m[("joelho_flexao", "joelho " + ld)] = g("joelho_flexao")
         sn = g("joelho_sinal")
         if sn is not None and g("joelho_flexao") is not None:
-            m[("joelho_hiperext", "joelho " + ld)] = max(0.0, -sn) if abs(sn) < 90 else 0.0
-            if g("joelho_flexao") > 20:
-                m[("joelho_valgo", "joelho " + ld)] = g("joelho_lat")
+            if g("joelho_lat") < 30:  # canela fora do plano sagital = rotação do quadril (medida à parte)
+                m[("joelho_hiperext", "joelho " + ld)] = max(0.0, -sn) if abs(sn) < 90 else 0.0
         m[("cotovelo_flexao", "cotovelo " + ld)] = g("cotovelo_flexao")
         cs = g("cotovelo_sinal")
         if cs is not None:
@@ -819,10 +823,19 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     zz = p.abaixo(q + Vector((0, 0, 0.05)), q.z + 0.1)
                     if zz is not None:
                         zs = max(zs, zz)
+            if rg.startswith(("coxa", "joelho", "antebraco")):
+                # membro só "pousa" deitado (antebraço na prancha, canela ajoelhado); em pé/vertical não conta
+                sf_ = ".L" if rg.endswith("f") else ".R"
+                a_, b_ = {"coxa": ("upperleg01", "lowerleg01"), "joelho": ("lowerleg01", "foot"),
+                          "antebraco": ("lowerarm01", "wrist")}[rg.split("_")[0]]
+                dv = (T @ h.cabeca(b_ + sf_) - T @ h.cabeca(a_ + sf_)).normalized()
+                if abs(dv.z) > 0.5:
+                    hover[rg].append(None)
+                    continue
             cen = Q.mean(axis=0)
             mov_ = np.linalg.norm(cen - cent_ant[rg]) if rg in cent_ant else 0.0
             cent_ant[rg] = cen
-            hover[rg].append((q.z - zs, mov_, rg in contato_reg))
+            hover[rg].append((q.z - zs, mov_, q.z - zs < 0.15))
         zsup.append(z0)
         # ---------------- penetração corpo x aparelho e corpo x corpo (a cada 'passo' quadros)
         if j % passo:
@@ -894,7 +907,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     key = ("perna esq", "perna dir")
                     piores[key] = max(piores.get(key, 0.0), dist)
         for (s, alvo), d in piores.items():
-            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 2.5, 4.0, "cm", "corpo atravessando o próprio corpo")
+            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 3.0, 4.5, "cm", "corpo atravessando o próprio corpo")
     # ---------------- centro de massa / ponto de momento zero x polígono de apoio
     T_ = float(ctx.trilhas.T)
     dt = T_ / n
