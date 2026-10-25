@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Forja · treino sob medida</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="Rotinas de treino sob medida: musculação, casa, corrida, bike, lutas, atletas, mobilidade e mais.">
 <meta name="theme-color" content="#0E0D0C">
@@ -19,493 +19,223 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@500;600;700;800&display=swap">
 <style>
 html { -webkit-text-size-adjust: 100%; } body { overscroll-behavior-y: none; }
-/* Layout: app de uma coluna (máx. 480px) com barra de abas flutuante; tema escuro único, como no APK. */
+/* Layout: app de uma coluna (máx. 480px) com barra de 5 abas flutuante; tema escuro único, igual ao app Android/iPhone. */
 :root {
   --fundo: #0E0D0C; --sup1: #161412; --sup2: #1E1B18; --sup3: #28241F; --borda: #35302A;
   --texto: #F2EBE0; --texto2: #A89E90; --texto3: #6E665C;
-  --brasa: #FF5B22; --brasa-clara: #FF8A50; --ok: #34D399; --alerta: #FBBF24;
+  --brasa: #FF5B22; --brasa-clara: #FF8A50; --ok: #34D399; --alerta: #FBBF24; --perigo: #F43F5E;
   --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --corpo: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --lado: max(20px, env(safe-area-inset-left, 0px));
   color-scheme: dark;
 }
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; }
 body { background: var(--fundo); color: var(--texto); font-family: var(--corpo); font-size: 15px; line-height: 1.45; margin: 0; -webkit-font-smoothing: antialiased; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--fundo); }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
-button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--brasa); outline-offset: 2px; border-radius: 12px; }
-#app { max-width: 480px; margin: 0 auto; min-height: 100%; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: calc(8px + env(safe-area-inset-top, 0px)) 120px; }
+button, a { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; text-decoration: none; text-align: inherit; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-visible { outline: 2px solid var(--brasa); outline-offset: 2px; border-radius: 12px; }
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-top: env(safe-area-inset-top, 0px); }
+.pag { padding: 8px var(--lado) 120px; }
+.tela-sessao .pag, .tela-rotina .pag, .tela-exercicio .pag { padding-bottom: 20px; }
 .rotulo { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--texto3); }
-h1, h2, h3, .num { font-family: var(--display); font-weight: 900; margin: 0; line-height: 1; text-wrap: balance; }
-h1 { font-size: 40px; } h2 { font-size: 30px; font-weight: 800; } h3 { font-size: 22px; font-weight: 800; }
-p { margin: 0; }
-.mut { color: var(--texto2); } .mut3 { color: var(--texto3); } .peq { font-size: 13px; }
+h1, h2, h3, .num, .numero, .marcaForja { font-family: var(--display); font-weight: 900; margin: 0; line-height: 1.02; text-wrap: balance; }
+h1 { font-size: 38px; } h2 { font-size: 28px; font-weight: 800; } h3 { font-size: 21px; font-weight: 800; }
+p { margin: 0; } small { font-size: 13px; }
+.mut { color: var(--texto2); } .mut3 { color: var(--texto3); } .peq { font-size: 13px; } .blk { display: block; }
+.umaLinha { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.duasLinhas { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .pilha { display: flex; flex-direction: column; gap: 12px; }
 .linha { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .cresce { flex: 1; min-width: 0; }
-.cartao { background: var(--sup1); border: 1px solid var(--borda); border-radius: 22px; padding: 16px; }
-.etq { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; font-size: 13px; font-weight: 700; background: color-mix(in srgb, var(--c, var(--brasa)) 15%, transparent); color: var(--c, var(--brasa)); white-space: nowrap; }
-.etq.cheia { background: var(--c, var(--brasa)); color: var(--fundo); }
-.btn { display: flex; width: 100%; align-items: center; justify-content: center; gap: 10px; min-height: 56px; border-radius: 18px; font-weight: 800; font-size: 15px; letter-spacing: .02em; background: linear-gradient(120deg, var(--brasa-clara), var(--brasa) 55%, #D9381E); color: #fff; }
-.btn.cor { background: var(--c); color: var(--fundo); }
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.cartao { display: block; width: 100%; background: var(--sup1); border: 1px solid var(--borda); border-radius: 22px; padding: 18px; }
+.cartao.p16 { padding: 16px; } .cartao.p14 { padding: 14px; } .cartao.p12 { padding: 12px; }
+.etq { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; font-size: 13px; font-weight: 700; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); white-space: nowrap; flex: none; }
+.etq.cheia { background: var(--c); color: var(--fundo); }
+.etq.foto { background: rgba(14,13,12,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.btn { display: flex; width: 100%; align-items: center; justify-content: center; gap: 10px; min-height: 56px; border-radius: 18px; font-weight: 800; font-size: 15px; letter-spacing: .02em; background: linear-gradient(120deg, var(--brasa-clara), var(--brasa) 55%, #D9381E); color: #fff; text-align: center; }
+.btn[data-cor] { background: var(--c); color: var(--fundo); }
 .btn:disabled { background: var(--sup3); color: var(--texto3); cursor: default; }
-.btn2 { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 16px; background: var(--sup2); border: 1px solid var(--borda); font-weight: 800; }
-.ico { width: 46px; height: 46px; border-radius: 50%; background: var(--sup2); border: 1px solid var(--borda); display: grid; place-items: center; flex: none; font-size: 18px; }
+.btn2 { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 16px; background: var(--sup2); border: 1px solid var(--borda); font-weight: 800; text-align: center; }
+.btn2.largo { display: flex; width: 100%; }
+.ico { width: 46px; height: 46px; border-radius: 50%; background: var(--sup2); border: 1px solid var(--borda); display: grid; place-items: center; flex: none; color: var(--texto); }
+.icoR { border-radius: 50%; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--c) 16%, transparent); }
+.estat b { display: block; font-size: 34px; } .estat span { display: block; font-size: 12px; color: var(--texto2); margin-top: 4px; line-height: 1.3; }
 .barra { height: 5px; border-radius: 9px; background: var(--sup3); overflow: hidden; }
 .barra > i { display: block; height: 100%; background: var(--c, var(--brasa)); border-radius: 9px; transition: width .4s; }
-.secao { display: flex; align-items: baseline; justify-content: space-between; margin: 26px 0 12px; }
-.secao button { color: var(--brasa); font-weight: 700; font-size: 13px; }
+.secao { display: flex; align-items: baseline; justify-content: space-between; margin: 26px 0 12px; gap: 12px; }
+.secao button { color: var(--brasa); font-weight: 700; font-size: 13px; white-space: nowrap; }
 .linhaBrasa { width: 36px; height: 3px; border-radius: 9px; background: linear-gradient(90deg, var(--c, var(--brasa)), transparent); flex: none; }
+.ponto { width: 6px; height: 6px; border-radius: 50%; flex: none; margin-top: 8px; display: block; }
+.aviso { display: flex; gap: 10px; padding: 14px; border-radius: 16px; background: rgba(251,191,36,.1); font-size: 13px; align-items: flex-start; }
+.aviso svg { flex: none; }
+.okBox { display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 14px; background: rgba(52,211,153,.1); color: var(--ok); font-size: 13px; margin: 4px 0; }
+.anel { position: relative; display: grid; place-items: center; flex: none; }
+.anel > svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
+.anel .arco { transition: stroke-dashoffset .3s linear; }
+.anel .dentro { position: relative; display: grid; place-items: center; }
+.avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--brasa-clara), var(--brasa) 60%, #D9381E); color: #fff; display: grid; place-items: center; font-family: var(--display); font-size: 22px; font-weight: 900; flex: none; }
+.avatar.grande { width: 58px; height: 58px; font-size: 28px; }
+.vazio { text-align: center; padding: 40px 20px; display: grid; justify-items: center; gap: 8px; }
 
-/* demonstração: duas fotos alternando */
-.demo { position: relative; overflow: hidden; border-radius: 20px; background: var(--sup2); aspect-ratio: 1.45; max-width: 100%; }
-.demo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); }
-.demo.anim img:last-of-type { animation: troca 2.6s ease-in-out infinite; }
-.demo.anim img { animation: zoom 5.2s ease-in-out infinite; }
-.demo.a3d { background: #1B1713; }
-.demo.a3d video, .demo.a3d img { position: absolute; right: auto; bottom: auto; top: -6%; height: 112%; width: auto; object-fit: contain; aspect-ratio: 1; left: 50%; transform: translateX(-50%); background-repeat: no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
-.demo.a3d::after { background: linear-gradient(transparent 70%, rgba(0,0,0,.25)); }
-.demo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(0,0,0,.5)); }
-.demo .sem { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 44px; color: var(--c, var(--brasa)); background: radial-gradient(color-mix(in srgb, var(--c, var(--brasa)) 30%, transparent), var(--sup2)); }
-@keyframes troca { 0%, 38% { opacity: 0 } 50%, 88% { opacity: 1 } 100% { opacity: 0 } }
-@keyframes zoom { 50% { transform: scale(1.08) } }
-@media (prefers-reduced-motion: reduce) { .demo.anim img { animation: none !important; } }
-.mini { width: 64px; height: 64px; aspect-ratio: 1; border-radius: 14px; flex: none; }
+/* demonstração 3D: quadrado 1,12× a altura, centralizado, bordas esmaecidas (igual ao app) */
+.demo { position: relative; overflow: hidden; background: #1B1713; aspect-ratio: 1.45; width: 100%; }
+.demo video, .demo img { position: absolute; top: -6%; height: 112%; aspect-ratio: 1; width: auto; left: 50%; transform: translateX(-50%); object-fit: contain;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.demo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 70%, rgba(0,0,0,.28)); pointer-events: none; }
+.demo .sem { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 44px; color: var(--c); background: radial-gradient(color-mix(in srgb, var(--c) 30%, transparent), var(--sup2)); }
+.mini { width: 64px; height: 64px; flex: none; } .mini .demo, .mini56 .demo, .mini70 .demo, .mini72 .demo, .mini76 .demo { aspect-ratio: 1; height: 100%; }
+.mini56 { width: 56px; height: 56px; flex: none; } .mini70 { width: 70px; height: 70px; flex: none; } .mini72 { width: 72px; height: 72px; flex: none; position: relative; } .mini76 { width: 76px; height: 76px; flex: none; }
+.feitaV { position: absolute; inset: 0; border-radius: 16px; background: rgba(52,211,153,.55); display: grid; place-items: center; }
 
 /* abas */
 .abas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px max(14px, env(safe-area-inset-left, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-right, 0px)); pointer-events: none; }
-.abas nav { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; border-radius: 28px; background: rgba(30,27,24,.96); border: 1px solid var(--borda); box-shadow: 0 18px 40px rgba(0,0,0,.5); pointer-events: auto; }
-.abas button { padding: 8px 2px; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 800; color: var(--texto3); }
-.abas button[aria-current="page"] { background: rgba(255,91,34,.14); color: var(--texto); }
-.abas button span { font-size: 19px; line-height: 1; }
+.abas nav { max-width: 452px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 6px; border-radius: 28px; background: rgba(30,27,24,.97); border: 1px solid var(--borda); box-shadow: 0 18px 40px rgba(0,0,0,.5); pointer-events: auto; }
+.abas button { padding: 8px 0; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--texto3); min-width: 0; }
+.abas button span { font-size: 10.5px; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
+.abas button[aria-current="page"] { background: rgba(255,91,34,.14); color: var(--brasa); }
+.abas button[aria-current="page"] span { color: var(--texto); }
 
 /* questionário */
-.opc { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 18px; background: var(--sup1); border: 1.5px solid var(--borda); }
-.opc[aria-pressed="true"] { border-color: var(--c, var(--brasa)); background: color-mix(in srgb, var(--c, var(--brasa)) 12%, var(--sup1)); }
-.opc .marca { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--texto3); flex: none; display: grid; place-items: center; font-size: 14px; color: var(--fundo); }
-.opc[aria-pressed="true"] .marca { background: var(--c, var(--brasa)); border-color: var(--c, var(--brasa)); }
-.bola { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--c); font-size: 19px; }
-.numero { font-family: var(--display); font-weight: 900; font-size: 96px; line-height: .9; text-align: center; min-width: 140px; }
-input[type=text] { width: 100%; background: var(--sup1); border: 1px solid var(--borda); border-radius: 18px; padding: 18px; color: var(--texto); font-family: var(--display); font-size: 30px; font-weight: 800; }
-input[type=text]::placeholder { color: var(--texto3); }
+.quiz { min-height: 100vh; display: flex; flex-direction: column; }
+.quizTopo { display: flex; align-items: center; gap: 16px; padding: 12px var(--lado); }
+.quizCorpo { flex: 1; padding: 18px 22px 24px; }
+.opc { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; border-radius: 18px; background: var(--sup1); border: 1.5px solid var(--borda); }
+.opc b { display: block; } .opc small { display: block; color: var(--texto2); }
+.opc[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, var(--sup1)); }
+.opc .marca { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--texto3); flex: none; display: grid; place-items: center; }
+.opc.multi .marca { border-radius: 7px; }
+.opc[aria-pressed="true"] .marca { background: var(--c); border-color: var(--c); }
+.pilulas { display: flex; flex-wrap: wrap; gap: 10px; }
+.pilula { width: 100px; height: 56px; border-radius: 16px; background: var(--sup1); border: 1.5px solid var(--borda); font-family: var(--display); font-size: 21px; font-weight: 800; color: var(--texto2); text-align: center; }
+.pilula[aria-pressed="true"] { background: rgba(255,91,34,.16); border-color: var(--brasa); color: var(--texto); }
+.seletorNum { display: flex; flex-direction: column; align-items: stretch; }
+.numero { font-size: 88px; line-height: .95; text-align: center; } .numero.vazio { color: var(--texto3); }
+input[type=range] { width: 100%; margin-top: 24px; accent-color: var(--brasa); height: 32px; }
+.limpar { align-self: center; margin-top: 12px; padding: 8px; font-weight: 800; font-size: 13px; color: var(--texto2); }
+.diasSel { display: flex; justify-content: space-between; gap: 4px; }
+.diasSel button { width: 44px; height: 44px; border-radius: 50%; background: var(--sup2); border: 1px solid var(--borda); font-size: 13px; font-weight: 800; color: var(--texto2); text-align: center; }
+.diasSel button[aria-pressed="true"] { background: var(--brasa); border-color: var(--brasa); color: #fff; }
+.campoNome { width: 100%; background: var(--sup1); border: 1px solid var(--borda); border-radius: 18px; padding: 20px; color: var(--texto); font-family: var(--display); font-size: 28px; font-weight: 800; }
+.campoNome::placeholder { color: var(--texto3); }
+.fixo { position: sticky; bottom: 0; padding: 24px 22px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--fundo) 30%); z-index: 3; }
+.fixo.pag { padding-left: var(--lado); padding-right: var(--lado); }
+.boas { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
+.boas .mosaico { position: absolute; top: 8px; left: 12px; right: 12px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.boas .mosaico img { width: 100%; height: 100%; object-fit: cover; border-radius: 22px; display: block; background: var(--sup2); }
+.boas .mosaico > img { aspect-ratio: .72; } .boas .mosaico .col { display: grid; gap: 8px; } .boas .mosaico .col img:first-child { aspect-ratio: .95; } .boas .mosaico .col img:last-child { aspect-ratio: 1.05; }
+.boas::before { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 25%, var(--fundo) 58%); z-index: 1; }
+.boasTexto { position: relative; z-index: 2; padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px)); }
+.marcaForja { font-size: 84px; letter-spacing: 2px; margin-top: 14px; line-height: .95; }
+.gerando { padding: 54px 24px 40px; }
+.bolinha { width: 22px; height: 22px; border-radius: 50%; background: var(--sup3); display: grid; place-items: center; flex: none; } .bolinha.ok { background: var(--ok); }
 
-/* herói */
-.heroi { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid var(--borda); background: var(--sup2); min-height: 360px; display: flex; flex-direction: column; justify-content: flex-end; }
-.heroi > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.heroi::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.2) 38%, rgba(14,13,12,.85) 70%, var(--fundo) 96%); }
-.heroi .etq:not(.cheia) { background: rgba(14,13,12,.75); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.fixo { position: sticky; bottom: 0; padding: 18px 0 calc(12px + env(safe-area-inset-bottom,0px)); background: linear-gradient(transparent, var(--fundo) 35%); }
-.heroi > * { position: relative; }
-.heroi .topo { position: absolute; top: 16px; left: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-.dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
-.dia { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--texto3); }
-.dia i { width: 40px; height: 40px; max-width: 100%; border-radius: 50%; border: 1px solid var(--borda); display: grid; place-items: center; font-style: normal; background: var(--sup1); }
-.dia.tem i { border-color: var(--c); }
-.dia.tem i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-.dia.hoje { color: var(--texto); } .dia.hoje i { border-width: 2px; background: var(--sup3); }
-.trilho { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); }
+/* hoje */
+.heroi { position: relative; height: 380px; border-radius: 28px; overflow: hidden; border: 1px solid var(--borda); background: var(--sup2); cursor: pointer; }
+.heroi .heroiDemo { position: absolute; inset: 0 0 auto; height: 290px; aspect-ratio: auto; }
+.heroi .veu { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.2) 38%, rgba(14,13,12,.85) 70%, var(--fundo)), radial-gradient(color-mix(in srgb, var(--c) 22%, transparent), transparent 70%); }
+.heroi .topoH { position: absolute; top: 18px; left: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+.heroi .baseH { position: absolute; left: 20px; right: 20px; bottom: 20px; }
+.dias { display: flex; justify-content: space-between; }
+.dia { width: 42px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--texto3); }
+.dia.hoje { color: var(--texto); }
+.dia i { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-style: normal; }
+.trilho { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-right: calc(-1 * var(--lado)); padding-right: var(--lado); scroll-padding-left: 0; }
+.trilho::-webkit-scrollbar { display: none; }
 .trilho > * { flex: none; }
-.chip { padding: 9px 16px; border-radius: 99px; background: var(--sup1); border: 1px solid var(--borda); font-weight: 700; font-size: 13px; color: var(--texto2); white-space: nowrap; }
-.chip[aria-pressed="true"] { background: var(--c, var(--brasa)); color: var(--fundo); border-color: var(--c, var(--brasa)); }
-.semana { width: 78px; padding: 12px 0; border-radius: 18px; background: var(--sup1); border: 1px solid var(--borda); text-align: center; }
-.semana[aria-pressed="true"] { background: var(--c); color: var(--fundo); }
-.semana .num { font-size: 24px; }
-.semana small { display: block; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; opacity: .75; margin-top: 3px; }
+.rotinaP { width: 220px; border-radius: 22px; overflow: hidden; background: var(--sup1); border: 1px solid var(--borda); }
+.rotinaP .capa { position: relative; height: 110px; } .rotinaP .capa .demo { height: 110px; aspect-ratio: auto; }
+.rotinaP .etqCapa { position: absolute; top: 10px; left: 10px; }
+.rotinaP b, .rotinaP small { display: block; }
+.chip { padding: 9px 16px; border-radius: 99px; background: var(--sup1); border: 1px solid var(--borda); font-weight: 800; font-size: 13px; color: var(--texto2); white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--c); color: var(--fundo); border-color: var(--c); }
+
+/* plano e sessão */
+.semana { width: 78px; padding: 12px 0 10px; border-radius: 18px; background: var(--sup1); border: 1px solid var(--borda); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.semana[aria-pressed="true"] { background: var(--c); color: var(--fundo); border-color: var(--c); }
+.semana .num { font-size: 24px; } .semana small { font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--texto3); white-space: nowrap; }
+.semana[aria-pressed="true"] small { color: rgba(14,13,12,.8); }
+.sessaoC { display: flex; align-items: center; gap: 14px; padding: 14px; text-align: left; }
+.detalhe, .detalheEx { position: relative; }
+.capaD { position: relative; height: 300px; } .capaD .demo { height: 300px; aspect-ratio: auto; }
+.veuD { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.35), transparent 40%, var(--fundo)); }
+.voltarFlut { position: absolute; top: 16px; left: 16px; z-index: 2; }
+.baseD { position: absolute; left: var(--lado); right: var(--lado); bottom: 8px; }
 .item { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 8px 0; }
+.item b { display: block; }
+.capaEx .demo { aspect-ratio: 1.1; }
+.numDica { width: 28px; height: 28px; border-radius: 9px; background: rgba(255,91,34,.15); color: var(--brasa); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
+.alt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px; border-radius: 18px; background: var(--sup1); border: 1px solid var(--borda); }
+.alt b { display: block; }
+.linhaAcao { display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px; margin: 5px 0; }
+.linhaAcao b, .linhaAcao small { display: block; } .linhaAcao small { color: var(--texto2); }
+.linhaRot { display: flex; align-items: center; gap: 14px; text-align: left; padding: 12px; }
+.topoT { display: flex; align-items: center; gap: 14px; padding: 12px 0 18px; }
+.alternar { display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; }
+.alternar span { flex: 1; }
+.alternar input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.alternar i { width: 52px; height: 32px; border-radius: 99px; background: var(--sup3); border: 1px solid var(--borda); position: relative; flex: none; transition: background .2s; }
+.alternar i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--texto3); transition: transform .2s, background .2s; }
+.alternar input:checked + i { background: var(--brasa); border-color: var(--brasa); }
+.alternar input:checked + i::after { transform: translateX(20px); background: #fff; }
+.alternar input:focus-visible + i { outline: 2px solid var(--brasa); outline-offset: 2px; }
+
+/* biblioteca */
+.buscaC { display: flex; align-items: center; gap: 10px; background: var(--sup1); border: 1px solid var(--borda); border-radius: 18px; padding: 0 16px; }
+.buscaC input { flex: 1; min-width: 0; background: none; border: 0; color: var(--texto); font: inherit; padding: 14px 0; outline: none; }
+.buscaC input::placeholder { color: var(--texto3); }
 .grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .grade button { text-align: left; background: var(--sup1); border: 1px solid var(--borda); border-radius: 20px; overflow: hidden; }
-.grade .demo { border-radius: 0; aspect-ratio: 1.25; }
-.grade b { display: block; font-size: 13px; line-height: 1.3; padding: 10px 12px 2px; min-height: 2.6em; }
+.grade .gradeDemo { aspect-ratio: 1.25; }
+.grade b { font-size: 13px; line-height: 1.3; padding: 12px 12px 4px; min-height: calc(2.6em + 16px); }
 .grade small { display: block; padding: 0 12px 12px; color: var(--texto3); font-size: 12px; }
-.busca { width: 100%; background: var(--sup1); border: 1px solid var(--borda); border-radius: 18px; padding: 14px 16px; color: var(--texto); font: inherit; }
-.anel { width: 210px; height: 210px; margin: 0 auto; position: relative; display: grid; place-items: center; }
-.anel svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-.anel .num { font-size: 72px; }
-.contador { display: flex; align-items: center; gap: 8px; }
-.contador .num { flex: 1; text-align: center; font-size: 40px; }
-.aviso { display: flex; gap: 10px; padding: 14px; border-radius: 16px; background: rgba(251,191,36,.1); font-size: 13px; }
-.sobre { position: fixed; inset: 0; z-index: 8; background: rgba(14,13,12,.985); display: flex; flex-direction: column; align-items: center; padding: calc(24px + env(safe-area-inset-top,0px)) max(24px, env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(24px, env(safe-area-inset-left,0px)); }
-.sobre > div { width: 100%; max-width: 432px; display: flex; flex-direction: column; gap: 16px; height: 100%; }
-.mosaico { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
-.mosaico img { width: 100%; height: 100%; object-fit: cover; border-radius: 22px; display: block; }
-.mosaico .col { display: grid; gap: 8px; }
-.carregando { min-height: 60vh; display: grid; place-items: center; color: var(--texto3); }
+.video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.fonte { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.fonte b { width: 44px; flex: none; font-size: 13px; }
+
+/* treino */
+.tela-treino { padding-top: env(safe-area-inset-top, 0px); }
+#treino { min-height: 100vh; display: flex; flex-direction: column; }
+.treinoTopo { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+.segmentos { display: flex; gap: 3px; padding: 0 16px; } .segmentos .barra { height: 4px; }
+.treinoCorpo { flex: 1; padding: 14px 20px 16px; }
+.treinoControles { position: sticky; bottom: 0; display: flex; align-items: center; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--fundo) 25%); }
+.descanso { position: fixed; inset: 0; z-index: 6; background: rgba(14,13,12,.985); display: flex; flex-direction: column; padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); max-width: 480px; margin: 0 auto; }
+.aSeguir { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; background: var(--sup1); border: 1px solid var(--borda); margin: 10px 0 16px; }
+.concluido { display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
+.selo { width: 110px; height: 110px; border-radius: 50%; background: color-mix(in srgb, var(--c) 15%, transparent); display: grid; place-items: center; margin-bottom: 20px; }
+.selo span { width: 78px; height: 78px; border-radius: 50%; background: var(--c); display: grid; place-items: center; }
+.esforco { display: flex; justify-content: space-between; width: 100%; margin-top: 12px; gap: 4px; }
+.esforco button { width: 30px; height: 30px; border-radius: 9px; background: var(--sup2); font-weight: 800; font-size: 13px; color: var(--texto3); text-align: center; }
+.esforco button[aria-pressed="true"] { outline: 2px solid var(--texto); }
+.nota { width: 100%; min-height: 90px; margin-top: 20px; background: var(--sup1); border: 1px solid var(--borda); border-radius: 16px; padding: 16px; color: var(--texto); font: inherit; resize: vertical; }
+.nota::placeholder { color: var(--texto3); }
+.descartar { margin-top: 10px; padding: 10px; color: var(--texto3); font-weight: 800; font-size: 13px; }
+
+/* progresso */
+.eixo { display: flex; margin-top: 8px; } .eixo div { flex: 1; text-align: center; } .eixo b { display: block; font-size: 13px; } .eixo small { font-size: 11px; color: var(--texto3); }
+.consist { display: flex; gap: 6px; align-items: flex-end; } .consist > div { flex: 1; text-align: center; }
+.consist .col { height: 70px; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; } .consist .col i { flex: 1; border-radius: 4px; max-height: 18px; }
+.consist small { font-size: 11px; color: var(--texto3); }
+.hist { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; background: var(--sup1); }
+
+/* diálogos e avisos */
+.dialogo { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 24px; }
+.dialogo .caixa { width: 100%; max-width: 380px; background: var(--sup2); border-radius: 24px; padding: 22px; }
+.dialogo p { margin-top: 10px; } .dialogo .botoes { display: flex; justify-content: flex-end; gap: 6px; margin-top: 18px; }
+.dialogo .botoes button { padding: 10px 14px; font-weight: 800; border-radius: 12px; }
+#toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; z-index: 30; background: var(--sup3); border: 1px solid var(--borda); padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: 700; max-width: min(420px, calc(100vw - 32px)); pointer-events: none; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+.carregando { min-height: 60vh; display: grid; place-items: center; color: var(--texto3); padding: 24px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
-
 <div id="app"><div class="carregando">Carregando o Forja…</div></div>
-<div class="abas" id="abas" hidden><nav aria-label="Seções">
-  <button data-aba="hoje"><span>🔥</span>Hoje</button>
-  <button data-aba="plano"><span>▦</span>Plano</button>
-  <button data-aba="mob"><span>◌</span>Mobilidade</button>
-  <button data-aba="ex"><span>◆</span>Exercícios</button>
-</nav></div>
-
-<script>
-const CORES = { academia: "#FF5B22", casa_corpo: "#F2B24C", casa_elastico: "#E879A6", corrida: "#34D399", bike: "#38BDF8", luta: "#F43F5E", atleta: "#A78BFA", hiit: "#FACC15", hibrido: "#FB923C", mobilidade: "#5EEAD4", longevidade: "#A3E635" };
-const TIPO_COR = { corrida: CORES.corrida, bike: CORES.bike, luta: CORES.luta, hiit: CORES.hiit, mobilidade: CORES.mobilidade, cardio: "#7DD3FC", atleta: CORES.atleta };
-const SIMB = { academia: "🏋", casa_corpo: "⌂", casa_elastico: "∞", corrida: "🏃", bike: "🚴", luta: "🥊", atleta: "🏆", hiit: "⚡", hibrido: "⇄", mobilidade: "◌", longevidade: "✦" };
-const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-const FORCA = ["academia", "casa_corpo", "casa_elastico", "hibrido", "hiit"];
-let D, EX = {}, estado = { tela: "boas", aba: "hoje", resp: {}, etapa: 0, semanaSel: 1 };
-const $app = document.getElementById("app"), $abas = document.getElementById("abas");
-
-function ler(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
-function gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const tempo = s => s >= 3600 ? `${Math.floor(s / 3600)}h${String(Math.floor(s % 3600 / 60)).padStart(2, "0")}` : s >= 60 && s % 60 === 0 ? `${s / 60} min` : s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : `${s} s`;
-const presc = (it, circ) => circ ? (it.r || tempo(it.t || 0)) : it.r ? `${it.s} × ${it.r}` : it.s === 1 ? tempo(it.t) : it.d > 0 ? `${it.s} × ${tempo(it.t)} / ${tempo(it.d)}` : `${it.s} × ${tempo(it.t)}`;
-
-let ANIM = {}; // vídeos 3D disponíveis (video3d/meta.json)
-
-function demo(id, cls = "", animar = true, cor) {
-  const e = EX[id]; const c = cor ? `style="--c:${cor}"` : "";
-  if (ANIM[id]) {
-    const rot = `Demonstração 3D: ${esc(e?.nome || id)}`;
-    const midia = animar
-      ? `<video src="video3d/${id}.mp4" poster="video3d/${id}.webp" autoplay muted loop playsinline preload="auto" aria-label="${rot}"></video>`
-      : `<img src="video3d/${id}.webp" alt="${rot}" loading="lazy">`;
-    return `<div class="demo a3d ${cls}" ${c}>${midia}</div>`;
-  }
-  if (!e || !e.img) return `<div class="demo ${cls}" ${c}><div class="sem">${esc((e?.nome || "?")[0])}</div></div>`;
-  return `<div class="demo ${animar ? "anim" : ""} ${cls}" ${c}><img src="img/${id}_0.webp" alt="Demonstração: ${esc(e.nome)}" loading="lazy"><img src="img/${id}_1.webp" alt="" loading="lazy"></div>`;
-}
-
-// ---------------------------------------------------------------- perguntas (subconjunto da versão completa)
-const IDS_WEB = ["nome", "modalidade", "objetivo", "experiencia", "corrida_meta", "dias"];
-function perguntasVisiveis() {
-  const m = estado.resp.modalidade;
-  return D.perguntas.filter(q => IDS_WEB.includes(q.id)).filter(q =>
-    q.id === "objetivo" ? FORCA.includes(m) : q.id === "corrida_meta" ? m === "corrida" : true);
-}
-function chavePlano() {
-  const r = estado.resp, m = r.modalidade;
-  const o = FORCA.includes(m) ? (r.objetivo || "massa") : "_";
-  let meta = "_";
-  if (m === "corrida") meta = ["comecar", "5k", "10k", "21k", "42k"].includes(r.corrida_meta) ? r.corrida_meta : "saude";
-  return `${m}|${r.experiencia}|${r.dias || 3}|${o}|${meta}`;
-}
-function plano() { return D.planos[chavePlano()]; }
-function sessao(i) { return D.sessoes[plano().s1[i]]; }
-
-function render() {
-  window.scrollTo(0, 0);
-  $abas.hidden = estado.tela !== "app";
-  if (estado.tela === "boas") return telaBoas();
-  if (estado.tela === "quiz") return telaQuiz();
-  if (estado.tela === "gerando") return telaGerando();
-  if (estado.tela === "sessao") return telaSessao();
-  if (estado.tela === "rotina") return telaSessao(true);
-  if (estado.tela === "exercicio") return telaExercicio();
-  if (estado.tela === "treino") return telaTreino();
-  $abas.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", b.dataset.aba === estado.aba ? "page" : "false"));
-  ({ hoje: telaHoje, plano: telaPlano, mob: telaMob, ex: telaEx })[estado.aba]();
-}
-function ir(tela, extra = {}) { estado.voltar = { tela: estado.tela, aba: estado.aba, id: estado.id, idx: estado.idx }; Object.assign(estado, { tela }, extra); render(); }
-
-function telaBoas() {
-  $app.innerHTML = `
-  <div class="pilha" style="gap:20px">
-    <div class="mosaico" aria-hidden="true"><img src="img/agachamento-barra_1.webp" alt="" style="aspect-ratio:.72"><div class="col"><img src="img/swing_1.webp" alt=""><img src="img/corrida-leve_1.webp" alt=""></div></div>
-    <div class="linhaBrasa" style="width:56px"></div>
-    <div><h1 style="font-size:84px;letter-spacing:.03em">FORJA</h1><h2 style="color:var(--brasa)">Treino sob medida.</h2></div>
-    <p class="mut">Responda algumas perguntas e receba uma rotina completa: musculação, casa, corrida, bike, lutas, atletas, HIIT, mobilidade e mais, com demonstração e vídeo de cada exercício.</p>
-    <button class="btn" id="comecar">Montar minha rotina →</button>
-    <p class="peq mut3" style="text-align:center">Versão web de demonstração · o app Android tem o questionário completo, histórico e lembretes</p>
-  </div>`;
-  document.getElementById("comecar").onclick = () => { estado.etapa = 0; ir("quiz"); };
-}
-
-function telaQuiz() {
-  const vis = perguntasVisiveis(); const i = Math.min(estado.etapa, vis.length - 1); const q = vis[i]; const r = estado.resp;
-  if (q.tipo === "NUMERO" && r[q.id] == null) r[q.id] = q.padrao;
-  const val = r[q.id];
-  let corpo = "";
-  if (q.tipo === "TEXTO") corpo = `<input type="text" id="nome" placeholder="Seu nome" maxlength="24" value="${esc(val || "")}" autocomplete="given-name">`;
-  else if (q.tipo === "UNICA") corpo = `<div class="pilha" style="gap:10px">${q.opcoes.map(o => {
-    const cor = q.id === "modalidade" ? CORES[o.v] : "var(--brasa)";
-    return `<button class="opc" data-v="${o.v}" aria-pressed="${val === o.v}" style="--c:${cor}">${q.id === "modalidade" ? `<span class="bola">${SIMB[o.v]}</span>` : ""}<span class="cresce"><b>${esc(o.t)}</b>${o.d ? `<br><span class="peq mut">${esc(o.d)}</span>` : ""}</span><span class="marca">${val === o.v ? "✓" : ""}</span></button>`;
-  }).join("")}</div>`;
-  else if (q.tipo === "NUMERO") corpo = `<div class="linha" style="justify-content:center;gap:20px"><button class="ico" id="menos" aria-label="Diminuir" style="width:58px;height:58px">−</button><div><div class="numero">${val}</div><div class="rotulo" style="text-align:center;color:var(--brasa)">${q.unidade}</div></div><button class="ico" id="mais" aria-label="Aumentar" style="width:58px;height:58px">+</button></div>
-    <p class="mut" style="text-align:center;margin-top:18px">${["", "", "Ótimo para começar e manter.", "O ponto ideal para a maioria.", "Permite dividir em superiores e inferiores.", "Volume alto: durma bem.", "Para quem já tem rotina consolidada."][val] || ""}</p>`;
-  const ok = q.tipo === "TEXTO" || val != null;
-  $app.innerHTML = `
-  <div class="linha" style="padding:6px 0 14px"><button class="ico" id="voltar" aria-label="Voltar">←</button>
-    <div class="cresce"><div class="linha" style="justify-content:space-between"><span class="rotulo" style="color:var(--brasa)">${esc(q.secao)}</span><span class="rotulo">${i + 1} / ${vis.length}</span></div>
-    <div class="barra" style="margin-top:8px"><i style="width:${(i + 1) / vis.length * 100}%"></i></div></div></div>
-  <div class="pilha" style="gap:22px;padding-top:10px">
-    <div class="pilha" style="gap:10px"><h1>${esc(q.titulo)}</h1>${q.sub ? `<p class="mut">${esc(q.sub)}</p>` : ""}</div>
-    ${corpo}
-    <button class="btn" id="seguir" ${ok ? "" : "disabled"}>${i === vis.length - 1 ? "Montar minha rotina" : "Continuar"} →</button>
-    ${i === vis.length - 1 ? `<p class="peq mut3">No app Android você também informa dias da semana, duração, equipamento, limitações, triagem PAR-Q+ e detalhes de corrida, bike, luta e esporte. Aqui as sessões usam ~60 min.</p>` : ""}
-  </div>`;
-  const avancar = () => { if (i >= vis.length - 1) { gravar("forja_resp", r); ir("gerando"); } else { estado.etapa = i + 1; render(); } };
-  document.getElementById("voltar").onclick = () => { if (i === 0) ir("boas"); else { estado.etapa = i - 1; render(); } };
-  document.getElementById("seguir").onclick = avancar;
-  const nome = document.getElementById("nome"); if (nome) nome.oninput = e => r.nome = e.target.value;
-  $app.querySelectorAll(".opc").forEach(b => b.onclick = () => { r[q.id] = b.dataset.v; render(); setTimeout(avancar, 220); });
-  const ajusta = d => { r[q.id] = Math.max(q.min, Math.min(q.max, val + d)); render(); };
-  const m = document.getElementById("menos"); if (m) { m.onclick = () => ajusta(-1); document.getElementById("mais").onclick = () => ajusta(1); }
-}
-
-function telaGerando() {
-  const passos = ["Analisando seu perfil", "Escolhendo os exercícios", "Ajustando volume e intensidade", "Organizando as semanas"];
-  let n = 0; const p = plano(); const cor = CORES[estado.resp.modalidade];
-  const desenha = () => {
-    $app.innerHTML = `<div class="pilha" style="gap:18px;padding-top:30px">
-      <h1>${n < passos.length ? "Forjando sua rotina…" : "Sua rotina está pronta"}</h1>
-      <div class="pilha" style="gap:8px">${passos.map((s, k) => `<div class="linha"><span class="etq ${k < n ? "cheia" : ""}" style="--c:${k < n ? "var(--ok)" : "var(--texto3)"};width:24px;height:24px;padding:0;justify-content:center">${k < n ? "✓" : ""}</span><span class="${k < n ? "" : "mut3"}">${s}</span></div>`).join("")}</div>
-      ${n >= passos.length ? `<div class="cartao pilha" style="gap:8px"><span class="etq" style="--c:${cor}">${SIMB[estado.resp.modalidade]} ${esc(D.perguntas[1].opcoes.find(o => o.v === estado.resp.modalidade).t)}</span><h2>${esc(p.nome)}</h2><p class="peq mut">${esc(p.resumo)}</p><b class="peq" style="color:${cor}">${esc(p.meta)}</b></div>
-      ${p.alertas.map(a => `<div class="aviso">⚠ <span>${esc(a)}</span></div>`).join("")}
-      <button class="btn" id="ver">Ver meu plano →</button>` : ""}</div>`;
-    const v = document.getElementById("ver"); if (v) v.onclick = () => { estado.aba = "hoje"; ir("app"); };
-  };
-  desenha(); const t = setInterval(() => { n++; desenha(); if (n >= passos.length) clearInterval(t); }, 420);
-}
-
-function capa(s) { const b = s.blocos.find(b => b.tipo !== "AQUECIMENTO") || s.blocos[0]; return b.itens[0].e; }
-function corPlano() { return CORES[estado.resp.modalidade]; }
-function corSessao(s) { return TIPO_COR[s.tipo] || corPlano(); }
-function nEx(s) { return s.blocos.filter(b => b.tipo !== "AQUECIMENTO" && b.tipo !== "DESAQUECIMENTO").reduce((a, b) => a + b.itens.length, 0); }
-
-function telaHoje() {
-  const p = plano(); const hoje = (new Date().getDay() + 6) % 7 + 1; const ses = p.s1.map((_, i) => sessao(i));
-  let idx = ses.findIndex(s => s.dia === hoje); const ehHoje = idx >= 0; if (idx < 0) idx = Math.max(0, ses.findIndex(s => s.dia > hoje));
-  const s = ses[idx]; const cor = corSessao(s); const nome = estado.resp.nome?.trim();
-  const h = new Date().getHours(); const saud = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-  const recs = recomendadas();
-  $app.innerHTML = `
-  <div class="linha" style="padding:6px 0 16px"><div class="cresce"><div class="rotulo">${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</div><h1>${esc(nome ? `${saud}, ${nome}` : saud)}</h1></div>
-    <button class="ico" id="refazer" aria-label="Refazer questionário" title="Refazer questionário" style="background:linear-gradient(120deg,var(--brasa-clara),var(--brasa));color:#fff;font-family:var(--display);font-size:22px">${esc((nome || "F")[0].toUpperCase())}</button></div>
-  <button class="heroi" id="heroi" style="width:100%;text-align:left">
-    <img src="img/${capa(s)}_1.webp" alt="">
-    <div class="topo"><span class="etq cheia" style="--c:${cor}">${ehHoje ? "HOJE" : "PRÓXIMO"}</span><span class="etq" style="--c:var(--texto)">Semana 1 · ${esc(D.textos[p.semanas[0][0]])}</span></div>
-    <div class="pilha" style="padding:20px;gap:12px"><div><h1>${esc(s.titulo)}</h1><p class="mut" style="margin-top:6px">${esc(s.foco)}</p></div>
-      <div class="linha" style="gap:8px;flex-wrap:wrap"><span class="etq" style="--c:${cor}">◷ ${s.min} min</span><span class="etq" style="--c:${cor}">${nEx(s)} exercícios</span></div>
-      <span class="btn ${cor !== CORES.academia ? "cor" : ""}" style="--c:${cor}">▶ Começar treino</span></div>
-  </button>
-  <div class="secao"><h3>Esta semana</h3><button data-aba-ir="plano">Ver plano</button></div>
-  <div class="dias">${DIAS.map((d, k) => { const i = ses.findIndex(x => x.dia === k + 1); return `<button class="dia ${i >= 0 ? "tem" : ""} ${k + 1 === hoje ? "hoje" : ""}" ${i >= 0 ? `data-ses="${i}" aria-label="${d}: ${esc(ses[i].titulo)}"` : "disabled"} style="--c:${i >= 0 ? corSessao(ses[i]) : "var(--texto3)"}">${d}<i></i></button>`; }).join("")}</div>
-  <div class="secao"><h3>Mobilidade para você</h3><button data-aba-ir="mob">Ver todas</button></div>
-  <div class="trilho">${recs.map(cartaoRotina).join("")}</div>
-  <div class="secao"><h3>Dica do dia</h3></div>
-  <div class="cartao linha" style="align-items:flex-start"><span class="bola" style="--c:var(--alerta)">✦</span><p>${esc(D.textos[p.dicas[new Date().getDate() % p.dicas.length]])}</p></div>`;
-  document.getElementById("heroi").onclick = () => ir("sessao", { idx });
-  document.getElementById("refazer").onclick = () => { estado.etapa = 0; ir("quiz"); };
-  ligarComuns();
-}
-
-function recomendadas() {
-  const m = estado.resp.modalidade;
-  const ids = { corrida: ["pre-corrida", "pos-corrida", "mob-tornozelos"], bike: ["pre-bike", "pos-bike", "mob-quadril"], luta: ["pre-luta-pe", "pre-luta-solo", "pos-luta"], atleta: ["pre-coletivos", "pre-raquete", "pos-inferiores"], hiit: ["pre-hiit", "pos-geral", "mob-diaria"], hibrido: ["pre-corrida", "pre-inferiores", "pos-geral"], longevidade: ["pre-caminhada", "mob-acordar", "mob-tornozelos"], mobilidade: ["mob-diaria", "mob-escritorio", "mob-dormir"] }[m] || ["pre-inferiores", "pre-superiores", "pos-inferiores", "pos-superiores"];
-  return ids.map(id => D.rotinas.find(r => r.id === id)).filter(Boolean);
-}
-function cartaoRotina(r) {
-  const cor = CORES[r.tema] || CORES.mobilidade; const it = r.sessao.blocos[0].itens; const e = (it[1] || it[0]).e;
-  return `<button class="cartao" data-rotina="${r.id}" style="width:220px;padding:0;overflow:hidden;text-align:left">${demo(e, "", false, cor).replace('class="demo', 'style="border-radius:0;aspect-ratio:2" class="demo')}<div style="padding:12px 14px"><span class="etq cheia" style="--c:${cor};font-size:11px">${esc(r.cat)}</span><b style="display:block;margin-top:8px">${esc(r.titulo)}</b><span class="peq mut">${r.sessao.min} min · ${esc(r.sub)}</span></div></button>`;
-}
-function ligarComuns() {
-  $app.querySelectorAll("[data-aba-ir]").forEach(b => b.onclick = () => { estado.aba = b.dataset.abaIr; render(); });
-  $app.querySelectorAll("[data-ses]").forEach(b => b.onclick = () => ir("sessao", { idx: +b.dataset.ses }));
-  $app.querySelectorAll("[data-rotina]").forEach(b => b.onclick = () => ir("rotina", { id: b.dataset.rotina }));
-  $app.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => ir("exercicio", { id: b.dataset.ex }));
-}
-
-function telaPlano() {
-  const p = plano(); const cor = corPlano(); const sel = estado.semanaSel; const w = p.semanas[sel - 1];
-  $app.innerHTML = `
-  <div class="pilha" style="gap:10px;padding:6px 0 14px"><div class="linha" style="gap:8px"><span class="etq" style="--c:${cor}">${SIMB[estado.resp.modalidade]} ${esc(D.perguntas[1].opcoes.find(o => o.v === estado.resp.modalidade).t)}</span><span class="etq" style="--c:var(--texto2)">${esc(D.perguntas[3].opcoes.find(o => o.v === estado.resp.experiencia).t)}</span></div>
-  <h1>${esc(p.nome)}</h1><p class="mut">${esc(p.resumo)}</p><b class="peq" style="color:${cor}">${esc(p.meta)}</b></div>
-  <div class="trilho">${p.semanas.map((s, k) => `<button class="semana" data-sem="${k + 1}" aria-pressed="${k + 1 === sel}" style="--c:${cor}"><span class="num">S${String(k + 1).padStart(2, "0")}</span><small>${esc(D.textos[s[0]].slice(0, 12))}</small></button>`).join("")}</div>
-  <div class="cartao" style="margin-top:14px;background:color-mix(in srgb, ${cor} 7%, var(--sup1));border-color:color-mix(in srgb, ${cor} 30%, transparent)"><div class="rotulo" style="color:${cor}">Semana ${sel} · ${esc(D.textos[w[0]])}</div><p style="margin-top:6px">${esc(D.textos[w[1]])}</p></div>
-  ${sel > 1 ? `<p class="peq mut3" style="margin-top:10px">Na demo web os treinos detalhados aparecem para a semana 1; o app gera as ${p.semanas.length} semanas com a progressão completa.</p>` : ""}
-  <div class="pilha" style="margin-top:12px;gap:10px">${p.s1.map((_, i) => { const s = sessao(i); const c = corSessao(s); return `<button class="cartao linha" data-ses="${i}" style="text-align:left;padding:14px">${demo(capa(s), "mini", false, c)}<div class="cresce"><div class="rotulo" style="color:${c}">${DIAS[s.dia - 1]} · ${esc(s.foco)}</div><h3 style="margin-top:3px">${esc(s.titulo)}</h3><span class="peq mut">${s.min} min · ${nEx(s)} exercícios</span></div><span class="mut3">›</span></button>`; }).join("")}</div>
-  <div class="secao"><h3>Como progredir</h3></div>
-  <div class="pilha" style="gap:8px">${p.dicas.map(t => `<div class="linha" style="align-items:flex-start"><span style="width:6px;height:6px;border-radius:50%;background:${cor};margin-top:9px;flex:none"></span><p class="mut">${esc(D.textos[t])}</p></div>`).join("")}</div>`;
-  $app.querySelectorAll("[data-sem]").forEach(b => b.onclick = () => { estado.semanaSel = +b.dataset.sem; render(); });
-  ligarComuns();
-}
-
-function telaSessao(rotina = false) {
-  const r = rotina ? D.rotinas.find(x => x.id === estado.id) : null;
-  const s = rotina ? r.sessao : sessao(estado.idx); const cor = rotina ? (CORES[r.tema] || CORES.mobilidade) : corSessao(s);
-  $app.innerHTML = `
-  <div class="linha" style="padding:6px 0 12px"><button class="ico" id="voltar" aria-label="Voltar">←</button><div class="cresce"><div class="rotulo" style="color:${cor}">${rotina ? esc(r.cat) : `Semana 1 · ${DIAS[s.dia - 1]}`}</div><h2>${esc(s.titulo)}</h2></div></div>
-  ${demo(capa(s), "", true, cor)}
-  <div class="linha" style="gap:8px;margin-top:12px;flex-wrap:wrap"><span class="etq" style="--c:${cor}">◷ ${s.min} min</span><span class="etq" style="--c:${cor}">${esc(rotina ? r.sub : s.foco)}</span></div>
-  ${s.blocos.map(b => `<div class="linha" style="margin:24px 0 6px"><span class="linhaBrasa" style="--c:${cor}"></span><h3 class="cresce">${esc(b.nome)}</h3>${b.voltas > 1 ? `<span class="etq" style="--c:${cor}">↻ ${b.voltas} voltas</span>` : ""}</div>${b.nota ? `<p class="peq mut">${esc(b.nota)}</p>` : ""}
-    ${b.itens.map(it => { const e = EX[it.e]; return `<button class="item" data-ex="${it.e}">${demo(it.e, "mini", false, cor)}<span class="cresce"><b style="display:block">${esc(e?.nome)}</b><span class="peq" style="color:${cor};font-weight:700">${presc(it, b.tipo === "CIRCUITO")}</span>${it.i ? `<span class="peq mut"> · ${esc(it.i)}</span>` : ""}${it.n ? `<br><span class="peq mut3">${esc(it.n)}</span>` : ""}</span><span class="mut3">›</span></button>`; }).join("")}`).join("")}
-  <div class="fixo" style="margin-top:12px"><button class="btn ${cor !== CORES.academia ? "cor" : ""}" id="comecar" style="--c:${cor}">▶ ${rotina ? "Começar rotina" : "Começar treino"}</button></div>`;
-  document.getElementById("voltar").onclick = () => { estado.tela = "app"; render(); };
-  document.getElementById("comecar").onclick = () => iniciarTreino(s, cor);
-  ligarComuns();
-}
-
-function telaMob() {
-  const filtro = estado.filtroMob || "Todas"; const cats = ["Todas", ...new Set(D.rotinas.map(r => r.cat))];
-  const lista = D.rotinas.filter(r => filtro === "Todas" || r.cat === filtro);
-  const grupos = [...new Set(lista.map(r => r.cat))];
-  $app.innerHTML = `
-  <div class="pilha" style="gap:8px;padding:6px 0 10px"><div class="rotulo" style="color:${CORES.mobilidade}">Alongamento & mobilidade</div><h1>Prepare o corpo,<br>recupere melhor.</h1><p class="mut">Antes do esporte, movimento dinâmico. Depois do treino, alongamento estático de 20–30 s. E mobilidade para o dia a dia.</p></div>
-  <div class="secao"><h3>Para o seu treino</h3></div><div class="trilho">${recomendadas().map(cartaoRotina).join("")}</div>
-  <div class="trilho" style="margin-top:22px;gap:8px">${cats.map(c => `<button class="chip" data-cat="${esc(c)}" aria-pressed="${c === filtro}">${esc(c)}</button>`).join("")}</div>
-  ${grupos.map(g => `<div class="secao"><h3>${esc(g)}</h3></div><div class="pilha" style="gap:10px">${lista.filter(r => r.cat === g).map(r => { const cor = CORES[r.tema] || CORES.mobilidade; const it = r.sessao.blocos[0].itens; return `<button class="cartao linha" data-rotina="${r.id}" style="text-align:left;padding:12px">${demo((it[1] || it[0]).e, "mini", false, cor)}<span class="cresce"><span class="rotulo" style="color:${cor}">${r.sessao.min} min · ${it.length} movimentos</span><b style="display:block">${esc(r.titulo)}</b><span class="peq mut">${esc(r.sub)}</span></span><span class="mut3">›</span></button>`; }).join("")}</div>`).join("")}`;
-  $app.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { estado.filtroMob = b.dataset.cat; render(); });
-  ligarComuns();
-}
-
-function telaEx() {
-  const termo = (estado.busca || "").toLowerCase(); const g = estado.grupo || "Todos";
-  const grupos = ["Todos", ...new Set(Object.values(EX).map(e => e.grupo))];
-  const lista = Object.values(EX).filter(e => (g === "Todos" || e.grupo === g) && (!termo || e.nome.toLowerCase().includes(termo) || e.grupo.toLowerCase().includes(termo)));
-  $app.innerHTML = `
-  <div class="pilha" style="gap:12px;padding:6px 0 14px"><div class="rotulo" style="color:var(--brasa)">${Object.keys(EX).length} exercícios com demonstração e vídeo</div><h1>Biblioteca</h1>
-  <input class="busca" id="busca" type="search" placeholder="Buscar exercício ou músculo" value="${esc(estado.busca || "")}" aria-label="Buscar exercício">
-  <div class="trilho" style="gap:8px">${grupos.map(x => `<button class="chip" data-grupo="${esc(x)}" aria-pressed="${x === g}">${esc(x)}</button>`).join("")}</div></div>
-  <div class="grade" id="grade">${lista.map(e => `<button data-ex="${e.id}">${demo(e.id, "", false)}<b>${esc(e.nome)}</b><small>${esc(e.grupo)}</small></button>`).join("") || `<p class="mut">Nada encontrado.</p>`}</div>`;
-  const b = document.getElementById("busca"); b.oninput = e => { estado.busca = e.target.value; const pos = e.target.selectionStart; render(); const nb = document.getElementById("busca"); nb.focus(); nb.setSelectionRange(pos, pos); };
-  $app.querySelectorAll("[data-grupo]").forEach(x => x.onclick = () => { estado.grupo = x.dataset.grupo; render(); });
-  ligarComuns();
-}
-
-function telaExercicio() {
-  const e = EX[estado.id]; const v = e.video; const volta = estado.voltar;
-  $app.innerHTML = `
-  <div class="linha" style="padding:6px 0 12px"><button class="ico" id="voltar" aria-label="Voltar">←</button><div class="cresce"><div class="rotulo" style="color:var(--brasa)">${esc(e.grupo)}</div><h2>${esc(e.nome)}</h2></div></div>
-  ${demo(e.id)}
-  <div class="pilha" style="margin-top:16px;gap:12px">
-    <a class="btn" href="${v ? `https://www.youtube.com/watch?v=${v.id}` : `https://www.youtube.com/results?search_query=${encodeURIComponent(e.busca)}`}" target="_blank" rel="noopener" style="text-decoration:none">▶ ${v ? "Assistir vídeo demonstrativo" : "Buscar vídeo no YouTube"}</a>
-    ${v ? `<p class="peq mut3">${esc(v.titulo)}${v.canal && v.canal !== "não identificado" ? " · " + esc(v.canal) : ""}${v.idioma === "en" ? " · em inglês" : ""}</p>` : ""}
-  </div>
-  <div class="secao"><h3>Como executar</h3></div>
-  <div class="pilha" style="gap:10px">${e.dicas.map((d, k) => `<div class="linha" style="align-items:flex-start"><span class="bola" style="--c:var(--brasa);width:28px;height:28px;border-radius:9px;font-size:13px;font-weight:800">${k + 1}</span><p>${esc(d)}</p></div>`).join("")}</div>`;
-  document.getElementById("voltar").onclick = () => { Object.assign(estado, volta || { tela: "app" }); render(); };
-}
-
-// ---------------------------------------------------------------- treino ao vivo
-let T = null, relogio = null, wake = null;
-function passos(s) {
-  const out = [];
-  s.blocos.forEach(b => {
-    if (b.tipo === "CIRCUITO") for (let v = 1; v <= b.voltas; v++) b.itens.forEach((it, k) => out.push({ b, it, serie: v, total: b.voltas, circ: true, desc: k === b.itens.length - 1 && v < b.voltas ? Math.max(it.d, 60) : it.d }));
-    else b.itens.forEach(it => { for (let r = 1; r <= it.s; r++) out.push({ b, it, serie: r, total: it.s, circ: false, desc: it.d }); });
-  });
-  if (out.length) out[out.length - 1].desc = 0;
-  return out;
-}
-async function iniciarTreino(s, cor) {
-  T = { s, cor, p: passos(s), i: 0, fim: null, pausa: null, descanso: false, ini: Date.now(), reps: {} };
-  try { wake = await navigator.wakeLock?.request("screen"); } catch {}
-  ir("treino");
-}
-let audio;
-function bip(f = 880, d = .12) { try { audio = audio || new AudioContext(); const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = f; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + d); } catch {} }
-function telaTreino() {
-  clearInterval(relogio);
-  const pa = T.p[T.i]; const e = EX[pa.it.e]; const cor = T.cor; const porTempo = pa.it.t != null;
-  const resta = () => T.pausa ?? (T.fim ? Math.max(0, T.fim - Date.now()) : null);
-  const rot = pa.circ ? `Volta ${pa.serie} de ${pa.total}` : pa.total > 1 ? `Série ${pa.serie} de ${pa.total}` : "Série única";
-  if (T.descanso) {
-    const prox = T.p[T.i + 1];
-    $app.innerHTML = `<div class="pilha" style="gap:22px;align-items:center;padding-top:30px;text-align:center">
-      <div class="rotulo" style="color:${cor}">Descanso</div>
-      <div class="anel" id="anel"></div>
-      <div class="linha"><button class="btn2" id="m15">−15 s</button><button class="btn2" id="p15">+15 s</button></div>
-      ${prox ? `<div style="width:100%;text-align:left"><div class="rotulo" style="margin-bottom:10px">A seguir</div><div class="cartao linha">${demo(prox.it.e, "mini", true, cor)}<div class="cresce"><b>${esc(EX[prox.it.e]?.nome)}</b><br><span class="peq mut">${prox.circ ? `Volta ${prox.serie}` : `Série ${prox.serie} de ${prox.total}`}</span></div></div></div>` : ""}
-      <button class="btn ${cor !== CORES.academia ? "cor" : ""}" style="--c:${cor}" id="pular">Pular descanso ⏭</button></div>`;
-    document.getElementById("m15").onclick = () => { T.fim = Math.max(Date.now() + 1000, T.fim - 15000); };
-    document.getElementById("p15").onclick = () => { T.fim += 15000; };
-    document.getElementById("pular").onclick = () => proximo(true);
-  } else {
-    $app.innerHTML = `
-    <div class="linha" style="padding:6px 0 10px"><button class="ico" id="sair" aria-label="Sair do treino">✕</button><div class="cresce" style="text-align:center"><div class="num" id="decorrido" style="font-size:24px">0:00</div><div class="rotulo" style="color:${cor}">${esc(pa.b.nome)}</div></div>
-      <a class="ico" href="${e.video ? `https://www.youtube.com/watch?v=${e.video.id}` : `https://www.youtube.com/results?search_query=${encodeURIComponent(e.busca)}`}" target="_blank" rel="noopener" aria-label="Ver vídeo" style="color:${cor};text-decoration:none">▶</a></div>
-    <div class="barra" style="--c:${cor}"><i style="width:${T.i / T.p.length * 100}%"></i></div>
-    <div class="pilha" style="gap:12px;margin-top:14px">
-      ${demo(e.id, "", true, cor)}
-      <div class="linha" style="justify-content:space-between"><span class="rotulo" style="color:${cor}">${rot}</span><span class="peq mut3">${T.i + 1} / ${T.p.length}</span></div>
-      <h1>${esc(e.nome)}</h1>
-      <div class="linha" style="gap:8px;flex-wrap:wrap"><span class="etq cheia" style="--c:${cor}">${porTempo ? tempo(pa.it.t) : pa.it.r + " reps"}</span>${pa.it.i ? `<span class="etq" style="--c:${cor}">${esc(pa.it.i)}</span>` : ""}</div>
-      ${pa.it.n ? `<p class="peq mut">${esc(pa.it.n)}</p>` : ""}
-      ${porTempo ? `<div class="anel" id="anel"></div>` : `<div class="cartao"><div class="rotulo">Repetições feitas</div><div class="contador" style="margin-top:6px"><button class="ico" id="rm" aria-label="Menos repetições">−</button><span class="num" id="reps">${T.reps[T.i] ?? (parseInt(pa.it.r) || 10)}</span><button class="ico" id="rp" aria-label="Mais repetições">+</button></div></div>`}
-      <div class="cartao"><div class="rotulo" style="color:${cor}">Execução</div><ol style="margin:8px 0 0;padding-left:18px" class="peq">${e.dicas.map(d => `<li>${esc(d)}</li>`).join("")}</ol></div>
-      <div class="linha fixo"><button class="ico" id="ant" aria-label="Anterior" style="width:54px;height:54px">⏮</button>
-        <button class="btn ${cor !== CORES.academia ? "cor" : ""} cresce" style="--c:${cor}" id="principal"></button>
-        <button class="ico" id="prox" aria-label="Pular" style="width:54px;height:54px">⏭</button></div>
-    </div>`;
-    document.getElementById("sair").onclick = () => sairTreino();
-    document.getElementById("ant").onclick = () => { T.i = Math.max(0, T.i - 1); T.fim = T.pausa = null; render(); };
-    document.getElementById("prox").onclick = () => concluir();
-    const btn = document.getElementById("principal");
-    if (porTempo) btn.onclick = () => { if (T.fim && T.pausa == null) T.pausa = Math.max(0, T.fim - Date.now()); else if (T.pausa != null) { T.fim = Date.now() + T.pausa; T.pausa = null; } else T.fim = Date.now() + pa.it.t * 1000; atualizar(); };
-    else {
-      btn.textContent = T.i === T.p.length - 1 ? "✓ Finalizar treino" : "✓ Concluir série"; btn.onclick = () => concluir();
-      const n = document.getElementById("reps"); let v = +n.textContent || 0;
-      document.getElementById("rm").onclick = () => { v = Math.max(0, v - 1); n.textContent = v; T.reps[T.i] = v; };
-      document.getElementById("rp").onclick = () => { v++; n.textContent = v; T.reps[T.i] = v; };
-    }
-  }
-  let ultimo = -1;
-  function atualizar() {
-    const d = Math.floor((Date.now() - T.ini) / 1000); const el = document.getElementById("decorrido"); if (el) el.textContent = `${Math.floor(d / 60)}:${String(d % 60).padStart(2, "0")}`;
-    const r = resta(); const seg = r == null ? (porTempo && !T.descanso ? pa.it.t : 0) : Math.ceil(r / 1000);
-    const total = T.descanso ? pa.desc : (pa.it.t || 1); const frac = r == null ? 0 : (T.descanso ? r / 1000 / total : 1 - r / 1000 / total);
-    const anel = document.getElementById("anel");
-    if (anel) anel.innerHTML = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--sup3)" stroke-width="6"/><circle cx="50" cy="50" r="45" fill="none" stroke="${cor}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${2 * Math.PI * 45}" stroke-dashoffset="${2 * Math.PI * 45 * (1 - frac)}"/></svg><div><div class="num">${seg >= 60 ? `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}` : seg}</div>${!T.descanso ? `<div class="peq mut">${T.fim == null ? "toque em iniciar" : T.pausa != null ? "pausado" : "em andamento"}</div>` : ""}</div>`;
-    const btn = document.getElementById("principal"); if (btn && porTempo) btn.textContent = T.fim && T.pausa == null ? "❚❚ Pausar" : T.pausa != null ? "▶ Continuar" : "▶ Iniciar";
-    if (r != null && T.pausa == null) {
-      if (seg <= 3 && seg >= 1 && seg !== ultimo) { ultimo = seg; bip(); }
-      if (r === 0) { bip(1320, .3); if (T.descanso) proximo(true); else concluir(); }
-    }
-  }
-  atualizar(); relogio = setInterval(atualizar, 200);
-}
-function concluir() {
-  const pa = T.p[T.i];
-  if (T.i >= T.p.length - 1) return terminar();
-  if (pa.desc > 0) { T.descanso = true; T.fim = Date.now() + pa.desc * 1000; T.pausa = null; render(); } else proximo(false);
-}
-function proximo(auto) {
-  const ant = T.p[T.i]; T.descanso = false; T.fim = T.pausa = null; T.i++;
-  if (T.i >= T.p.length) return terminar();
-  const novo = T.p[T.i];
-  if (auto && novo.it.t != null && ant.it.t != null && ant.b === novo.b) T.fim = Date.now() + novo.it.t * 1000;
-  render();
-}
-function sairTreino() { clearInterval(relogio); try { wake?.release(); } catch {} T = null; estado.tela = "app"; render(); }
-function terminar() {
-  clearInterval(relogio); try { wake?.release(); } catch {}
-  const min = Math.round((Date.now() - T.ini) / 60000); const cor = T.cor; const s = T.s;
-  $app.innerHTML = `<div class="pilha" style="gap:18px;align-items:center;text-align:center;padding-top:40px">
-    <div style="width:96px;height:96px;border-radius:50%;background:${cor};display:grid;place-items:center;font-size:44px;color:var(--fundo)">✓</div>
-    <div class="rotulo" style="color:${cor}">Treino concluído</div><h1>${esc(s.titulo)}</h1>
-    <div class="linha" style="width:100%"><div class="cartao cresce"><div class="num">${min}</div><span class="peq mut">minutos</span></div><div class="cartao cresce"><div class="num">${T.i + 1}</div><span class="peq mut">séries/etapas</span></div></div>
-    <p class="mut peq">No app Android o treino fica salvo no histórico, com cargas, recordes e gráfico semanal.</p>
-    <button class="btn" id="fim">Voltar ao início</button></div>`;
-  T = null;
-  document.getElementById("fim").onclick = () => { estado.tela = "app"; estado.aba = "hoje"; render(); };
-}
-
-$abas.querySelectorAll("button").forEach(b => b.onclick = () => { estado.aba = b.dataset.aba; estado.tela = "app"; render(); });
-
-(async function iniciar() {
-  try {
-    const [dados, ex] = await Promise.all([fetch("dados.json").then(r => r.json()), fetch("exercicios.json").then(r => r.json())]);
-    ANIM = await fetch("video3d/meta.json").then(r => r.ok ? r.json() : {}).catch(() => ({}));
-    D = dados; ex.forEach(e => EX[e.id] = e);
-    const salvo = ler("forja_resp");
-    if (salvo && salvo.modalidade && D.planos) { estado.resp = salvo; if (plano()) estado.tela = "app"; }
-    if (!estado.resp.modalidade) estado.resp = {};
-    render();
-  } catch (err) {
-    $app.innerHTML = `<div class="carregando"><p>Não consegui carregar os dados do Forja. Recarregue a página.</p></div>`;
-  }
-})();
-</script>
-<script>
-if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
-</script>
+<div class="abas" id="abas" hidden></div>
+<script src="nucleo.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

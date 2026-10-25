@@ -3,7 +3,7 @@ name: Site (app web + privacidade)
 on:
   push:
     branches: [ "claude/**", "main" ]
-    paths: [ "web/**", "app/src/main/assets/video3d/**", ".github/workflows/pages.yml" ]
+    paths: [ "web/**", "app/src/main/assets/**", "tools/web/**", ".github/workflows/pages.yml" ]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,9 @@ jobs:
           cp -r web/. _site/
           mkdir -p _site/video3d
           cp app/src/main/assets/video3d/* _site/video3d/ 2>/dev/null || echo '{}' > _site/video3d/meta.json
+          # mesmo catálogo e referências do app (atualizados junto com o conteúdo OTA)
+          cp app/src/main/assets/exercises.json app/src/main/assets/fontes.json _site/
+          node tools/web/paridade.js
           sed -i "s/forja-dev/forja-${{ github.run_number }}/" _site/sw.js
           touch _site/.nojekyll
           du -sh _site
