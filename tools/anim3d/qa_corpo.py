@@ -425,8 +425,11 @@ class Peca:
         self.lo, self.hi = lo, hi
         span = hi - lo
         # cilindro do Kit (eixo local z): seção circular, número par de vértices
-        self.cil = (len(V) >= 12 and len(V) % 2 == 0 and abs(span[0] - span[1]) < 2e-3 and not self.foco)
-        self.r = float(span[0] / 2) if self.cil else 0.0
+        # cilindro do Kit (eixo local z): todos os vértices no mesmo raio e em dois níveis de z
+        rr = np.hypot(V[:, 0], V[:, 1]) if len(V) else np.zeros(0)
+        self.cil = (len(V) >= 12 and not self.foco and float(rr.max() - rr.min()) < 1e-3 * max(1.0, float(rr.max()) * 10)
+                    and len(np.unique(np.round(V[:, 2], 4))) == 2)
+        self.r = float(rr.max()) if self.cil else 0.0
         self.movel = False
         self.tipo = "fixo"
         self.M = o.matrix_world.copy()
@@ -607,6 +610,7 @@ class Registro:
         r = self.d.setdefault(k, {"tipo": tipo, "sub": sub, "parte": parte, "valor": -1e9, "quadro": quadro, "n_aviso": 0,
                                   "n_erro": 0, "aviso": aviso, "erro": erro, "unidade": unidade, "nome": nome or sub, "quadros": []})
         r["n_aviso"] += 1
+        r["erro"] = min(r["erro"], erro)
         if valor > erro:
             r["n_erro"] += 1
         if len(r["quadros"]) < 400:
@@ -977,7 +981,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 jj = (ini + x) % n
                 sem_base = any(fora[(jj + d) % n] for d in (-2, -1, 0, 1, 2))
                 g_ = hv[jj][0] * 10
-                erro_ = 3.0 if (sem_base or (longo and g_ <= 10.0)) else 1e9
+                erro_ = 3.0 if (sem_base or (longo and g_ <= 10.0 and rg in ("pelve", "costas", "cabeca"))) else 1e9
                 reg.add("apoio", "pousada", nomes_reg[rg], jj, g_, 3.0, erro_, "cm",
                         "região parada no ar acima de uma superfície (parece apoiada)")
     return reg.achados()
