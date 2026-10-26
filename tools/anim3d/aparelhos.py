@@ -341,17 +341,17 @@ def _alvo_pegador(ctx, h, T, sf, sx):
         j = T @ h.cabeca("lowerleg01" + sf)
         q = T @ h.cabeca("upperleg01" + sf)
         c = j + (q - j) * 0.16
-        return (Vector((sx * 2.75, c.y, c.z + 1.1)), Vector((0, 1, 0)))
+        return (Vector((sx * 3.0, c.y, c.z + 1.1)), Vector((0, 1, 0)))
     if tipo == "hack":
         S = T @ h.cabeca("upperarm01" + sf)
         u = (T @ h.cabeca("neck01") - T @ h.cabeca("root")).normalized()
         nb = u.cross(Vector((1, 0, 0))).normalized()
         if nb.y < 0:
             nb = -nb
-        return (S - u * 0.2 + Vector((sx * 1.15, 0, 0)) - nb * 0.6, u)
+        return (S - u * 1.2 + Vector((sx * 1.9, 0, 0)) - nb * 0.4, u)
     if tipo == "roda":
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
-        return (Vector((sx * 1.05, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
+        return (Vector((sx * 1.18, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
     return None
 
 
@@ -498,6 +498,19 @@ def _palmas_na_bola(ctx, h, T):
     return c
 
 
+def _lateral(h, T, gL, gR):
+    """Eixo entre as mãos; com as mãos juntas (direção instável) mistura com o lateral do corpo, sem saltos."""
+    lat_c = (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+    d = gL - gR
+    w = mov_suave(d.length, 0.4, 1.6)
+    if w <= 0:
+        return lat_c
+    v = d.normalized() * w + lat_c * (1 - w)
+    if v.dot(lat_c) < 0 and w < 1:
+        v = lat_c
+    return v.normalized()
+
+
 def pegada_implementos(ctx, h, T, tau, extras):
     cfg = getattr(ctx, "impl", None) or {}
     if "bola" in cfg:
@@ -508,7 +521,7 @@ def pegada_implementos(ctx, h, T, tau, extras):
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
         c = (gL + gR) / 2
         # duas mãos lado a lado na alça (no goblet o sino fica embaixo, encostado no peito)
-        e = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        e = _lateral(h, T, gL, gR)
         for sf, sx in ((".L", 1), (".R", -1)):
             pegar_em(h, T, sf, c + e * (0.3 * sx), e, False)
         extras["kb"] = (c, e)
@@ -516,7 +529,7 @@ def pegada_implementos(ctx, h, T, tau, extras):
         # um halter seguro pelas duas mãos (tríceps francês): punhos lado a lado no mesmo cabo, sem dois halteres
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
         c = (gL + gR) / 2
-        d = (gL - gR).normalized() if (gL - gR).length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        d = _lateral(h, T, gL, gR)
         pegar_em(h, T, ".L", c + d * 0.33, d, False)
         pegar_em(h, T, ".R", c - d * 0.33, d, False)
         extras["halter_unico"] = (c, d)
@@ -525,8 +538,7 @@ def pegada_implementos(ctx, h, T, tau, extras):
         A = ctx.p3(*cfg["cabo"]["ate"][:3])
         gL, gR = T @ h.pegada(".L"), T @ h.pegada(".R")
         c = (gL + gR) / 2
-        lat = (gL - gR)
-        lat = lat.normalized() if lat.length > 1e-3 else (T.to_3x3() @ Vector((1, 0, 0))).normalized()
+        lat = _lateral(h, T, gL, gR)
         if tc == "triangulo":
             cab = (A - c).normalized()
             eixo = cab.cross(lat).normalized()
@@ -1051,7 +1063,7 @@ def _extras_maquina(kit, ctx, h, am, estados):
     if "mesa-flexora" in idd:
         _rolo_canela(kit, ctx, h, frente=False, prono=True)
     if "hiperextensao" in idd and "apoio_tornozelo" not in ctx.tipos:
-        _apoio_tornozelo(kit, ctx, {}, am)
+        _rolo_aquiles(kit, ctx, h)
     if "abdutora" in idd or "adutora" in idd:
         _almofadas_joelho(kit, ctx, h, fora="abdutora" in idd)
     if "remo-ergometro" in idd:
@@ -1117,7 +1129,7 @@ def _pegadores(kit, ctx, h):
             for (sf, sx), o in zip(((".L", 1), (".R", -1)), hastes):
                 a_ = _alvo_pegador(ctx, h, T, sf, sx)
                 Kit.por_cil(peg[sf], a_[0] - a_[1] * 0.7, a_[0] + a_[1] * 0.7)
-                Kit.por_cil(o, Vector((sx * 2.5, c.y, c.z)), Vector((sx * 2.5, c.y - 2.2, 0.2)))
+                Kit.por_cil(o, Vector((sx * 2.2, c.y - 0.3, c.z - 0.3)), Vector((sx * 2.2, c.y - 2.4, 0.2)))
         kit.moveis.append(upd)
     elif tipo == "hack":
         pass  # pegadores desenhados em _hack (presos às ombreiras)
@@ -1145,7 +1157,7 @@ def _roda(kit, ctx, h):
         disco.matrix_world = Matrix.Translation(c) @ Matrix.Rotation(ang, 4, "X")
         Kit.por_cil(eixo, c - X * 1.35, c + X * 1.35)
         for sf, sx in ((".L", 1), (".R", -1)):
-            Kit.por_cil(mans[sf], c + X * (sx * 0.42), c + X * (sx * 1.6))
+            Kit.por_cil(mans[sf], c + X * (sx * 0.45), c + X * (sx * 1.75))
     kit.moveis.append(upd)
 
 
@@ -1413,16 +1425,37 @@ def _rolo_canela(kit, ctx, h, frente=True, prono=False):
     kit.moveis.append(upd)
 
 
+def _rolo_aquiles(kit, ctx, h):
+    """Hiperextensão (banco romano): rolo que trava os tornozelos por trás, logo acima dos calcanhares."""
+    h.restaurar(ctx.chaves[0]["est"])
+    T = ctx.chaves[0]["T"]
+    a = (T @ h.cabeca("foot.L") + T @ h.cabeca("foot.R")) / 2
+    j = (T @ h.cabeca("lowerleg01.L") + T @ h.cabeca("lowerleg01.R")) / 2
+    t3 = (T @ h.cabeca("toe3-1.L") + T @ h.cabeca("toe3-1.R")) / 2
+    s_ = (a - j).normalized()
+    fr = (t3 - a)
+    fr = (fr - s_ * fr.dot(s_)).normalized()
+    c = a - s_ * 0.9 - fr * 0.95
+    kit.cil((-2.4, c.y, c.z), (2.4, c.y, c.z), 0.45, kit.estofado, 24)
+    for sx in (-1, 1):
+        kit.viga((sx * 2.7, c.y, c.z), (sx * 2.7, c.y, 0.1), 0.4, 0.4, kit.quadro)
+
+
 def _almofada_coxa(kit, ctx, h):
     """Cadeira flexora: almofada fixa sobre as coxas, logo acima dos joelhos (segura o quadril no assento)."""
     h.restaurar(ctx.chaves[0]["est"])
     T = ctx.chaves[0]["T"]
-    P = h.proxy(T)
     j = (T @ h.cabeca("lowerleg01.L") + T @ h.cabeca("lowerleg01.R")) / 2
     q = (T @ h.cabeca("upperleg01.L") + T @ h.cabeca("upperleg01.R")) / 2
     c = q + (j - q) * 0.78
-    m = (h.px_partes["coxa_f"] | h.px_partes["coxa_t"]) & (np.abs(P[:, 1] - c.y) < 0.8)
-    zt = float(P[m, 2].max()) if m.any() else c.z + 0.8
+    zs = []
+    for est in ctx._estados[:: max(1, len(ctx._estados) // 12)]:
+        h.restaurar(est["est"])
+        P = h.proxy(est["T"])
+        m = (h.px_partes["coxa_f"] | h.px_partes["coxa_t"]) & (np.abs(P[:, 1] - c.y) < 1.1)
+        if m.any():
+            zs.append(float(P[m, 2].max()) + 0.06)
+    zt = max(zs) if zs else c.z + 0.8
     kit.cil((-2.6, c.y, zt + 0.55), (2.6, c.y, zt + 0.55), 0.55, kit.estofado, 24)
     for sx in (-1, 1):
         kit.viga((sx * 2.9, c.y, zt + 0.55), (sx * 2.9, c.y + 1.5, 0.4), 0.4, 0.4, kit.quadro)

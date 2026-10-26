@@ -1430,8 +1430,9 @@ def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
     Q = P[m]
     gap = Q[:, 2] - superficie_vet(ctx, Q)
     g = float(gap.min())
-    if abs(g) < 1e-3 or abs(g) > lim:
+    if abs(g) < 1e-3:
         return T
+    w *= 1.0 - mov.suave(abs(g), lim * 0.6, lim)  # some aos poucos (sem pulo quando o corpo sai do apoio)
     return Matrix.Translation((0, 0, -g * w)) @ T
 
 
