@@ -227,6 +227,7 @@ def main():
     ap.add_argument("--saida", default="")
     ap.add_argument("--fps", type=float, default=24)
     ap.add_argument("--so-avisar", action="store_true")
+    ap.add_argument("--retomar", action="store_true", help="pula os ids que já estão no arquivo --saida (gravado a cada exercício)")
     ap.add_argument("--so-motor", action="store_true", help="só as verificações antigas (sem pegada/ROM/apoio)")
     a = ap.parse_args(sys.argv[1:])
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -238,9 +239,13 @@ def main():
     kit = None if a.so_motor else aparelhos.Kit()
     ids = set(x for x in a.ids.split(",") if x)
     res = {}
+    if a.retomar and a.saida and os.path.exists(a.saida):
+        res = json.load(open(a.saida))
     for arq in a.anim:
         for anim in json.load(open(arq)):
             if ids and anim["id"] not in ids:
+                continue
+            if anim["id"] in res and a.retomar:
                 continue
             try:
                 r = avaliar(h, anim, k, grupos.get(anim["id"], {}).get("grupo", ""), a.fps, corpo, kit, a.so_motor)
@@ -251,6 +256,8 @@ def main():
             res[anim["id"]] = r
             marca = "ERRO " if r["erros"] else ("aviso" if r["avisos"] else "ok   ")
             print(marca, anim["id"], "; ".join(r["erros"] + r["avisos"]), flush=True)
+            if a.saida:
+                json.dump(res, open(a.saida, "w"), indent=1, ensure_ascii=False)
     ne = sum(1 for r in res.values() if r["erros"])
     na = sum(1 for r in res.values() if r["avisos"] and not r["erros"])
     print(f"QA: {len(res)} exercícios, {ne} com erro, {na} só com aviso, {len(res) - ne - na} limpos")
