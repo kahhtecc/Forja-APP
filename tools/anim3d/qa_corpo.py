@@ -77,6 +77,11 @@ PESCOCO = ("spine01", "neck01", "neck02", "neck03", "head")
 MASSAS = {"cabeca": 0.081, "torax": 0.216, "abdomen": 0.139, "pelve": 0.142, "braco": 0.028, "antebraco": 0.016, "mao": 0.006,
           "coxa": 0.100, "perna": 0.0465, "pe": 0.0145}
 
+TOL_CONTATO = 0.3  # pele a até 3 cm de uma superfície conta como apoio (base de apoio)
+
+# implementos (fração da massa corporal): barra carregada, halter, kettlebell, bola medicinal
+MASSA_IMPL = {"barra": 0.4, "halter": 0.12, "kettlebell": 0.2, "bola": 0.06}
+
 # regiões que costumam ficar "pousadas" numa superfície (checagem de região parada no ar)
 REGIOES_POUSO = ("pelve", "costas", "cabeca", "coxa_f", "coxa_t", "joelho_f", "joelho_t", "antebraco_f", "antebraco_t")
 
@@ -735,7 +740,16 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 # antebraço dobrando para o lado de trás do braço (a malha do cotovelo fica torcida/invertida)
                 reg.add("rom", "cotovelo_torcido", "cotovelo " + LADO[sf], j, -cs - 90, 0, 1e9, "°",
                         "cotovelo dobrando para o lado de trás da malha (torção)")
-        com.append(corpo.centro_massa(T))
+        # centro de massa do conjunto corpo + implemento segurado (massa relativa à do corpo)
+        cm_ = corpo.centro_massa(T)
+        mt = 1.0
+        for p in ap.pecas:
+            if p.tipo == "segurado" and p.visivel:
+                mi = MASSA_IMPL.get(p.forma, 0.0)
+                ci = p.M @ (Vector((0, 0, -1.15)) if p.forma == "kettlebell" else Vector())
+                cm_ = cm_ + ci * mi
+                mt += mi
+        com.append(cm_ / mt)
         P, N = corpo.pele(T)
         # ---------------- PEGADA
         i_, u_ = ctx.trilhas.segmento(est["tau"])
@@ -789,7 +803,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
         # ---------------- APOIO: contatos com superfícies (chão + aparelhos)
         hz, lateral = [], 0
         pts_sub = np.where(sub)[0]
-        chao = pts_sub[P[pts_sub, 2] < z0 + 0.15]
+        chao = pts_sub[P[pts_sub, 2] < z0 + TOL_CONTATO]
         if len(chao):
             hz.append(P[chao, :2])
         contato_reg = set(corpo.seg[chao].tolist())
@@ -797,14 +811,14 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
             if not p.visivel or p.cx is None:
                 continue
             lo, hi = p.cx
-            sel = pts_sub[np.all((P[pts_sub] > lo - 0.15) & (P[pts_sub] < hi + 0.15), axis=1)]
+            sel = pts_sub[np.all((P[pts_sub] > lo - TOL_CONTATO) & (P[pts_sub] < hi + TOL_CONTATO), axis=1)]
             if not len(sel):
                 continue
             if len(sel) > 3000:
                 sel = sel[:: len(sel) // 3000 + 1]
             for i in sel:
                 d, dentro, nw = p.mais_perto(P[i])
-                if d < 0.15 or dentro:
+                if d < TOL_CONTATO or dentro:
                     if nw.z > 0.55:
                         hz.append(P[i:i + 1, :2])
                     else:
