@@ -247,7 +247,8 @@ class Corpo:
             if ef > 30:
                 hinge = un.cross(an).normalized()
                 ref = _perp(hinge * s, an)
-                pp = _perp(pal, an)
+                # "palma equivalente" pelo polegar (não degenera com o punho em extensão de 90°, como no apoio)
+                pp = _perp(an.cross(pol) * s, an)
                 if pp.length > 0.5:
                     out["antebraco_sup" + sf] = -_assinado(ref, pp, an) * s  # + supinação, - pronação
         # ---- coluna e pescoço (rotações relativas entre segmentos, no referencial do segmento de baixo)
@@ -297,18 +298,27 @@ class Corpo:
         return sum((p[1] * p[0] for p in pts), Vector()) / m
 
     def fechamento(self, sf):
-        """0 = dedos relaxados, 1 = mão fechada de pegada (pelas rotações reais das falanges)."""
+        """0 = dedos relaxados, 1 = mão fechada na curva de pegada do motor (pelas rotações reais das falanges 2-5)."""
         h = self.h
-        tot, n = 0.0, 0
+        rel = sum(h.CURVA["rel"][0])
+        peg0 = sum(h.CURVA["peg"][0])
+        esc = None
+        if getattr(h, "peg_cal", None) and hasattr(h, "raio_mao"):
+            try:
+                esc = h._cal_raio(h.raio_mao[sf])[0]
+            except Exception:  # noqa: BLE001
+                esc = None
+        fr = []
         for f in range(2, 6):
+            tot = 0.0
             for j in range(1, 4):
                 nm = f"finger{f}-{j}{sf}"
                 if nm in h.basis:
                     q = h.basis[nm].to_quaternion()
                     tot += _deg(2 * math.acos(min(1.0, abs(q.w))))
-                    n += 1
-        s = tot / max(n, 1) * 3  # soma por dedo
-        return (s - 50.0) / (192.0 - 50.0)
+            peg = peg0 * (esc[f - 1] if esc is not None else 1.0)
+            fr.append((tot - rel) / max(peg - rel, 1.0))
+        return float(np.mean(fr))
 
 
 def _lim_tras(elev):
@@ -775,7 +785,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 inn = (tt > 0.02) & (tt < 0.98)
                 if inn.any():
                     rad = np.linalg.norm(Q[inn] - (A + np.outer(tt[inn], ab)), axis=1)
-                    reg.add("pegada", "atravessa", ld, j, (r - rad.min()) * 10, 0.6, 1.2, "cm", f"mão atravessando {nome}")
+                    reg.add("pegada", "atravessa", ld, j, (r - rad.min()) * 10, 1.5, 2.5, "cm", f"mão atravessando {nome}")
         # ---------------- APOIO: contatos com superfícies (chão + aparelhos)
         hz, lateral = [], 0
         pts_sub = np.where(sub)[0]
@@ -911,7 +921,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     key = ("perna esq", "perna dir")
                     piores[key] = max(piores.get(key, 0.0), dist)
         for (s, alvo), d in piores.items():
-            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 3.0, 4.5, "cm", "corpo atravessando o próprio corpo")
+            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 4.5, 7.0, "cm", "corpo atravessando o próprio corpo")
     # ---------------- centro de massa / ponto de momento zero x polígono de apoio
     T_ = float(ctx.trilhas.T)
     dt = T_ / n
