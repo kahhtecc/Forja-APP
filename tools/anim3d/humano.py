@@ -38,12 +38,13 @@ Por animação:
   "rolar": true = piso rolante (locomoção no lugar: o pé de apoio acompanha as marcas do chão)
   "sem_balistica": true = não usar parábola nas fases de voo (ay > 0 sem apoio)
   "maos": estado padrão das mãos livres (como no quadro); sem ele: "punho" em lutas, "semi" em corrida/saltos, "rel" no resto
-  "cam_tras": true = permite câmera por trás (cam < 0); sem ele a câmera negativa é espelhada para a frente (rosto visível)
+  "cam_frente": true = com cam < 0 usa o perfil (rosto visível); a câmera negativa sem ele continua por trás
 Pegada: a mão fecha em volta do cabo com a curvatura de cada dedo calibrada para o raio do implemento (barra, halter, alça,
 pegador, corda); o centro da pegada fica na prega da base dos dedos e o polegar fecha por cima. Barra fixa: as mãos ficam
 presas na barra em todo quadro e a cabeça passa por trás dela. Máquinas com pegadores automáticos (IK das mãos): leg press,
 cadeiras extensora/flexora, abdutora/adutora, mesa flexora (sob a cabeceira), panturrilha sentado (na alavanca da coxa),
-hack (junto às ombreiras), elíptico (alças móveis), escada (corrimãos), trenó (postes), bike (guidão), roda abdominal.
+elíptico (alças móveis), trenó (postes), bike (guidão), roda abdominal. Hack: pegadores desenhados nas mãos (sem IK);
+escada: corrimãos desenhados, mãos livres.
 Acessórios além dos de tools/anim/esqueleto.py:
   "roda" {"em": "maos"}: roda abdominal (disco no chão sob as mãos, manoplas; gira conforme anda). A roda-abdominal antiga com
     "bola" vira roda automaticamente.
@@ -1154,10 +1155,10 @@ def enquadrar(co, pts, azimute, margem=0.07, elevacao=10.0):
 def camera_familia(anim, ctx):
     """(campo "cam", elevação em graus): valores da animação ou padrão por família (tabela C2.2 da pesquisa)."""
     cam = anim.get("cam", 64)
-    # câmera por trás esconde o rosto e os contatos das mãos: espelha para a frente (3/4 do mesmo lado), salvo se a
-    # animação pedir explicitamente a vista de costas ("cam_tras": true)
-    if float(cam) < 0 and not anim.get("cam_tras"):
-        cam = 8.0  # quase perfil: rosto e mãos visíveis mesmo com os braços acima da cabeça
+    # câmera por trás esconde o rosto: "cam_frente": true troca a vista de costas pelo perfil. (Trocar sempre fazia as mãos
+    # acima da cabeça cobrirem o rosto nas puxadas; a escolha fica com os dados, ver lista dos animadores.)
+    if float(cam) < 0 and anim.get("cam_frente"):
+        cam = 0.0
     if "cam_el" in anim:
         return cam, float(anim["cam_el"])
     ch = ctx.trilhas.chaves

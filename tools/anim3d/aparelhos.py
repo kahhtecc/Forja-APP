@@ -217,10 +217,9 @@ MAQ_ASSENTO = ("leg-press", "extensora", "cadeira-flexora", "abdutora", "adutora
 def maos_em_pegadores(ctx):
     """Lados cujas mãos seguram um pegador/guidão/manopla/corrimão do aparelho (o motor faz a IK até ele)."""
     idd, t = ctx.id, ctx.tipos
-    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t
-            or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "escada", "sled",
-                                                      "roda-abdominal"))
-            or idd.startswith("hack")):
+    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t
+            or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "sled",
+                                                      "roda-abdominal"))):
         return {"f", "t"}
     return set()
 
@@ -251,7 +250,7 @@ def _tipo_pegador(ctx):
     if "treno" in ctx.tipos or "sled" in idd:
         return "treno"
     if "escada" in ctx.tipos or "escada" in idd:
-        return "escada"
+        return "escada"  # corrimãos desenhados; as mãos ficam livres, apoiadas de leve (sem IK: evitava pop)
     if "eliptico" in ctx.tipos or "eliptico" in idd:
         return "eliptico"
     if "mesa-flexora" in idd:
@@ -259,7 +258,7 @@ def _tipo_pegador(ctx):
     if "panturrilha-sentado" in idd:
         return "coxa"
     if idd.startswith("hack"):
-        return "hack"
+        return None  # pegadores do hack seguem desenhados nas mãos (IK até eles empurrava os braços para as almofadas)
     if any(s_ in idd for s_ in MAQ_ASSENTO):
         return "assento"
     return None
@@ -296,7 +295,7 @@ def preparar_pegadores(ctx, h):
         ys = [(T @ h.pegada(sf)).y for sf in (".L", ".R")]
         z = min(max(sum(zs) / 2, r.z + 0.6), r.z + 2.6)
         for sf, sx in ((".L", 1), (".R", -1)):
-            cfg[sf] = (Vector((sx * 2.7, sum(ys) / 2, z)), Vector((0, 1, 0)))
+            cfg[sf] = (Vector((sx * 3.5, sum(ys) / 2, z)), Vector((0, 1, 0)))
     elif tipo == "eliptico":
         mq = [pr for pr in ctx.props if pr.get("tipo") == "maquina"]
         toes = []
@@ -334,6 +333,8 @@ def _alvo_pegador(ctx, h, T, sf, sx):
     if not cfg:
         return None
     tipo = cfg["tipo"]
+    if tipo == "escada":
+        return None
     if sf in cfg:
         return cfg[sf]
     if tipo == "coxa":
@@ -341,14 +342,14 @@ def _alvo_pegador(ctx, h, T, sf, sx):
         j = T @ h.cabeca("lowerleg01" + sf)
         q = T @ h.cabeca("upperleg01" + sf)
         c = j + (q - j) * 0.16
-        return (Vector((sx * 3.0, c.y, c.z + 1.1)), Vector((0, 1, 0)))
+        return (Vector((sx * 3.4, c.y, c.z + 1.1)), Vector((1, 0, 0)))
     if tipo == "hack":
         S = T @ h.cabeca("upperarm01" + sf)
         u = (T @ h.cabeca("neck01") - T @ h.cabeca("root")).normalized()
         nb = u.cross(Vector((1, 0, 0))).normalized()
         if nb.y < 0:
             nb = -nb
-        return (S - u * 1.2 + Vector((sx * 1.9, 0, 0)) - nb * 0.4, u)
+        return (S - u * 0.2 + Vector((sx * 1.15, 0, 0)) - nb * 0.6, u)
     if tipo == "roda":
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
         return (Vector((sx * 1.18, g.y, ctx.z0 + RAIO_RODA)), Vector((1, 0, 0)))
@@ -377,6 +378,7 @@ def ik_pegadores(ctx, h, T):
 
 def depois_ik(ctx, h, T, tau, extras):
     """No fim de cada quadro (posição final do corpo): mãos presas a pegadores fixos no mundo, implementos de duas mãos."""
+    ik_alavancas(ctx, h, T)  # alavanca rígida da máquina: comprimento constante também depois dos ajustes do corpo
     ik_pegadores(ctx, h, T)
     pegada_implementos(ctx, h, T, tau, extras)
     halteres_fora_do_corpo(ctx, h, T)
@@ -1010,7 +1012,7 @@ def _bracos_maquina(kit, ctx, h, encosto):
             kit.viga(Vector((sx * 3.4, y + 1.2, piv.z)), Vector((sx * 3.4, y + 1.2, 0.1)), 0.45, 0.45, kit.quadro)
         elif tipo == "peck":
             h.restaurar(ctx.chaves[0]["est"])
-            zarm[sf] = (ctx.chaves[0]["T"] @ h.pegada(sf)).z + 0.3  # alavanca na altura da mão (não cruza o bíceps)
+            zarm[sf] = (ctx.chaves[0]["T"] @ h.pegada(sf)).z + 1.7
             topo = Vector((piv.x, piv.y, zt + 2.0))
             kit.viga(topo, Vector((sx * 3.4, y + 1.2, zt + 2.0)), 0.5, 0.5, kit.quadro)
             kit.disco(topo - Vector((0, 0, 0.2)), 0.45, 0.5, kit.quadro, eixo=(0, 0, 1), verts=20)
@@ -1102,10 +1104,10 @@ def _pegadores(kit, ctx, h):
     elif tipo == "escada":
         for sf, sx in ((".L", 1), (".R", -1)):
             p, e = cfg[sf]
-            a, b = p - Y * 3.2, p + Y * 2.2
+            a, b = p - Y * 4.0, p + Y * 3.0
             kit.cil(a, b, 0.17, kit.metal, 16)
-            kit.cil(Vector((a.x, a.y, a.z)), Vector((a.x, a.y - 0.6, 0.2)), 0.2, kit.quadro, 12)
-            kit.cil(Vector((b.x, b.y, b.z)), Vector((b.x, b.y, 0.2)), 0.2, kit.quadro, 12)
+            kit.cil(Vector((a.x + sx * 0.3, a.y, a.z)), Vector((a.x + sx * 0.3, a.y - 0.6, 0.2)), 0.2, kit.quadro, 12)
+            kit.cil(Vector((b.x + sx * 0.3, b.y, b.z)), Vector((b.x + sx * 0.3, b.y, 0.2)), 0.2, kit.quadro, 12)
         _escada(kit, ctx, h, cfg)
     elif tipo == "treno":
         _treno(kit, ctx, h, cfg)
@@ -1189,8 +1191,8 @@ def _escada(kit, ctx, h, cfg):
     yf = min(ys) - 1.4
     # estrutura: laterais inclinadas + console na altura do peito
     for sx in (-1, 1):
-        kit.viga((sx * 2.9, yf, 0.2), (sx * 2.9, yf - 0.6, p.z + 2.0), 0.5, 0.6, kit.quadro)
-        kit.viga((sx * 2.9, yf + 5.5, 0.15), (sx * 2.9, yf - 0.4, 0.15), 0.5, 0.3, kit.quadro)
+        kit.viga((sx * 4.0, yf, 0.2), (sx * 4.0, yf - 0.6, p.z + 2.0), 0.5, 0.6, kit.quadro)
+        kit.viga((sx * 4.0, yf + 5.5, 0.15), (sx * 4.0, yf - 0.4, 0.15), 0.5, 0.3, kit.quadro)
     kit.caixa((0, yf - 0.6, p.z + 2.3), (5.4, 1.2, 1.0), kit.preto, 0.2, rot=(math.radians(-25), 0, 0))
     kit.caixa((0, yf - 0.3, 2.5), (4.6, 0.8, 5.0), kit.quadro, 0.1)
     degs = {sf: kit.caixa((0, 0, 0), (2.2, 2.6, 0.3), kit.borracha, 0.05) for sf in (".L", ".R")}

@@ -56,12 +56,13 @@ sondas de pegada/barra/tronco, qa_ids.sh.
    panturrilha sentado, rolo do tornozelo na hiperextensão, crossover com torres a ±13, triângulo, laço da barra assistida,
    halter único no francês, corda de pular girando (1 volta por salto, embaixo só no pico), corda naval com ondas, polia que
    acompanha a torre (abdominal na polia), alças nos elásticos, elástico sob o arco do pé.
-7. Câmera: cam < 0 vira 3/4 da frente (rosto visível) salvo "cam_tras": true.
+7. Câmera: "cam_frente": true troca a vista de costas pelo perfil (trocar sempre fazia as mãos acima da cabeça cobrirem o
+   rosto nas puxadas, então a escolha de câmera fica com os dados: ver lista).
 8. Passos de mão: mãos andam alternadas em passos de até ~26 cm, paradas no chão entre os passos (inchworm chega à prancha).
 
 ### Para os animadores (dados; campos novos no docstring de humano.py)
-Geral: declarar "apoio" nos quadros com troca de apoio/voo; trocar cam negativas só se a vista de costas for necessária
-("cam_tras": true); usar "maos"/"segura"/"dedos"/"puf" onde indicado; conferir com zoom.py e qa.py.
+Geral: declarar "apoio" nos quadros com troca de apoio/voo; cam negativas (barra-supinada, puxadas, face-pull,
+crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as mãos na frente do rosto (qa "rosto"); usar "maos"/"segura"/"dedos"/"puf" onde indicado; conferir com zoom.py e qa.py.
 - lote1: agachamento-elastico (bf [-20,150], bt [-23,147], bfa 10, afa -20); agachamento-goblet (bf [10,155], bfa -4, afa -12;
   q2/q3 bf [-12,140]; pfa constante 15); agachamento-frontal (bf [85,200], bfa 25, afa 10); leg-press (encosto inclinado
   {"tipo":"banco","x":-3.2,"w":4.4,"h":2.3,"inc":45,"enc":7} ou t -135; cam 0); hack (w 5.9); cadeira-extensora/flexora e
@@ -85,7 +86,7 @@ Geral: declarar "apoio" nos quadros com troca de apoio/voo; trocar cam negativas
   (banco h 4.5; ate [2.2,21.5]; t 196; cam 30); remada-baixa (ate [9.5,4.6], q0 bf [78,90]); remada-curvada (q1 bf [-72,18]);
   remada-unilateral (banco x -4.8 w 13.4 h 4.1 z -1.8 larg 3.0, pfa 12, pt [0,-90,-170], "apoio" com "joelho_t");
   remada-elastico (ate [12,12.6]); pulldown-elastico (bf [178,160], bfa 150); pullover-polia (bfa 4); face-pull (q2/q3
-  bf [80,180], bfa 85, afa -10; cam -60 + cam_tras ou 60); band-pull-apart (bfa 76); encolhimento (bfa 14);
+  bf [80,180], bfa 85, afa -10; cam 60); band-pull-apart (bfa 76); encolhimento (bfa 14);
   desenvolvimento-elastico (pfa/pta 10); elevacao-lateral (bfa 10); crucifixo (cam 90, cam_el 35); crossover (pfa/pta 6,
   q2/q3 bfa -24 afa -34); crucifixo-inverso/desenvolvimento-barra (cam positiva); arnold (q0 bfa 18); rotacao-externa
   (elastico "de":"mao_f", "maos":"f"); triceps-polia (ate [5.0,19.5]); triceps-elastico (pt [-20,-20,90], ate [-3.5,0.3],
@@ -110,3 +111,18 @@ Geral: declarar "apoio" nos quadros com troca de apoio/voo; trocar cam negativas
   ("segura" {"mao_t":"cotovelo_f"}); alongamento-antebraco ("dedos":"tras"); torcao-coluna (pfa -30, cfa 10; "segura"
   {"mao_t":"joelho_f"}, mão de trás "apoio"); alongamento-dorsal (bfa/bta -12); moinho (t 100 no 2º lado);
   circulos-tornozelo (pe 50 no Q0).
+
+### Validação (qa.py de c071e3e, mesmas 54 ids das famílias alteradas)
+- Antes (motor de 5f2aa76^): 50 com erro, 3 só aviso, 1 limpo. Depois: 32 com erro, 12 só aviso, 10 limpos (e as correções
+  finais tiraram pops/barra do tríceps francês, desenvolvimento-barra, power-clean, postura-crianca, spider e o rosto das câmeras).
+- 175 com o qa.py anterior: 142 → 112 com erro, limpos 11 → 35; pegada/dist 143 → 0, pegada/atravessa 89 → 43 (0 nas 54 com o
+  qa novo), pousada 72 → 39.
+- Erros restantes = dados (lista acima), mais: abdominal/superman (pousada de costas/antebraço: braços e pernas dos dados),
+  abdominal-bicicleta (rotação do ombro: braços), agachamento-goblet/thruster (antebraço no kettlebell: bfa/afa), band-pull-apart
+  (bfa 76), barra-assistida e puxada-frente (cabo/elástico no corpo: polia à frente, t 196), educativos-corrida/encolhimento/
+  power-clean (braço no tronco: bfa), triceps-frances (mãos cruzando: bfa para as mãos se encontrarem atrás da cabeça),
+  escada (mãos sobre o console: levar as mãos ao corrimão, que fica a ±3,5), remada-baixa/bike-leve/abdutora (coxa/pé no estofado:
+  altura do banco), remo-ergometro (ROM do quadril: y constante), rotacao-toracica (deitado de lado), spider/inchworm/
+  postura-crianca (flexão do quadril > 125° nos dados; inchworm com chaves por passo de mão), hack (geometria do aparelho x pose).
+- Pendências do motor (antigas): torção do antebraço na pegada supinada pendurada (barra-supinada, ~170°) e comprimento da
+  alavanca do peck-deck quando a mão não alcança o arco; centro de massa dentro da base não é corrigido automaticamente.
