@@ -657,6 +657,17 @@ class Humano:
         if thp.length < 1e-3:
             thp = FRENTE - f * FRENTE.dot(f)
         thp.normalize()
+        # cabo quase paralelo ao antebraço: a orientação ficaria instável (giro de um quadro para o outro); mistura com a
+        # orientação atual da mão
+        wpar = mov.suave(abs(th.normalized().dot(f)), 0.72, 0.95)
+        if wpar > 0:
+            atual = self.eixo_pegada(sufixo)
+            atual = atual - f * atual.dot(f)
+            if atual.length > 1e-3:
+                atual.normalize()
+                if atual.dot(thp) < 0:
+                    atual = -atual
+                thp = (thp * (1 - wpar) + atual * wpar).normalized()
         palma = f.cross(thp) * sx
         pa = (palma - th * palma.dot(th)).normalized()
         Ft = Matrix((th, pa, th.cross(pa))).transposed()
@@ -2025,7 +2036,8 @@ def plantar(h, ctx, T, chaves, i, j, u):
                 pos, rot, wgt = None, None, 1.0
                 for jp in range(n_p):
                     m_ = 2 * jp + k_h if ambas else jp
-                    w0, w1 = m_ / nj, (m_ + 1) / nj
+                    # janelas de passo que se sobrepõem pela metade entre as mãos (passos mais lentos, sem tranco)
+                    w0, w1 = (m_ / (nj + 1), (m_ + 2) / (nj + 1)) if ambas else (m_ / nj, (m_ + 1) / nj)
                     pa_, pb_ = a["pos"].lerp(b["pos"], jp / n_p), a["pos"].lerp(b["pos"], (jp + 1) / n_p)
                     if u < w0:
                         pos, rot = pa_, _slerp(a["rot"], b["rot"], jp / n_p)
@@ -2333,12 +2345,6 @@ def corrigir_barra(h, ctx, T):
         rack = pesc + fw_t * 1.05 - up_t * 0.55
         alvo = costas if modo == "costas" else rack
         w = 1.0 if modo in ("costas", "rack") else 1.0 - mov.suave((centro - rack).length, 0.7, 2.2)
-        if modo == "clean":
-            # cotovelos dobrados (> ~85°) com as mãos acima do peito: a barra está no rack (peso 1), nunca no rosto
-            cot = min(math.degrees((h.cabeca("lowerarm01" + sf_) - h.cabeca("upperarm01" + sf_)).angle(
-                h.cabeca("wrist" + sf_) - h.cabeca("lowerarm01" + sf_))) for sf_ in (".L", ".R"))
-            acima = mov.suave(centro.z - (T @ h.cabeca("spine03")).z, -0.6, 0.6)
-            w = max(w, mov.suave(cot, 70.0, 95.0) * acima)
         if w > 0:
             centro = centro.lerp(alvo, w)
             e2 = (Tq @ ESQ).normalized()

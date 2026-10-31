@@ -505,10 +505,10 @@ def _lateral(h, T, gL, gR):
     w = mov_suave(d.length, 0.4, 1.6)
     if w <= 0:
         return lat_c
-    v = d.normalized() * w + lat_c * (1 - w)
-    if v.dot(lat_c) < 0 and w < 1:
-        v = lat_c
-    return v.normalized()
+    dn = d.normalized()
+    if dn.dot(lat_c) < 0:
+        dn = -dn  # mãos cruzadas nos dados: cada mão volta para o seu lado (sem inverter o eixo de um quadro para outro)
+    return (dn * w + lat_c * (1 - w)).normalized()
 
 
 def pegada_implementos(ctx, h, T, tau, extras):
