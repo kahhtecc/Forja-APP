@@ -14,9 +14,16 @@ AVISOS:
   congelado  sequência de > 6 quadros sem movimento (< 0,5 mm)
   flutua     pé/mão apoiado fora de [-8 mm, +8 mm] da superfície
   chaves     quadros-chave consecutivos idênticos
+VERIFICAÇÕES DE CORPO (qa_corpo.py; limiares e método no cabeçalho de lá):
+  pegada     túnel dos dedos x eixo da empunhadura, mão atravessando, empunhadura cruzada, dedos abertos
+  rom        ângulos articulares reais (joelho, cotovelo, ombro, antebraço, punho, quadril, coluna, pescoço) x AAOS
+  apoio      centro de massa/ZMP x polígono de apoio, região parada no ar, pele dentro de aparelho, corpo x corpo
+Saída JSON por exercício: "erros"/"avisos" (texto) e "achados" (tipo, sub, parte, nivel, quadro, valor, unidade,
+limite, n_quadros, msg). Relatório: tools/anim3d/qa_relatorio.py <json> <md>.
 
 Uso (python do ambiente com bpy):
   python tools/anim3d/qa.py --mh <makehuman/data> --anim lote1.json lote2.json lote3.json [--ids a,b] [--saida qa.json] [--fps 24]
+         [--retomar] [--so-motor]
 Sai com código 1 se algum exercício tiver erro (use --so-avisar para nunca falhar).
 """
 import argparse

@@ -3,30 +3,33 @@
 Tudo é medido no esqueleto e na pele (proxy) já posados pelo motor, e nos aparelhos montados por aparelhos.py (os mesmos
 objetos do render, reposicionados em cada quadro por kit.atualizar). Unidades do mundo: 1 = 1 dm.
 
-PEGADA (mão x implemento segurado)
-  dist      centro da pegada (h.pegada) longe do eixo da empunhadura: > 2 cm erro, > 1,2 cm aviso
-            (barra olímpica, halter, alça do kettlebell, puxador/corda do cabo, ponta do elástico, pegador da máquina,
-             barra fixa/paralelas, manopla do guidão, bola medicinal = palma na superfície)
-  atravessa pele da mão dentro da empunhadura: > 1,2 cm erro
-  cruzada   empunhadura rígida fora do eixo da mão fechada (linha dos nós dos dedos): > 40° erro, > 28° aviso
-  dedos     mão que segura com os dedos abertos (fechamento < 70 %)
-  cabo      cabo/elástico saindo da mão para dentro do antebraço (ângulo < 20°)
-ROM (ângulos reais do esqueleto x limites AAOS / Norkin & White; erro = além do limite + margem, aviso = perto)
-  joelho: flexão 0-135 (aviso > 150, erro > 160), hiperextensão (aviso > 8, erro > 15), valgo/varo da malha (aviso > 15, erro > 25)
-  cotovelo: flexão 0-150 (aviso > 150, erro > 160), hiperextensão aparente na malha (aviso > 10, erro > 18)
-  ombro: extensão 60 / abdução horizontal 45 (limite cai com a elevação), adução horizontal 45 além da linha média,
-         rotação externa 90 / interna 70 (medida pelo antebraço com o cotovelo dobrado)
-  antebraço: pronação/supinação 80; punho: flexão 80, extensão 70, desvio radial 20, ulnar 30
-  quadril: flexão 120, extensão 30, abdução 45, adução 30, rotação interna 45 / externa 45 (pelo plano da canela)
-  coluna toracolombar: flexão 80, extensão 25, inclinação 35, rotação 45; dobra num segmento só > 25°/35°
-  pescoço: flexão 45, extensão 45, inclinação 45, rotação 60-80
+PEGADA (mão x implemento segurado; centro do túnel = círculo pelas articulações dos dedos 2-5 fechados)
+  dist      eixo da empunhadura fora do túnel dos dedos: > 2 cm erro, > 1,2 cm aviso
+            (barra olímpica, halter, alça do kettlebell, puxador/corda/cabo, alça/ponta do elástico, pegador de máquina,
+             barra fixa/paralelas/manopla (tubos fixos), bola medicinal = palma na superfície)
+  atravessa pele da mão dentro da empunhadura rígida: > 2,5 cm erro, > 1,5 cm aviso
+  cruzada   empunhadura rígida fora da linha dos nós dos dedos: > 40° erro, > 28° aviso
+  dedos     mão que segura com os dedos abertos: fechamento < 50 % erro, < 75 % aviso (curva de pegada do motor)
+ROM (ângulos reais do esqueleto x AAOS / Norkin & White; (aviso, erro) em LIM; erro exige >= 2 quadros)
+  joelho: flexão 135 (150/160), hiperextensão no plano sagital (8/15)
+  cotovelo: flexão 150 (150/160), hiperextensão (10/18); antebraço dobrando para o lado de trás da malha = aviso
+  ombro: extensão 60 / abdução horizontal 45 (o limite para trás cai com a elevação; excesso 10/22), adução horizontal
+         com o braço entre 30° e 130° de elevação (50/62), rotação externa 90 (95/110) e interna 70 (80/100)
+  antebraço: pronação/supinação 80 (100/125), medida pelo polegar; punho: flexão 80 (85/100), extensão 70 (85/100),
+         desvio radial 20 (25/40), ulnar 30 (35/50)
+  quadril: flexão 120 (145/165, passiva com joelho dobrado), extensão 30 (30/42), abdução 45 (52/65), adução 30 (30/40),
+         rotação (Euler da ISB, pelo plano da canela, só com flexão < 120°) externa 45 (60/80), interna 45 (45/60)
+  coluna toracolombar: flexão 80 (85/100), extensão 25 (35/50), inclinação 35 (40/52), rotação 45 (50/65);
+         dobra num segmento só (25/35); pescoço: flexão 45 (55/70), extensão 45 (60/75), inclinação 45 (50/60), rotação 80 (80/92)
 APOIO
-  base      centro de massa (Dempster/Winter) / ponto de momento zero fora do polígono de apoio > 3 cm por >= 0,15 s,
-            sem mão presa a algo fixo nem encosto lateral
-  flutua    nenhum contato (fora das fases de voo balístico)
-  pousada   pelve/costas/cabeça/coxa/joelho/antebraço parado de 3 a 15 cm acima de uma superfície (parece apoiado)
-  penetra   pele dentro de aparelho > 1,5 cm (banco, encosto, máquina, barra, anilhas, kettlebell...)
-  corpo     braço dentro do tronco, mão dentro da cabeça, coxa dentro da outra coxa: > 4 cm
+  base      centro de massa (Dempster/Winter + implemento) ou ponto de momento zero fora do polígono de apoio (pele a <= 3 cm
+            de uma superfície horizontal) > 3 cm por >= 0,15 s, sem mão presa a algo fixo, sem encosto lateral, fora de voo
+            balístico e fora de locomoção (piso rolante, esteira, bike)
+  flutua    nenhum contato fora das fases de voo
+  pousada   pelve/costas/cabeça (e coxa/joelho/antebraço deitados) parados de 3 a 15 cm acima de uma superfície: erro se
+            coincide com a base falhando ou, no tronco, se dura >= 1 s e >= 40 % do ciclo a <= 10 cm; senão aviso
+  penetra   pele dentro de aparelho: > 1,5 cm erro (estofado: > 2,5 cm)
+  corpo     braço dentro do tronco/cabeça, perna dentro da outra, cabo/elástico atravessando o corpo: > 5 cm erro, > 3,5 cm aviso
 """
 import math
 
