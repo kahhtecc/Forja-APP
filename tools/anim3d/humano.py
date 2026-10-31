@@ -156,8 +156,10 @@ def limitar_rom(p):
     for lado in ("f", "t"):
         c_, sh, pe = q["p" + lado]
         # quadril: ângulo da coxa em relação ao tronco (0 = alinhado em pé)
+        # só a extensão do quadril é limitada (a flexão profunda já divide com a lombar); sem "dar a volta" em ±180°
         hf = _wrap(c_ - (q["t"] - 180.0))
-        hf2 = limite_suave(hf, *ROM["quadril_flex"])
+        lo_h = ROM["quadril_flex"][0]
+        hf2 = limite_suave(hf, lo_h, 1e9) if -120.0 < hf < lo_h + 6.0 else hf
         c2 = c_ + (hf2 - hf)
         fl = c2 - sh
         # joelho no plano da coxa (mesma abdução): flexão 2D = flexão real
@@ -668,6 +670,7 @@ class Humano:
             fp.normalize()
             ang = math.atan2(dm.cross(fp).dot(pn), dm.dot(fp))
             exc = abs(ang) - math.radians(12)
+            exc *= 1.0 - mov.suave(abs(ang), math.radians(100), math.radians(140))  # ambíguo perto de 180°: não gira
             if exc > 0:
                 R = Quaternion(pn, math.copysign(min(exc, math.radians(24)), ang)).to_matrix() @ R
         return R @ self.rest["wrist" + sufixo].to_3x3()
@@ -1143,7 +1146,7 @@ def camera_familia(anim, ctx):
     # câmera por trás esconde o rosto e os contatos das mãos: espelha para a frente (3/4 do mesmo lado), salvo se a
     # animação pedir explicitamente a vista de costas ("cam_tras": true)
     if float(cam) < 0 and not anim.get("cam_tras"):
-        cam = -float(cam)
+        cam = 8.0  # quase perfil: rosto e mãos visíveis mesmo com os braços acima da cabeça
     if "cam_el" in anim:
         return cam, float(anim["cam_el"])
     ch = ctx.trilhas.chaves
@@ -1432,18 +1435,23 @@ def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
     g = float(gap.min())
     if abs(g) < 1e-3:
         return T
-    w *= 1.0 - mov.suave(abs(g), lim * 0.6, lim)  # some aos poucos (sem pulo quando o corpo sai do apoio)
+    w *= 1.0 - mov.suave(abs(g), lim * 0.3, lim)  # some aos poucos (sem pulo quando o corpo sai do apoio)
     return Matrix.Translation((0, 0, -g * w)) @ T
 
 
 def cabeca_no_apoio(h, ctx, T):
     """Deitado: a cabeça que ficou a poucos cm do banco/chão encosta nele (flexão/extensão do pescoço)."""
+    # só de barriga para cima (peito voltado para cima): no superman a cabeça erguida não é puxada para o chão
+    Rs = T.to_3x3() @ h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
+    if (Rs @ FRENTE).z < 0.5:
+        return
     P = h.proxy(T)
     m = h.px_partes["cabeca"]
     Q = P[m]
     g = float((Q[:, 2] - superficie_vet(ctx, Q)).min())
     if not (0.03 < g < 0.9):
         return
+    peso = 1.0 - mov.suave(g, 0.5, 0.9)  # some aos poucos (sem pulo da cabeça)
     eixo = (T.to_3x3().inverted() @ ESQ).normalized()
     est0 = {n: h.basis[n].copy() for n in ("neck01", "neck02")}
 
@@ -1463,7 +1471,7 @@ def cabeca_no_apoio(h, ctx, T):
             lo = mid
         else:
             hi = mid
-    gap_com(sinal * lo)
+    gap_com(sinal * lo * peso)
 
 
 def dobrar_dedos(h, ctx, T, pesos):
@@ -2161,7 +2169,7 @@ def sem_atravessar(h, ctx, T, fixos):
         baixo = pts[pts[:, 2] < zmin + 0.12].mean(axis=0)
         zs = ctx.superficie_suave(baixo, zmin + 0.25)
         gap = zmin - zs
-        if gap < -0.002 and gap > -2.5:
+        if gap < -0.002 and gap > -6.0:  # membro livre que entrou no chão sobe (IK), em vez de o corpo saltar
             fim = _fim(membro, sf)
             alvo = T @ h.cabeca(fim) - Vector((0, 0, gap))
             h.ik(membro, sf, Ti @ alvo, h.rot(fim))
@@ -2329,8 +2337,8 @@ def corrigir_barra(h, ctx, T):
             # cotovelos dobrados (> ~85°) com as mãos acima do peito: a barra está no rack (peso 1), nunca no rosto
             cot = min(math.degrees((h.cabeca("lowerarm01" + sf_) - h.cabeca("upperarm01" + sf_)).angle(
                 h.cabeca("wrist" + sf_) - h.cabeca("lowerarm01" + sf_))) for sf_ in (".L", ".R"))
-            if centro.z > (T @ h.cabeca("spine03")).z:
-                w = max(w, mov.suave(cot, 70.0, 95.0))
+            acima = mov.suave(centro.z - (T @ h.cabeca("spine03")).z, -0.6, 0.6)
+            w = max(w, mov.suave(cot, 70.0, 95.0) * acima)
         if w > 0:
             centro = centro.lerp(alvo, w)
             e2 = (Tq @ ESQ).normalized()
