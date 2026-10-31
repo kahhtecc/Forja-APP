@@ -1,6 +1,6 @@
 """Relatório legível (Markdown) a partir do JSON do qa.py.
 
-Uso: python tools/anim3d/qa_relatorio.py qa-resultado.json pesquisa/qa-resultado.md
+Uso: python tools/anim3d/qa_relatorio.py qa-resultado.json pesquisa/qa-resultado.md [seção-extra.md]
 """
 import json
 import math
@@ -30,7 +30,7 @@ def resumo_curto(a):
     return f"{a['sub']} {a['parte']} {vs}"
 
 
-def main(js, md):
+def main(js, md, extra=None):
     res = json.load(open(js))
     ids = list(res)
     cont_ex = Counter()  # exercícios com erro de cada tipo
@@ -88,8 +88,10 @@ def main(js, md):
         txt = "; ".join(resumo_curto(a) for a in top) if top else ("só avisos" if av else "ok")
         L.append(f"| {i} | " + " | ".join(cel) + f" | {txt} |")
     L.append("")
+    if extra:
+        L.append(open(extra).read())
     open(md, "w").write("\n".join(L))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
