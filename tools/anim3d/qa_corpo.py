@@ -29,7 +29,9 @@ APOIO
   pousada   pelve/costas/cabeça (e coxa/joelho/antebraço deitados) parados de 3 a 15 cm acima de uma superfície: erro se
             coincide com a base falhando ou, no tronco, se dura >= 1 s e >= 40 % do ciclo a <= 10 cm; senão aviso
   penetra   pele dentro de aparelho: > 1,5 cm erro (estofado: > 2,5 cm)
-  corpo     braço dentro do tronco/cabeça, perna dentro da outra, cabo/elástico atravessando o corpo: > 5 cm erro, > 3,5 cm aviso
+  corpo     cabo/elástico atravessando o corpo: > 3 cm erro, > 1,5 cm aviso; braço dentro do tronco/cabeça e perna dentro da
+            outra: só aviso (> 3,5 cm) — o teste de interior por vizinhos da pele satura em 6 cm e deu falso positivo em
+            exercícios aprovados pela auditoria (russian-twist, alongamento-lateral)
 """
 import math
 
@@ -351,7 +353,7 @@ def avaliar_rom(ang, lado_sf):
                 m[("joelho_hiperext", "joelho " + ld)] = max(0.0, -sn) if abs(sn) < 90 else 0.0
         m[("cotovelo_flexao", "cotovelo " + ld)] = g("cotovelo_flexao")
         cs = g("cotovelo_sinal")
-        if cs is not None:
+        if cs is not None and g("cotovelo_flexao") < 35:  # dobrado para trás além disso é torção da malha (aviso à parte)
             m[("cotovelo_hiperext", "cotovelo " + ld)] = max(0.0, -cs) if abs(cs) < 90 else 0.0
         m[("ombro_ext_excesso", "ombro " + ld)] = g("ombro_ext_excesso")
         if 30 < g("ombro_elev") < 130:  # braço acima da cabeça cruzando não é adução horizontal
@@ -371,8 +373,9 @@ def avaliar_rom(ang, lado_sf):
         m[("punho_radial", "punho " + ld)] = max(0.0, r)
         m[("punho_ulnar", "punho " + ld)] = max(0.0, -r)
         r = g("quadril_flexao")
-        m[("quadril_flexao", "quadril " + ld)] = max(0.0, r)
-        m[("quadril_extensao", "quadril " + ld)] = max(0.0, -r)
+        if abs(r) < 170:  # perto de ±180° o referencial da pelve dá a volta (medida degenerada)
+            m[("quadril_flexao", "quadril " + ld)] = max(0.0, r)
+            m[("quadril_extensao", "quadril " + ld)] = max(0.0, -r)
         r = g("quadril_abducao")
         m[("quadril_abducao", "quadril " + ld)] = max(0.0, r)
         m[("quadril_aducao", "quadril " + ld)] = max(0.0, -r)
@@ -888,9 +891,10 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
             if len(sel) > 4000:
                 sel = sel[:: len(sel) // 4000 + 1]
             pior = {}
+            meia = float(min(p.hi - p.lo)) / 2 * max(p.M.to_scale()) + 0.1
             for i in sel:
                 d, dentro, _ = p.mais_perto(P[i])
-                if dentro:
+                if dentro and d <= max(meia, 0.3):  # mais fundo que meia espessura = normal invertida, não interior
                     s = corpo.seg[i]
                     if d > pior.get(s, 0.0):
                         pior[s] = d
@@ -942,7 +946,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     key = ("perna esq", "perna dir")
                     piores[key] = max(piores.get(key, 0.0), dist)
         for (s, alvo), d in piores.items():
-            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 3.5, 5.0, "cm", "corpo atravessando o próprio corpo")
+            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 3.5, 1e9, "cm", "corpo atravessando o próprio corpo")
     # ---------------- centro de massa / ponto de momento zero x polígono de apoio
     T_ = float(ctx.trilhas.T)
     dt = T_ / n
