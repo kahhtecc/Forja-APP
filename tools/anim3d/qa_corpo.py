@@ -45,10 +45,10 @@ G = 98.1  # dm/s²
 LIM = {
     "joelho_flexao": (150, 160), "joelho_hiperext": (8, 15),
     "cotovelo_flexao": (150, 160), "cotovelo_hiperext": (10, 18),
-    "ombro_ext_excesso": (5, 15), "ombro_aducao_h": (50, 62), "ombro_re": (95, 110), "ombro_ri": (80, 100),
+    "ombro_ext_excesso": (10, 22), "ombro_aducao_h": (50, 62), "ombro_re": (95, 110), "ombro_ri": (80, 100),
     "antebraco_sup": (100, 125), "antebraco_pro": (100, 125),
     "punho_flexao": (85, 100), "punho_extensao": (85, 100), "punho_radial": (25, 40), "punho_ulnar": (35, 50),
-    "quadril_flexao": (125, 140), "quadril_extensao": (30, 42), "quadril_abducao": (52, 65), "quadril_aducao": (30, 40),
+    "quadril_flexao": (145, 165), "quadril_extensao": (30, 42), "quadril_abducao": (52, 65), "quadril_aducao": (30, 40),
     "quadril_re": (60, 80), "quadril_ri": (45, 60),
     "coluna_flexao": (85, 100), "coluna_extensao": (35, 50), "coluna_inclinacao": (40, 52), "coluna_rotacao": (50, 65),
     "coluna_segmento": (25, 35),
@@ -218,7 +218,7 @@ class Corpo:
             sv = sh.normalized()
             out["joelho_sinal" + sf] = _deg(math.atan2(-sv.dot(ant), sv.dot(tn)))
             out["joelho_lat" + sf] = abs(_deg(math.asin(max(-1, min(1, sv.dot(tn.cross(ant)))))))
-            if kf > 25:
+            if kf > 25 and fl < 120:
                 # rotação do quadril (convenção de Euler da ISB: flexão, abdução, rotação): canela neutra = para trás
                 # girada pela flexão; o plano real da canela dá a rotação do fêmur (o joelho só dobra num plano)
                 b = _perp(sv, tn)
@@ -351,7 +351,8 @@ def avaliar_rom(ang, lado_sf):
         if cs is not None:
             m[("cotovelo_hiperext", "cotovelo " + ld)] = max(0.0, -cs) if abs(cs) < 90 else 0.0
         m[("ombro_ext_excesso", "ombro " + ld)] = g("ombro_ext_excesso")
-        m[("ombro_aducao_h", "ombro " + ld)] = g("ombro_aducao_h")
+        if 30 < g("ombro_elev") < 130:  # braço acima da cabeça cruzando não é adução horizontal
+            m[("ombro_aducao_h", "ombro " + ld)] = g("ombro_aducao_h")
         r = g("ombro_rot")
         if r is not None:
             m[("ombro_re", "ombro " + ld)] = max(0.0, r)
@@ -593,13 +594,14 @@ def _dist_poligono(c, H):
     return -best if dentro else best
 
 
-def _dentro(kd, p, N, lim=0.9):
-    """Profundidade (> 0) se p está dentro da pele indexada em kd: os 8 vizinhos mais próximos concordam (normais para fora)."""
-    viz = kd.find_n(p, 8)
+def _dentro(kd, p, N, lim=0.6):
+    """Profundidade (> 0) se p está dentro da pele indexada em kd: os 24 vizinhos mais próximos concordam (normais para
+    fora); além de 6 cm o teste por vizinhos não é confiável (dobras, axila) e não acusa."""
+    viz = kd.find_n(p, 24)
     if not viz or viz[0][2] > lim:
         return 0.0
     dentro = sum(1 for co_, k_, d_ in viz if (p - co_).dot(Vector(N[k_])) < -0.01)
-    return viz[0][2] if dentro >= 7 else 0.0
+    return viz[0][2] if dentro >= 23 else 0.0
 
 
 def _kd(P, idx):
@@ -890,8 +892,10 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     if d > pior.get(s, 0.0):
                         pior[s] = d
             nome = _nome_peca(p)
+            macio = p.mat == "estofado"  # estofado afunda um pouco sob o corpo
             for s, d in pior.items():
-                reg.add("apoio", "penetra", f"{s} x {nome}", j, d * 10, 0.8, 1.5, "cm", "pele dentro do aparelho")
+                reg.add("apoio", "penetra", f"{s} x {nome}", j, d * 10, 1.0 if not macio else 1.5, 1.5 if not macio else 2.5, "cm",
+                        "pele dentro do aparelho")
         # fio (cabo/elástico) atravessando o corpo
         kd_corpo = None
         for p in ap.pecas:
@@ -907,7 +911,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
             pior = 0.0
             for s_ in np.linspace(0.5 / L, 1 - 0.5 / L, max(3, int(L / 0.2))):
                 q = a.lerp(b, float(s_))
-                pior = max(pior, _dentro(kd_corpo, q, N, 1.5))
+                pior = max(pior, _dentro(kd_corpo, q, N, 1.0))
             reg.add("apoio", "corpo", "cabo/elástico x corpo", j, pior * 10, 1.5, 3.0, "cm", "cabo/elástico atravessando o corpo")
         # corpo x corpo grosseiro
         kd_tr = _kd(P, tronco_idx)
@@ -935,7 +939,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     key = ("perna esq", "perna dir")
                     piores[key] = max(piores.get(key, 0.0), dist)
         for (s, alvo), d in piores.items():
-            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 4.5, 7.0, "cm", "corpo atravessando o próprio corpo")
+            reg.add("apoio", "corpo", f"{s} dentro de {alvo}", j, d * 10, 3.5, 5.0, "cm", "corpo atravessando o próprio corpo")
     # ---------------- centro de massa / ponto de momento zero x polígono de apoio
     T_ = float(ctx.trilhas.T)
     dt = T_ / n
@@ -950,6 +954,8 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 return True
         return False
     nmin = max(4, int(round(0.15 * fps)))
+    # locomoção (piso rolante, esteira, bike): a base muda o tempo todo e o equilíbrio é dinâmico; não se avalia
+    locomocao = bool(getattr(ctx, "rolar", False)) or bool({"esteira", "bike"} & ctx.tipos)
     fora, dist_fora, flut = [], [], []
     for j in range(n):
         tau = float(estados[j]["tau"])
@@ -961,7 +967,7 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
             flut.append(not balistico)
             continue
         flut.append(False)
-        if suporte_extra[j] or balistico:
+        if suporte_extra[j] or balistico or locomocao:
             fora.append(False)
             dist_fora.append(0.0)
             continue
