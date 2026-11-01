@@ -51,3 +51,6 @@ Fonte dos defeitos: `pesquisa/auditoria-lote1.md`. QA: `tools/anim3d/qa.py` só 
 | bike-subida | ok | 0 erros, 4 avisos | sem mudança nos dados: o motor agora leva os pés aos pedais e as mãos ao guidão; avisos: pé 1,0–1,2 cm no pedal |
 | sentar-levantar | ok | 0 erros, 0 avisos | sem mudança (conferido; centro de massa ok no qa atual) |
 | russian-twist | ok | 0 erros, 4 avisos | sem mudança (bola nas mãos atravessava as coxas); avisos: braços 6 cm no tronco em 9 quadros nos extremos da rotação |
+| pallof | ok | 0 erros, 5 avisos | cam 90 (de frente: torre ao lado, cabo perpendicular aos braços), mãos no peito com os cotovelos um pouco à frente (afa -12); avisos: pronação 105° e braço 4,5 cm no tronco na posição inicial (mãos no esterno), pausa da isometria |
+| arremesso-rotacional | ok | 0 erros, 6 avisos | mesmos ângulos nos dois braços com a rotação vinda do tronco, bola entre as palmas na altura do quadril/peito (antes atravessava o abdômen 9 cm); sem parede (o arremesso continua sem soltar a bola — decisão de produto); avisos: braço de trás 6 cm no tronco no início da rotação |
+| nordico | ok | 0 erros, 3 avisos | rolo dos tornozelos reposicionado sobre a parte de baixo da canela (x -3.3, y 1.9; antes afundava 4 cm no pé); avisos: canela 2,1 cm no estofado do rolo, coxa/joelho "pousados" na descida (correto) |
