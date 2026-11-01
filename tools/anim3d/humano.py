@@ -363,6 +363,13 @@ class Humano:
         self.l_coxa = L("upperleg01.L", "lowerleg01.L")
         self.l_canela = L("lowerleg01.L", "foot.L")
         self.l_braco = L("upperarm01.L", "lowerarm01.L")
+        # direção de dobra do cotovelo em repouso, no referencial do úmero (o modelo tem o cotovelo um pouco dobrado)
+        self._dobra_local = {}
+        for sf_ in (".L", ".R"):
+            u_ = (self.cabeca("lowerarm01" + sf_) - self.cabeca("upperarm01" + sf_)).normalized()
+            a_ = (self.cabeca("wrist" + sf_) - self.cabeca("lowerarm01" + sf_)).normalized()
+            dob = a_ - u_ * a_.dot(u_)
+            self._dobra_local[sf_] = (self.rest_inv["upperarm01" + sf_].to_3x3() @ dob.normalized()).normalized()
         self.l_antebraco = L("lowerarm01.L", "wrist.L")
         # frações acumuladas da coluna (centro de cada vértebra) para distribuir curvaturas
         cs = [self.comp[n] for n in COLUNA[1:]]
@@ -432,6 +439,38 @@ class Humano:
         if torcao:
             q = Quaternion(direcao.normalized(), math.radians(torcao)) @ q
         self.girar(n, q.to_matrix())
+
+    def _apontar_min(self, n, d):
+        """Gira o osso pelo menor arco a partir da orientação ATUAL (herdada do pai), sem torção extra."""
+        cur = self.cauda(n) - self.cabeca(n)
+        if cur.length < 1e-9 or d.length < 1e-9:
+            return
+        q = cur.normalized().rotation_difference(d.normalized())
+        self.set_rot(n, q.to_matrix() @ self.rot(n))
+
+    def braco(self, sf, db, da, punho=True):
+        """Braço com rotação do úmero: depois de apontar o braço, o úmero gira em torno do próprio eixo até o cotovelo
+        dobrar para o lado do antebraço (plano braço-antebraço), com mistura contínua quando o cotovelo está quase reto. O
+        antebraço e o punho seguem pelo menor arco a partir do braço (sem torção de repouso): com o braço acima da cabeça o
+        cotovelo não dobra ao contrário nem fica torcido."""
+        self.apontar("upperarm01" + sf, db)
+        flex = math.degrees(db.angle(da)) if db.length > 1e-9 and da.length > 1e-9 else 0.0
+        w = mov.suave(flex, 6.0, 22.0)
+        if w > 0:
+            R = self.rot("upperarm01" + sf)
+            dob = R @ self._dobra_local[sf]
+            dp = dob - db * dob.dot(db)
+            ap = da - db * da.dot(db)
+            if dp.length > 1e-6 and ap.length > 1e-6:
+                dp.normalize()
+                ap.normalize()
+                ang = math.atan2(dp.cross(ap).dot(db), dp.dot(ap))
+                self.set_rot("upperarm01" + sf, Quaternion(db, ang * w).to_matrix() @ R)
+        self._apontar_min("upperarm02" + sf, db)
+        self._apontar_min("lowerarm01" + sf, da)
+        self._apontar_min("lowerarm02" + sf, da)
+        if punho:
+            self._apontar_min("wrist" + sf, da)
 
     def set_local(self, n, q):
         self.basis[n] = q.to_matrix().to_4x4()
@@ -829,11 +868,7 @@ class Humano:
             self.set_local(cl, q)
         for lado, sf, s in LADOS:
             db, da = dirs[sf]
-            for n in ("upperarm01", "upperarm02"):
-                self.apontar(n + sf, db)
-            for n in ("lowerarm01", "lowerarm02"):
-                self.apontar(n + sf, da)
-            self.apontar("wrist" + sf, da)
+            self.braco(sf, db, da)
             self.punho(sf, p.get("pu" + lado, 0.0), p.get("pd" + lado, 0.0))
             # ---- pernas
             c_, sh, pe = p["p" + lado]
@@ -918,10 +953,13 @@ class Humano:
         hh = math.sqrt(max(l1 * l1 - a * a, 0.0))
         E2 = S + u * a + perp * hh
         W2 = S + u * d
-        for nb in b1:
-            self.apontar(nb + sf, E2 - S)
-        for nb in b2:
-            self.apontar(nb + sf, W2 - E2)
+        if b1[0] == "upperarm01":
+            self.braco(sf, (E2 - S).normalized(), (W2 - E2).normalized(), punho=False)
+        else:
+            for nb in b1:
+                self.apontar(nb + sf, E2 - S)
+            for nb in b2:
+                self.apontar(nb + sf, W2 - E2)
         if rot_fim is not None:
             self.set_rot(fim + sf, rot_fim)
         else:
@@ -1433,9 +1471,61 @@ def regioes_apoio(ctx, q, p2):
     return []
 
 
+def encostos(ctx):
+    """Encostos inclinados dos bancos com "inc" (mesma geometria de aparelhos._bloco): (base, direção, normal, comp, xc, lx)."""
+    if "quad" not in ctx.ref:
+        return []
+    out = []
+    k = ctx.k
+    for pr in ctx.props:
+        if pr.get("tipo") == "banco" and pr.get("inc"):
+            x, w, y, hh = pr.get("x", 0), pr.get("w", 8), pr.get("y", 0), pr.get("h", 4)
+            a, b = ctx.p3(x, 0), ctx.p3(x + w, 0)
+            y1 = max(a.y, b.y)
+            zt = (y + hh) * k
+            ang = math.radians(float(pr["inc"]))
+            base = Vector((pr.get("z", 0.0) * k, y1 - 0.2, zt - 0.35))
+            out.append((base, Vector((0, math.cos(ang), math.sin(ang))), Vector((0, -math.sin(ang), math.cos(ang))),
+                        pr.get("enc", 7.0) * k, pr.get("z", 0.0) * k, 3.2))
+    return out
+
+
+def encostar_inclinado(h, ctx, T, regs, w=1.0):
+    """Costas/cabeça encostam na face de cima do encosto inclinado (espessura 0,7): desloca o corpo pela normal."""
+    if not ({"costas", "cabeca"} & set(regs)) or w <= 1e-4:
+        return T
+    encs = encostos(ctx)
+    if not encs:
+        return T
+    P = h.proxy(T)
+    m = _mask_regioes(h, [r for r in regs if r in ("costas", "cabeca")])
+    Q = P[m]
+    for base, dv, n, comp, xc, lx in encs:
+        rel = Q - np.array(base)
+        t = rel @ np.array(dv)
+        dentro = (t > -0.2) & (t < comp + 0.3) & (np.abs(Q[:, 0] - xc) < lx)
+        if dentro.sum() < 5:
+            continue
+        g = float((rel[dentro] @ np.array(n)).min()) - 0.35
+        if abs(g) < 1e-3 or abs(g) > 1.5:
+            continue
+        T = Matrix.Translation(-n * g * w) @ T
+    return T
+
+
 def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
     """Desloca o corpo na vertical para a parte mais baixa das regiões de apoio encostar na superfície embaixo dela
-    (sentado no assento real, deitado no banco/chão: nada de pousar no ar nem afundar)."""
+    (sentado no assento real, deitado no banco/chão: nada de pousar no ar nem afundar); costas no encosto inclinado."""
+    if not regs or w <= 1e-4:
+        return T
+    if encostos(ctx) and ({"costas", "cabeca"} & set(regs)):
+        T = encostar_inclinado(h, ctx, T, regs, w)
+        T = _apoiar_vertical(h, ctx, T, [r for r in regs if r in ("pelve", "gluteo")] or regs, w, lim)
+        return encostar_inclinado(h, ctx, T, regs, w)
+    return _apoiar_vertical(h, ctx, T, regs, w, lim)
+
+
+def _apoiar_vertical(h, ctx, T, regs, w=1.0, lim=3.0):
     if not regs or w <= 1e-4:
         return T
     P = h.proxy(T)
@@ -1876,6 +1966,10 @@ def segurar_barra(h, ctx, T):
 
 def _segurar_barra(h, ctx, T, b3):
     Ti = T.inverted()
+    if ctx.supinada and not ctx.paralelas:
+        # pegada supinada (chin-up): cotovelos à frente (antebraço sem torção)
+        for sf in (".L", ".R"):
+            h._polos[("braco", sf)] = (Ti.to_3x3() @ (FRENTE - CIMA * 0.3)).normalized()
     for _ in range(2):
         for sf in (".L", ".R"):
             g = T @ h.pegada(sf)
@@ -1885,7 +1979,8 @@ def _segurar_barra(h, ctx, T, b3):
             else:
                 alvo_m = Vector((g.x, b3.y, b3.z))
                 eixo = Ti.to_3x3() @ Vector((1, 0, 0))
-            R = h.rot_pegada(sf, eixo, ctx.supinada and not ctx.paralelas)
+            # paralelas (tubo frente-trás): sentido automático (polegar para a frente nas duas mãos)
+            R = h.rot_pegada(sf, eixo, None if ctx.paralelas else ctx.supinada)
             alvo = Ti @ alvo_m - R @ h.off_peg[sf]
             h.ik("braco", sf, alvo, R)
 
@@ -2282,6 +2377,11 @@ def segurar_corpo(h, ctx, T, tau):
         R_alvo = h.rot_mao(sf, dd.normalized(), -nrm)
         R0 = h.rot("wrist" + sf).to_quaternion()
         R = R0.slerp(R_alvo.to_quaternion(), w).to_matrix()
+        if nome in ("nuca", "cabeca"):
+            # mãos atrás da cabeça: cotovelo para fora, no plano frontal do tronco (rotação do ombro dentro do limite)
+            Rs = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
+            sx_ = 1 if sf == ".L" else -1
+            h._polos[("braco", sf)] = (Rs @ (ESQ * sx_ + CIMA * 0.2)).normalized()
         for _ in range(2):
             h.ik("braco", sf, alvo_pc - R @ h.off_palma[sf], R)
 
@@ -2343,7 +2443,7 @@ def corrigir_barra(h, ctx, T):
         return centro, eixo
     if modo != "maos":
         costas = pesc - fw_t * 0.95 - up_t * 0.55
-        rack = pesc + fw_t * 1.05 - up_t * 0.55
+        rack = pesc + fw_t * 1.45 - up_t * 0.55
         alvo = costas if modo == "costas" else rack
         w = 1.0 if modo in ("costas", "rack") else 1.0 - mov.suave((centro - rack).length, 0.7, 2.2)
         if w > 0:
@@ -2407,6 +2507,17 @@ def corrigir_barra(h, ctx, T):
     zmin = ctx.z0 + R
     if centro.z < zmin:
         centro.z = zmin
+    if modo == "rack":
+        # rack frontal: palma para cima, dedos sob a barra apontando para trás (extensão de punho), cotovelos altos à frente
+        Ti3 = Ti.to_3x3()
+        for _ in range(2):
+            for sf, sx_ in ((".L", 1), (".R", -1)):
+                alvo_m = centro + eixo * (meia * sx_)
+                Rh = h.rot_mao(sf, Ti3 @ (-fw_t + eixo * (0.25 * -sx_)).normalized(), Ti3 @ up_t)
+                pol = Ti3 @ (fw_t * 0.6 + eixo * (0.8 * sx_) - up_t * 0.3)  # cotovelo à frente e para fora
+                h._polos[("braco", sf)] = pol.normalized()
+                h.ik("braco", sf, Ti @ alvo_m - Rh @ h.off_peg[sf], Rh)  # barra no túnel dos dedos, por baixo
+        return centro, eixo
     for _ in range(2):
         for sf, sx_ in ((".L", 1), (".R", -1)):
             alvo_m = centro + eixo * (meia * sx_)

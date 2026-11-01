@@ -458,6 +458,8 @@ def bola_no_ar(ctx, tau):
 
 
 def tipo_cabo(ctx):
+    if "pallof" in ctx.id or any(pr.get("pegador") == "unico" for pr in ctx.props if pr.get("tipo") == "cabo"):
+        return "unico"
     if "triangulo" in ctx.id or "remada-baixa" in ctx.id:
         return "triangulo"
     if any(s_ in ctx.id for s_ in ("triceps", "face", "abdominal")):
@@ -554,6 +556,11 @@ def pegada_implementos(ctx, h, T, tau, extras):
         elif tc == "barra":
             for sf, g in ((".L", gL), (".R", gR)):
                 pegar_em(h, T, sf, g, lat, passes=1)
+        elif tc == "unico":
+            # pegador único (D) seguro pelas duas mãos juntas no centro (pallof)
+            for sf, sx in ((".L", 1), (".R", -1)):
+                pegar_em(h, T, sf, c + lat * (0.3 * sx), lat)
+            extras["unico"] = (c, lat)
     pc = getattr(ctx, "pegadores", None)
     if pc and pc.get("tipo") == "eliptico":
         for sf, sx in ((".L", 1), (".R", -1)):
@@ -864,9 +871,7 @@ def _bloco(kit, ctx, h, r, rects, am, idd, k):
                 kit.caixa((0, cy, (zs + zt) / 2 + 0.2), (lx * 2, max(L, 0.7), zt - zs - 0.4), kit.estofado, 0.25)
                 kit.viga((0, cy + (0.6 if cy > assento[0]["y0"] else -0.6), 0.2), (0, cy + 0.6, zt - 1.0), 0.6, 0.6, kit.quadro)
             elif "scott" in idd:
-                kit.viga((0, cy, 0.2), (0, cy, zt - 1.4), 0.6, 0.6, kit.quadro)
-                kit.caixa((0, cy - 0.5, zt - 0.7), (lx * 2, 2.6, 0.7), kit.estofado, 0.25, rot=(math.radians(-35), 0, 0))
-                kit.caixa((0, cy, 0.1), (3.0, 4.0, 0.2), kit.quadro, 0.05)
+                return  # banco Scott desenhado em _apoio_scott (almofada que acompanha o braço)
             elif any(x in idd for x in ("eliptico", "escada", "sled")):
                 return  # aparelho dedicado (desenhado em _extras_maquina)
             else:
@@ -944,7 +949,7 @@ def preparar_alavancas(ctx, h):
             piv = Vector((sx * (abs(o.x) + 3.2), o.y + 0.8, o.z - 1.0))  # por fora e abaixo do braço (não corta o ombro)
         elif tipo == "peck":
             ax = CIMA.copy()
-            piv = Vector((sx * 1.9, o.y + 0.4, 0.0))
+            piv = Vector((o.x, o.y, 0.0))  # eixo vertical pelo ombro: o arco da mão é sempre alcançável (alavanca rígida)
         else:
             ax = Vector((0, 1, 0))
             A, B = min(G, key=lambda p: p.z), max(G, key=lambda p: p.z)
@@ -961,7 +966,8 @@ def preparar_alavancas(ctx, h):
         for g in G:
             r = g - piv
             dist.append((r - ax * r.dot(ax)).length)
-        cfg[sf] = (piv, ax, sum(dist) / len(dist))
+        # peck-deck: raio = o menor (sempre alcançável: a alavanca nunca muda de comprimento)
+        cfg[sf] = (piv, ax, min(dist) if tipo == "peck" else sum(dist) / len(dist))
     return cfg
 
 
@@ -980,7 +986,7 @@ def ik_alavancas(ctx, h, T):
     if not cfg:
         return
     Ti3 = T.inverted().to_3x3()
-    for _ in range(2):
+    for _ in range(5):
         for sf in (".L", ".R"):
             g = T @ h.pegada(sf)
             gn = _proj_alavanca(cfg[sf], g)
@@ -1044,8 +1050,10 @@ def _bracos_maquina(kit, ctx, h, encosto):
                 Kit.por_cil(liga[sf], topo_m, cot)
                 Kit.por_cil(alav[sf], cot, Vector((piv.x, piv.y, zarm[sf])))
             else:
-                E = Vector((g.x, piv.y, g.z))
-                Kit.por_cil(liga[sf], g, E)
+                # desenvolvimento: a ligação sai da ponta de FORA do pegador (a mão fica no meio dele)
+                fora = g + e * 0.75 if (g + e * 0.75).x * sx > (g - e * 0.75).x * sx else g - e * 0.75
+                E = Vector((fora.x + sx * 0.3, piv.y, fora.z))
+                Kit.por_cil(liga[sf], fora, E)
                 Kit.por_cil(alav[sf], E, piv)
     kit.moveis.append(upd)
 
@@ -1225,14 +1233,14 @@ def _apoio_scott(kit, ctx, h):
     nrm = d.cross(X)
     if nrm.z < 0:
         nrm = -nrm
-    centro = meio - nrm * 1.0 + d * 0.2
-    o = kit.caixa((0, 0, 0), (5.6, 4.2, 0.9), kit.estofado, 0.3)
+    centro = meio - nrm * 1.2 + d * 1.9  # borda de cima abaixo da axila (não entra no tórax nem no braço)
+    o = kit.caixa((0, 0, 0), (5.6, 2.8, 0.9), kit.estofado, 0.3)
     o.matrix_world = Matrix.Translation(centro) @ _alinhar(Vector((0, 1, 0)), d).to_3x3().to_4x4() @ Matrix.Identity(4)
     # garante que o "cima" da almofada é a normal
     up = (o.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
     if up.dot(nrm) < 0:
         o.matrix_world = o.matrix_world @ Matrix.Rotation(math.pi, 4, "Y")
-    kit.viga(Vector((0, centro.y - d.y * 1.0, 0.1)), centro - nrm * 0.3 - d * 1.0, 0.6, 0.6, kit.quadro)
+    kit.viga(Vector((0, centro.y + d.y * 0.6, 0.1)), centro - nrm * 0.3 + d * 0.6, 0.6, 0.6, kit.quadro)
     kit.caixa((0, centro.y, 0.1), (3.0, 3.0, 0.2), kit.quadro, 0.05)
 
 
@@ -1318,10 +1326,12 @@ def _hack(kit, ctx, h, estados):
     if a_tr.z < 0.4:
         a_tr = a_tr + u_m * ((0.4 - a_tr.z) / max(u_m.z, 0.2))
     for sx in (-1, 1):
-        kit.viga(a_tr + X * sx * 1.7, b_tr + X * sx * 1.7, 0.45, 0.55, kit.metal)
-        kit.viga(Vector((sx * 1.7, b_tr.y, 0.1)), b_tr + X * sx * 1.7 + Vector((0, 0, 0.3)), 0.6, 0.6, kit.quadro)
-        kit.viga(Vector((sx * 1.7, a_tr.y, 0.1)), a_tr + X * sx * 1.7, 0.6, 0.6, kit.quadro)
-    kit.viga(b_tr + Vector((-2.1, 0, 0.3)), b_tr + Vector((2.1, 0, 0.3)), 0.5, 0.5, kit.quadro)
+        # trilhos por fora das pernas (como no leg press)
+        kit.viga(a_tr + X * sx * 2.8, b_tr + X * sx * 2.8, 0.45, 0.55, kit.metal)
+        kit.viga(Vector((sx * 2.8, b_tr.y, 0.1)), b_tr + X * sx * 2.8 + Vector((0, 0, 0.3)), 0.6, 0.6, kit.quadro)
+        kit.viga(Vector((sx * 2.8, a_tr.y, 0.1)), a_tr + X * sx * 2.8, 0.6, 0.6, kit.quadro)
+        kit.viga(b_tr + X * sx * 1.4, b_tr + X * sx * 2.8, 0.4, 0.4, kit.quadro)
+    kit.viga(b_tr + Vector((-3.2, 0, 0.3)), b_tr + Vector((3.2, 0, 0.3)), 0.5, 0.5, kit.quadro)
     # plataforma inclinada sob os pés (fixa) + base no chão até os trilhos
     pc, pn = _plataforma(h, T0)
     up = -pn
@@ -1335,7 +1345,7 @@ def _hack(kit, ctx, h, estados):
     y_fr = centro.y - 2.6
     if centro.z > 0.5:
         for sx in (-1, 1):
-            kit.viga(Vector((sx * 3.0, centro.y, 0.1)), centro + Vector((sx * 3.0, 0, -0.2)), 0.5, 0.5, kit.quadro)
+            kit.viga(Vector((sx * 2.4, centro.y, 0.1)), centro + Vector((sx * 2.4, 0, -0.25)), 0.5, 0.5, kit.quadro)
     for sx in (-1, 1):
         kit.viga(Vector((sx * 2.3, y_fr, 0.2)), Vector((sx * 2.3, b_tr.y + 0.6, 0.2)), 0.5, 0.4, kit.quadro)
     for yy in (y_fr, b_tr.y + 0.6):
@@ -1356,7 +1366,8 @@ def _hack(kit, ctx, h, estados):
             e = T.to_3x3() @ h.eixo_polegar(sf)
             Kit.por_cil(pega[sf], g - e * 0.6, g + e * 0.6)
             lado = c + u * float((g - c).dot(u)) + X * sx * (dims[0] / 2 - 0.2) + nb * 0.2
-            Kit.por_cil(braco_p[sf], g + X * sx * 0.3, lado)
+            ponta = g + e * 0.6 if (g + e * 0.6).x * sx > (g - e * 0.6).x * sx else g - e * 0.6
+            Kit.por_cil(braco_p[sf], ponta, lado)  # haste sai da ponta de fora do pegador (não da mão)
     kit.moveis.append(upd)
     _ = estado_ini
 
@@ -1688,6 +1699,14 @@ def _polia(kit, ctx, pr, am):
             pts = [polias[0].lerp(p_fim, i_ / 8) for i_ in range(9)]
             _por_fio(fio, contornar(h, T, pts, ("mao_f", "mao_t", "antebraco_f", "antebraco_t"), folga=0.35))
             cabos[0].hide_render = True
+        if tipo == "unico":
+            c, lat = est["extras"].get("unico", ((gL + gR) / 2, (gL - gR).normalized()))
+            Kit.por_cil(tri[0], c - lat * 0.75, c + lat * 0.75)
+            tri[0].hide_render = False
+            cabo_ate(c + (polias[0] - c).normalized() * 0.35)
+            for o in cordas + [alca, puxador]:
+                o.hide_render = True
+            return
         if tipo == "triangulo":
             c, lat, eixo = est["extras"].get("triangulo", ((gL + gR) / 2, (gL - gR).normalized(), Vector((0, 1, 0))))
             topo = c + (polias[0] - c).normalized() * 1.1
@@ -1889,8 +1908,12 @@ def _elastico(kit, ctx, h, pr, am):
             cima = (T.to_3x3() @ (R_up @ Vector((0, 0, 1)))).normalized()
             for sf in (".L", ".R"):
                 _por_alca(alcas[sf], h, T, sf)
-            ctrl = [T @ h.pegada(".L"), T @ h.cabeca("upperarm01.L") + tras * 1.1 - cima * 0.5,
-                    T @ h.cabeca("spine01") + tras * 1.3, T @ h.cabeca("upperarm01.R") + tras * 1.1 - cima * 0.5, T @ h.pegada(".R")]
+            # mão -> por baixo do cotovelo -> axila (abaixo do ombro, por trás) -> escápulas -> ... (nunca por dentro do braço)
+            baixo = Vector((0, 0, -1))
+            ctrl = [T @ h.pegada(".L"), T @ h.cabeca("lowerarm01.L") + baixo * 0.6 + tras * 0.3,
+                    T @ h.cabeca("upperarm01.L") + tras * 0.9 - cima * 1.1, T @ h.cabeca("spine01") + tras * 1.4 - cima * 0.4,
+                    T @ h.cabeca("upperarm01.R") + tras * 0.9 - cima * 1.1, T @ h.cabeca("lowerarm01.R") + baixo * 0.6 + tras * 0.3,
+                    T @ h.pegada(".R")]
             pts = []
             m = len(ctrl)
             por = 6
@@ -1901,7 +1924,7 @@ def _elastico(kit, ctx, h, pr, am):
                     t2, t3 = t * t, t * t * t
                     pts.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3))
             pts.append(ctrl[-1])
-            _por_fio(segs, contornar(h, T, pts, ("mao_f", "mao_t")))
+            _por_fio(segs, contornar(h, T, pts, ("mao_f", "mao_t"), folga=0.35, iters=4))
         kit.moveis.append(upd_c)
         return
     # entre as mãos (band pull-apart): contorna o peito quando as mãos passam do plano dos ombros
