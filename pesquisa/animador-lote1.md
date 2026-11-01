@@ -28,3 +28,5 @@ Fonte dos defeitos: `pesquisa/auditoria-lote1.md`. QA: `tools/anim3d/qa.py` só 
 | coice-gluteo | ok | 0 erros, 0 avisos | joelhos declarados como apoio (antes a 7 cm do tapete) |
 | terra-uma-perna | ok | 0 erros, 1 aviso | pé de apoio sob a linha do corpo (pfa -7) e quadril sobre o pé na descida (x -1.2): centro de massa dentro da base (antes 11 cm fora); aviso: braço 3,5 cm no tronco num quadro |
 | monster-walk | pendente motor | 1 erro (4–6 quadros) | refeito com transferência de peso antes de cada passo (12+ chaves: desloca o quadril sobre o pé de apoio, depois passo de 18 cm): centro de massa fora da base caiu de 21 quadros/26 cm para 4–6 quadros/10 cm; o resto é o pé que pousa depois da chave (ver motor-pendencias) |
+| panturrilha-sentado | ok | 0 erros, 0 avisos | banco h 4.3 com o glúteo assentado, bloco só sob o antepé (x 4.5), calcanhar desce abaixo da borda (pé 125) e sobe a 70; almofada da coxa e pegadores do motor |
+| dead-bug | ok | 0 erros, 0 avisos | apoio pelve/costas/cabeça declarado (cabeça no tapete; antes 5 cm no ar), perna e braço estendidos param acima do tapete |
