@@ -1471,6 +1471,9 @@ def regioes_apoio(ctx, q, p2):
     return []
 
 
+ENC_MIN = 10.5  # encosto inclinado longo o bastante para apoiar costas e cabeça (com apoio de cabeça)
+
+
 def encostos(ctx):
     """Encostos inclinados dos bancos com "inc" (mesma geometria de aparelhos._bloco): (base, direção, normal, comp, xc, lx)."""
     if "quad" not in ctx.ref:
@@ -1486,7 +1489,7 @@ def encostos(ctx):
             ang = math.radians(float(pr["inc"]))
             base = Vector((pr.get("z", 0.0) * k, y1 - 0.2, zt - 0.35))
             out.append((base, Vector((0, math.cos(ang), math.sin(ang))), Vector((0, -math.sin(ang), math.cos(ang))),
-                        pr.get("enc", 7.0) * k, pr.get("z", 0.0) * k, 3.2))
+                        max(pr.get("enc", 7.0), ENC_MIN) * k, pr.get("z", 0.0) * k, 3.2))
     return out
 
 
@@ -1547,13 +1550,22 @@ def cabeca_no_apoio(h, ctx, T):
     Rs = T.to_3x3() @ h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
     if (Rs @ FRENTE).z < 0.5:
         return
-    P = h.proxy(T)
     m = h.px_partes["cabeca"]
-    Q = P[m]
-    g = float((Q[:, 2] - superficie_vet(ctx, Q)).min())
-    if not (0.03 < g < 0.9):
+    encs = encostos(ctx)
+
+    def gap_q(Q):
+        g_ = float((Q[:, 2] - superficie_vet(ctx, Q)).min())
+        for base, dv, n_, comp, xc, lx in encs:  # encosto inclinado: distância pela normal da face
+            rel = Q - np.array(base)
+            t_ = rel @ np.array(dv)
+            ok_ = (t_ > -0.2) & (t_ < comp + 0.3) & (np.abs(Q[:, 0] - xc) < lx)
+            if ok_.any():
+                g_ = min(g_, float((rel[ok_] @ np.array(n_)).min()) - 0.35)
+        return g_
+    g = gap_q(h.proxy(T)[m])
+    if not (0.03 < g < 1.3):
         return
-    peso = 1.0 - mov.suave(g, 0.5, 0.9)  # some aos poucos (sem pulo da cabeça)
+    peso = 1.0 - mov.suave(g, 0.9, 1.3)  # some aos poucos (sem pulo da cabeça)
     eixo = (T.to_3x3().inverted() @ ESQ).normalized()
     est0 = {n: h.basis[n].copy() for n in ("neck01", "neck02")}
 
@@ -1563,10 +1575,9 @@ def cabeca_no_apoio(h, ctx, T):
             h._mudou(n)
         for n in ("neck01", "neck02"):
             h.set_rot(n, Quaternion(eixo, a * 0.5).to_matrix() @ h.rot(n))
-        Q2 = h.proxy(T)[m]
-        return float((Q2[:, 2] - superficie_vet(ctx, Q2)).min())
+        return gap_q(h.proxy(T)[m])
     sinal = 1.0 if gap_com(math.radians(8)) < g else -1.0
-    lo, hi = 0.0, math.radians(30)
+    lo, hi = 0.0, math.radians(48)
     for _ in range(10):
         mid = (lo + hi) / 2
         if gap_com(sinal * mid) > 0.01:
@@ -2103,6 +2114,13 @@ def plantar(h, ctx, T, chaves, i, j, u):
     ctx._alvos = {}
     ea, eb = chaves[i]["ef"], chaves[j]["ef"]
     rolar = ctx.rolar
+    # troca de apoio no mesmo trecho (um pé pousa, o outro sai): quem chega pousa na 1ª metade e quem sai só descola na
+    # 2ª metade — nunca os dois no ar ao mesmo tempo, o passo termina (peso 1) antes da chave de chegada
+    chega = {e for e in ("pe_f", "pe_t") if eb[e]["contato"] and not ea[e]["contato"]}
+    sai = {e for e in ("pe_f", "pe_t") if ea[e]["contato"] and not eb[e]["contato"]}
+    # (só quando o pé que chega já está perto do ponto de pouso na chave anterior: pé pairando, passo lateral curto)
+    troca = (bool(chega) and bool(sai) and not rolar
+             and all((ea[e]["pos"] - eb[e]["pos"]).length < 1.2 for e in chega))
     for ef, membro, sf in EFETORES:
         if membro == "braco" and ctx.barra is not None and "barra3" in ctx.ref:
             continue  # mãos na barra fixa: segurar_barra cuida delas
@@ -2152,10 +2170,20 @@ def plantar(h, ctx, T, chaves, i, j, u):
                 if wgt > 0.999:
                     ctx._alvos[ef] = (pos.copy(), membro, sf, 1.0)
                 continue
-            # passo: sai de um apoio e pousa no outro num arco baixo
+            # passo: sai de um apoio e pousa no outro num arco baixo, por cima de qualquer degrau/caixa no caminho
             sm = mov.suave(u, 0.08, 0.92)
             alt = min(0.9, 0.2 * dist)
             pos = a["pos"].lerp(b["pos"], sm) + Vector((0, 0, alt * math.sin(math.pi * sm)))
+            if len(ctx.superficies()) > 1:
+                # elevação única do arco (calculada no caminho todo, aplicada pelo seno: contínua) para passar sobre a quina
+                sola = max(a["pos"].z - a["zmin"], b["pos"].z - b["zmin"])
+                need = 0.0
+                for s_ in (0.15, 0.25, 0.35, 0.5, 0.65, 0.75, 0.85):
+                    p_ = a["pos"].lerp(b["pos"], s_)
+                    zl = p_.z + alt * math.sin(math.pi * s_)
+                    zs = ctx.superficie_suave(p_, p_.z + 6.0)
+                    need = max(need, (zs + sola + 0.15 - zl) / max(math.sin(math.pi * s_), 0.3))
+                pos.z += need * math.sin(math.pi * sm)
             rot = _slerp(a["rot"], b["rot"], sm)
             h.ik(membro, sf, Ti @ pos, Tqi @ rot.to_matrix())
             pesos[ef] = 1.0 - math.sin(math.pi * sm)
@@ -2170,10 +2198,10 @@ def plantar(h, ctx, T, chaves, i, j, u):
             piv = a["ponta"].lerp(b["ponta"], sm)
             pos = piv + rot.to_matrix() @ off_a.lerp(off_b, sm)
         elif a["contato"]:
-            w = 1.0 - mov.suave(u, 0.0, 0.45)
+            w = 1.0 - (mov.suave(u, 0.5, 0.95) if (troca and ef in sai) else mov.suave(u, 0.0, 0.45))
             pos, rot = a["pos"], a["rot"]
         elif b["contato"]:
-            w = mov.suave(u, 0.55, 1.0)
+            w = mov.suave(u, 0.05, 0.5) if (troca and ef in chega) else mov.suave(u, 0.55, 1.0)
             pos, rot = b["pos"], b["rot"]
         else:
             continue
@@ -2219,7 +2247,7 @@ def alcancar_apoios(h, ctx, T, pesos, seg):
     for _ in range(4):
         pior = None
         for ef, (alvo, membro, sf, w) in getattr(ctx, "_alvos", {}).items():
-            r = (alvo - T @ h.cabeca(_fim(membro, sf))) * mov.suave(w, 0.3, 1.0)  # peso contínuo (sem degrau)
+            r = (alvo - T @ h.cabeca(_fim(membro, sf))) * mov.suave(w, 0.0, 1.0) ** 2  # peso contínuo (sem degrau)
             if pior is None or r.length > pior.length:
                 pior = r
         if pior is None or pior.length < 0.004 or pior.length > 2.0:
@@ -2262,6 +2290,86 @@ def assentar_apoios(h, ctx, T, pesos):
             res.append(_gap_apoio(h, ctx, T, P, ef, membro, sf))
     if res and min(res) > 0.001 and max(res) < 0.6:
         T = Matrix.Translation((0, 0, -min(res))) @ T
+    return T
+
+
+def _casco2d(P):
+    """Fecho convexo 2D (cadeia monotônica)."""
+    pts = sorted(set(map(tuple, np.round(P, 3))))
+    if len(pts) < 3:
+        return np.array(pts)
+
+    def cr(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for p_ in pts:
+        while len(lo) >= 2 and cr(lo[-2], lo[-1], p_) <= 0:
+            lo.pop()
+        lo.append(p_)
+    for p_ in reversed(pts):
+        while len(hi) >= 2 and cr(hi[-2], hi[-1], p_) <= 0:
+            hi.pop()
+        hi.append(p_)
+    return np.array(lo[:-1] + hi[:-1])
+
+
+MASSA_PARTE = (("tronco", 0.50), ("cabeca", 0.08), ("coxa_f", 0.10), ("coxa_t", 0.10), ("canela_f", 0.06), ("canela_t", 0.06),
+               ("braco_f", 0.035), ("braco_t", 0.035), ("antebraco_f", 0.022), ("antebraco_t", 0.022))
+
+
+def centro_massa(h, P):
+    """Centro de massa aproximado (massas segmentares de Dempster sobre as regiões da pele)."""
+    c, m = np.zeros(3), 0.0
+    for parte, w in MASSA_PARTE:
+        q = P[h.px_partes[parte]]
+        if len(q):
+            c += q.mean(axis=0) * w
+            m += w
+    return c / max(m, 1e-9)
+
+
+def centro_na_base(h, ctx, T, pesos, seg, lim=0.6):
+    """Em pé com os dois pés plantados (e sem mão presa a nada): se o centro de massa sai do polígono de apoio, o quadril
+    desliza o que falta (até ~6 cm) e os pés continuam presos (IK). Peso contínuo pelo apoio dos pés."""
+    if not ctx.em_pe or ctx.barra is not None or ctx.ocupadas or getattr(ctx, "pegadores", None):
+        return T
+    if any(pesos.get(e, 0.0) > 0.05 for e in ("mao_f", "mao_t")):
+        return T
+    w = min(pesos.get("pe_f", 0.0), pesos.get("pe_t", 0.0))
+    if w < 1e-3:
+        return T
+    P = h.proxy(T)
+    m = (h.px_partes["pe_f"] | h.px_partes["pe_t"]) & (P[:, 2] < ctx.z0 + 0.18)
+    if m.sum() < 6:
+        return T
+    H_ = _casco2d(P[m][:, :2])
+    if len(H_) < 3:
+        return T
+    c = centro_massa(h, P)[:2]
+    # distância do CM ao polígono (0 se dentro) e ponto mais próximo da borda
+    dentro = True
+    melhor, dmin = None, 1e9
+    n = len(H_)
+    for k_ in range(n):
+        a_, b_ = H_[k_], H_[(k_ + 1) % n]
+        e_ = b_ - a_
+        if (e_[0] * (c[1] - a_[1]) - e_[1] * (c[0] - a_[0])) < 0:
+            dentro = False
+        t_ = np.clip(np.dot(c - a_, e_) / max(np.dot(e_, e_), 1e-9), 0, 1)
+        q_ = a_ + e_ * t_
+        d_ = np.linalg.norm(c - q_)
+        if d_ < dmin:
+            dmin, melhor = d_, q_
+    if dentro:
+        return T
+    cen = H_.mean(axis=0)
+    alvo = melhor + (cen - melhor) * min(1.0, 0.15 / max(np.linalg.norm(cen - melhor), 1e-6))
+    d = (alvo - c) * w
+    L = np.linalg.norm(d)
+    if L > lim:
+        d *= lim / L
+    T = Matrix.Translation((float(d[0]), float(d[1]), 0.0)) @ T
+    plantar(h, ctx, T, ctx.chaves, *seg)
     return T
 
 
@@ -2748,6 +2856,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
         T2 = alcancar_apoios(h, ctx, T, pesos, seg)
         if T2 is not T:  # o corpo andou e o membro foi re-plantado: refaz o encosto vertical
             T = assentar_apoios(h, ctx, T2, pesos)
+    if pesos and seg is not None:
+        T = centro_na_base(h, ctx, T, pesos, seg)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
         T2 = sem_atravessar(h, ctx, T, fixos)

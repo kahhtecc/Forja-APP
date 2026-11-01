@@ -838,7 +838,7 @@ def _bloco(kit, ctx, h, r, rects, am, idd, k):
         inc = r["pr"].get("inc")
         if inc:
             # encosto inclinado saindo da borda de trás (lado -x 2D = +y no mundo) do assento
-            comp = r["pr"].get("enc", 7.0) * k
+            comp = max(r["pr"].get("enc", 7.0), 10.5) * k  # costas e cabeça apoiadas (mesmo valor de humano.ENC_MIN)
             a = math.radians(float(inc))
             base = Vector((0, y1 - 0.2, zt - 0.35))
             topo = base + Vector((0, math.cos(a) * comp, math.sin(a) * comp))
