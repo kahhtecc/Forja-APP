@@ -38,3 +38,16 @@ Fonte dos defeitos: `pesquisa/auditoria-lote1.md`. QA: `tools/anim3d/qa.py` só 
 | abdominal-infra | ok | 0 erros, 1 aviso | braços mais rentes ao chão; aviso: antebraço 4 cm acima do tapete |
 | mountain-climber | ok | 0 erros, 4 avisos | perna que volta quase estendida e rente ao chão, quadril baixo (y 4.8, t 98), joelho que avança menos (pf [88,-50]); avisos: extensão do punho 89–90° (apoio nas mãos) e flexão do quadril 160° em 4 quadros |
 | mesa-flexora | ok | 0 erros, 7 avisos | banco maior e mais estreito (x -4.2, w 11.5, larg 2.3) para as mãos alcançarem os pegadores sob a cabeceira sem entrar no estofado, tronco t 94 (pelve no banco); avisos: cotovelo torcido, mão 1,5 cm no estofado, joelho fora do banco (correto: joelho na borda) |
+| abdominal | ok | 0 erros, 2 avisos | sem `y` (pelve e lombar no tapete, motor apoia), apoios declarados (pelve/costas/cabeça + pés no repouso, pelve + pés na subida), braços estendidos em direção aos joelhos (variante "mãos deslizando nas coxas": cruzadas no peito atravessavam o tórax e atrás da cabeça cobria o rosto); aviso: antebraços no ar na subida (correto) |
+| roda-abdominal | ok | 0 erros, 2 avisos | roda abdominal de verdade ({"tipo":"roda"}), mãos fechadas nas manoplas (bfa 0); aviso: joelhos "pousados" 7 cm em 12 quadros (rolamento) |
+| abdominal-polia | ok | 0 erros, 0 avisos | polia alta à frente (ate [6.5,18.5]), cabo da torre até a corda atrás da cabeça |
+| ponte-pescoco | ok | 0 erros, 2 avisos | sem `rol` (pés plantados), ponte com trp 30 / tr -25 / inc 10 sobre o ombro, apoios pés + costas/cabeça; repouso com braços no chão; avisos: rotação da coluna 53° (é o rolamento), braço 3,7 cm no tronco num quadro |
+| elevacao-pernas-barra | ok | 0 erros, 0 avisos | barra a 25.5 (pés longe do chão), mãos presas na barra, cam 40 (rosto visível) |
+| educativos-corrida | ok | 0 erros, 0 avisos | pé de apoio no antepé (70) em vez de ponta |
+| bound-lateral | ok | 0 erros, 0 avisos | pé de aterrissagem sob o corpo (pfa/pta -6: centro de massa na base), pernas no voo com a de impulso saindo para o lado |
+| salto-tesoura | ok | 0 erros, 0 avisos | sem mudança (conferido) |
+| tuck-jump | ok | 0 erros, 0 avisos | sem mudança (conferido) |
+| canivete | ok | 0 erros, 1 aviso | sem mudança; aviso: coluna dobrada 27° num segmento em 12 quadros |
+| bike-subida | ok | 0 erros, 4 avisos | sem mudança nos dados: o motor agora leva os pés aos pedais e as mãos ao guidão; avisos: pé 1,0–1,2 cm no pedal |
+| sentar-levantar | ok | 0 erros, 0 avisos | sem mudança (conferido; centro de massa ok no qa atual) |
+| russian-twist | ok | 0 erros, 4 avisos | sem mudança (bola nas mãos atravessava as coxas); avisos: braços 6 cm no tronco em 9 quadros nos extremos da rotação |
