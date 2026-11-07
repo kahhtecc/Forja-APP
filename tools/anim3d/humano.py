@@ -448,6 +448,9 @@ class Humano:
         q = cur.normalized().rotation_difference(d.normalized())
         self.set_rot(n, q.to_matrix() @ self.rot(n))
 
+    modo_braco = {}
+    _ang_max = {}
+
     def braco(self, sf, db, da, punho=True):
         """Braço com rotação do úmero: depois de apontar o braço, o úmero gira em torno do próprio eixo até o cotovelo
         dobrar para o lado do antebraço (plano braço-antebraço), com mistura contínua quando o cotovelo está quase reto. O
@@ -456,8 +459,9 @@ class Humano:
         self.apontar("upperarm01" + sf, db)
         flex = math.degrees(db.angle(da)) if db.length > 1e-9 and da.length > 1e-9 else 0.0
         w = mov.suave(flex, 6.0, 22.0)
+        R = self.rot("upperarm01" + sf)
+        ang = 0.0
         if w > 0:
-            R = self.rot("upperarm01" + sf)
             dob = R @ self._dobra_local[sf]
             dp = dob - db * dob.dot(db)
             ap = da - db * da.dot(db)
@@ -465,12 +469,19 @@ class Humano:
                 dp.normalize()
                 ap.normalize()
                 ang = math.atan2(dp.cross(ap).dot(db), dp.dot(ap))
-                self.set_rot("upperarm01" + sf, Quaternion(db, ang * w).to_matrix() @ R)
-        self._apontar_min("upperarm02" + sf, db)
-        self._apontar_min("lowerarm01" + sf, da)
-        self._apontar_min("lowerarm02" + sf, da)
-        if punho:
-            self._apontar_min("wrist" + sf, da)
+        # caminho escolhido POR ANIMAÇÃO e por lado (preparar_anim mede o ciclo): rotação do úmero + menor arco quando a
+        # torção de repouso dobraria o cotovelo fora do plano (braço acima da cabeça etc.); senão a torção de repouso.
+        # Sem troca de caminho dentro do ciclo (a troca dava pop na mão).
+        medir = getattr(self, "modo_braco", None)
+        if medir is None or not medir.get(sf, False):
+            if medir is None and w > 0:
+                self._ang_max[sf] = max(self._ang_max.get(sf, 0.0), abs(ang) * w)
+            for n in ("upperarm02", "lowerarm01", "lowerarm02") + (("wrist",) if punho else ()):
+                self.apontar(n + sf, db if n == "upperarm02" else da)
+            return
+        self.set_rot("upperarm01" + sf, Quaternion(db, ang * w).to_matrix() @ R)
+        for n in ("upperarm02", "lowerarm01", "lowerarm02") + (("wrist",) if punho else ()):
+            self._apontar_min(n + sf, db if n == "upperarm02" else da)
 
     def set_local(self, n, q):
         self.basis[n] = q.to_matrix().to_4x4()
@@ -2562,7 +2573,7 @@ def corrigir_barra(h, ctx, T):
         return centro, eixo
     if modo != "maos":
         costas = pesc - fw_t * 0.95 - up_t * 0.55
-        rack = pesc + fw_t * 1.45 - up_t * 0.55
+        rack = pesc + fw_t * (1.45 if modo == "rack" else 1.05) - up_t * 0.55  # rack frontal parado: mais à frente
         alvo = costas if modo == "costas" else rack
         w = 1.0 if modo in ("costas", "rack") else 1.0 - mov.suave((centro - rack).length, 0.7, 2.2)
         if w > 0:
@@ -2704,9 +2715,23 @@ def ancorar_apoios(ctx):
                 e["pos"], e["baixo"], e["ponta"] = e["pos"] + d, e["baixo"] + d, e["ponta"] + d
 
 
+def escolher_modo_braco(h, trilhas, ctx=None):
+    """Mede no ciclo (só a pose, sem IK) se a torção de repouso do úmero faria o cotovelo dobrar fora do plano; decide o
+    caminho do braço da animação inteira por lado."""
+    h.modo_braco = None
+    h._ang_max = {}
+    for j in range(16):
+        q = trilhas(j * trilhas.T / 16, vida=False)
+        q["_qb"] = 0.0
+        h.posar(q, None)
+    novo = ctx is None or ctx.barra_modo != "clean"  # clean: a barra troca de pegada para o rack (caminho de repouso)
+    h.modo_braco = {sf: novo and h._ang_max.get(sf, 0.0) > math.radians(38) for sf in (".L", ".R")}
+
+
 def preparar_anim(h, anim, k, grupo):
     ctx = Contexto(h, anim, k, grupo)
     h.raio_mao = dict(ctx.raio_pega)  # curvatura dos dedos e centro da pegada calibrados para o cabo do implemento
+    escolher_modo_braco(h, mov.TrilhasPose(anim["quadros"], anim.get("tempos"), anim.get("ease")), ctx)
     if grupo == "Trapézio" and not any("oe" in q for q in anim["quadros"]):
         for i_q, q in enumerate(anim["quadros"]):
             q["oe"] = 0 if i_q == 0 else 1
