@@ -1408,6 +1408,7 @@ def _pose2d(q):
     return {"x": q["x"], "y": q["y"], "ay": q["ay"], "t": q["t"], "c": q["c"], "bf": q["bf"], "bt": q["bt"], "pf": q["pf"], "pt": q["pt"]}
 
 
+TROCA_APOIO = ARCO_SOBRE = CM_BASE = ALCANCE_SUAVE = True  # chaves das correções de passo/base (testes de regressão)
 FRAC_ANTEPE = 0.97  # pivô do pé apoiado na meia-ponta: articulação metatarsofalângica (base dos dedos)
 REG_TRONCO = ("pelve", "costas", "cabeca", "lado", "gluteo")
 REG_MEMBRO = {"joelho_f": "joelho_f", "joelho_t": "joelho_t", "cotovelo_f": "antebraco_f", "cotovelo_t": "antebraco_t",
@@ -2119,7 +2120,8 @@ def plantar(h, ctx, T, chaves, i, j, u):
     chega = {e for e in ("pe_f", "pe_t") if eb[e]["contato"] and not ea[e]["contato"]}
     sai = {e for e in ("pe_f", "pe_t") if ea[e]["contato"] and not eb[e]["contato"]}
     # (só quando o pé que chega já está perto do ponto de pouso na chave anterior: pé pairando, passo lateral curto)
-    troca = (bool(chega) and bool(sai) and not rolar
+    troca = (TROCA_APOIO and bool(chega) and bool(sai) and not rolar
+             and float(ctx.trilhas.tempos[i]) >= 0.4  # trecho curto: as janelas comprimidas dariam tranco (step-up)
              and all((ea[e]["pos"] - eb[e]["pos"]).length < 1.2 for e in chega))
     for ef, membro, sf in EFETORES:
         if membro == "braco" and ctx.barra is not None and "barra3" in ctx.ref:
@@ -2174,7 +2176,7 @@ def plantar(h, ctx, T, chaves, i, j, u):
             sm = mov.suave(u, 0.08, 0.92)
             alt = min(0.9, 0.2 * dist)
             pos = a["pos"].lerp(b["pos"], sm) + Vector((0, 0, alt * math.sin(math.pi * sm)))
-            if len(ctx.superficies()) > 1:
+            if ARCO_SOBRE and len(ctx.superficies()) > 1:
                 # elevação única do arco (calculada no caminho todo, aplicada pelo seno: contínua) para passar sobre a quina
                 sola = max(a["pos"].z - a["zmin"], b["pos"].z - b["zmin"])
                 need = 0.0
@@ -2247,7 +2249,7 @@ def alcancar_apoios(h, ctx, T, pesos, seg):
     for _ in range(4):
         pior = None
         for ef, (alvo, membro, sf, w) in getattr(ctx, "_alvos", {}).items():
-            r = (alvo - T @ h.cabeca(_fim(membro, sf))) * mov.suave(w, 0.0, 1.0) ** 2  # peso contínuo (sem degrau)
+            r = (alvo - T @ h.cabeca(_fim(membro, sf))) * (mov.suave(w, 0.0, 1.0) ** 2 if ALCANCE_SUAVE else mov.suave(w, 0.3, 1.0))
             if pior is None or r.length > pior.length:
                 pior = r
         if pior is None or pior.length < 0.004 or pior.length > 2.0:
@@ -2331,14 +2333,22 @@ def centro_massa(h, P):
 def centro_na_base(h, ctx, T, pesos, seg, lim=0.6):
     """Em pé com os dois pés plantados (e sem mão presa a nada): se o centro de massa sai do polígono de apoio, o quadril
     desliza o que falta (até ~6 cm) e os pés continuam presos (IK). Peso contínuo pelo apoio dos pés."""
-    if not ctx.em_pe or ctx.barra is not None or ctx.ocupadas or getattr(ctx, "pegadores", None):
-        return T
+    if not ctx.em_pe or ctx.barra is not None or ctx.ocupadas or getattr(ctx, "pegadores", None) or ctx.voos:
+        return T  # (com fase de voo o apoio duplo é curto demais: o deslocamento daria tranco na aterrissagem)
     if any(pesos.get(e, 0.0) > 0.05 for e in ("mao_f", "mao_t")):
         return T
     w = min(pesos.get("pe_f", 0.0), pesos.get("pe_t", 0.0))
     if w < 1e-3:
         return T
+    # só no apoio duplo firme: os dois pés plantados nas DUAS chaves do trecho (sem voo, sem troca de apoio), nada do
+    # tronco/joelho apoiado (ajoelhado, sentado) — senão o deslocamento varia de um quadro para o outro (pop)
+    i_, j_, _ = seg
+    for c_ in (ctx.chaves[i_], ctx.chaves[j_]):
+        if c_["tronco"] or not (c_["ef"]["pe_f"]["contato"] and c_["ef"]["pe_t"]["contato"]):
+            return T
     P = h.proxy(T)
+    if min(P[h.px_partes["joelho_f"]][:, 2].min(), P[h.px_partes["joelho_t"]][:, 2].min()) < ctx.z0 + 1.5:
+        return T
     m = (h.px_partes["pe_f"] | h.px_partes["pe_t"]) & (P[:, 2] < ctx.z0 + 0.18)
     if m.sum() < 6:
         return T
@@ -2485,7 +2495,7 @@ def segurar_corpo(h, ctx, T, tau):
         R_alvo = h.rot_mao(sf, dd.normalized(), -nrm)
         R0 = h.rot("wrist" + sf).to_quaternion()
         R = R0.slerp(R_alvo.to_quaternion(), w).to_matrix()
-        if nome in ("nuca", "cabeca"):
+        if nome == "nuca":
             # mãos atrás da cabeça: cotovelo para fora, no plano frontal do tronco (rotação do ombro dentro do limite)
             Rs = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
             sx_ = 1 if sf == ".L" else -1
@@ -2856,7 +2866,7 @@ def finalizar(h, ctx, T, tau, seg, maos):
         T2 = alcancar_apoios(h, ctx, T, pesos, seg)
         if T2 is not T:  # o corpo andou e o membro foi re-plantado: refaz o encosto vertical
             T = assentar_apoios(h, ctx, T2, pesos)
-    if pesos and seg is not None:
+    if CM_BASE and pesos and seg is not None:
         T = centro_na_base(h, ctx, T, pesos, seg)
     fixos = {ef for ef, w in pesos.items() if w > 0.999} | extras.get("fixos", set())
     for _ in range(2):
