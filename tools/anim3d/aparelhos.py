@@ -838,7 +838,7 @@ def _bloco(kit, ctx, h, r, rects, am, idd, k):
         inc = r["pr"].get("inc")
         if inc:
             # encosto inclinado saindo da borda de trás (lado -x 2D = +y no mundo) do assento
-            comp = max(r["pr"].get("enc", 7.0), 10.5) * k  # costas e cabeça apoiadas (mesmo valor de humano.ENC_MIN)
+            comp = (max(r["pr"].get("enc", 7.0), 10.5) if "supino" in ctx.id else r["pr"].get("enc", 7.0)) * k  # supinos: cabeça apoiada
             a = math.radians(float(inc))
             base = Vector((0, y1 - 0.2, zt - 0.35))
             topo = base + Vector((0, math.cos(a) * comp, math.sin(a) * comp))
@@ -949,7 +949,7 @@ def preparar_alavancas(ctx, h):
             piv = Vector((sx * (abs(o.x) + 3.2), o.y + 0.8, o.z - 1.0))  # por fora e abaixo do braço (não corta o ombro)
         elif tipo == "peck":
             ax = CIMA.copy()
-            piv = Vector((o.x, o.y, 0.0))  # eixo vertical pelo ombro: o arco da mão é sempre alcançável (alavanca rígida)
+            piv = Vector((sx * 1.9, o.y + 0.4, 0.0))
         else:
             ax = Vector((0, 1, 0))
             A, B = min(G, key=lambda p: p.z), max(G, key=lambda p: p.z)
@@ -966,8 +966,7 @@ def preparar_alavancas(ctx, h):
         for g in G:
             r = g - piv
             dist.append((r - ax * r.dot(ax)).length)
-        # peck-deck: raio = o menor (sempre alcançável: a alavanca nunca muda de comprimento)
-        cfg[sf] = (piv, ax, min(dist) if tipo == "peck" else sum(dist) / len(dist))
+        cfg[sf] = (piv, ax, sum(dist) / len(dist))
     return cfg
 
 

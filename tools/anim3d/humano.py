@@ -1490,14 +1490,15 @@ def encostos(ctx):
             ang = math.radians(float(pr["inc"]))
             base = Vector((pr.get("z", 0.0) * k, y1 - 0.2, zt - 0.35))
             out.append((base, Vector((0, math.cos(ang), math.sin(ang))), Vector((0, -math.sin(ang), math.cos(ang))),
-                        max(pr.get("enc", 7.0), ENC_MIN) * k, pr.get("z", 0.0) * k, 3.2))
+                        (max(pr.get("enc", 7.0), ENC_MIN) if "supino" in ctx.id else pr.get("enc", 7.0)) * k,
+                        pr.get("z", 0.0) * k, 3.2))
     return out
 
 
 def encostar_inclinado(h, ctx, T, regs, w=1.0):
     """Costas/cabeça encostam na face de cima do encosto inclinado (espessura 0,7): desloca o corpo pela normal."""
-    if not ({"costas", "cabeca"} & set(regs)) or w <= 1e-4:
-        return T
+    if not ({"costas", "cabeca"} & set(regs)) or w <= 1e-4 or "supino" not in ctx.id:
+        return T  # (só nos supinos inclinados; no leg press o encosto dos dados já está ajustado ao corpo)
     encs = encostos(ctx)
     if not encs:
         return T
@@ -1522,7 +1523,7 @@ def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
     (sentado no assento real, deitado no banco/chão: nada de pousar no ar nem afundar); costas no encosto inclinado."""
     if not regs or w <= 1e-4:
         return T
-    if encostos(ctx) and ({"costas", "cabeca"} & set(regs)):
+    if "supino" in ctx.id and encostos(ctx) and ({"costas", "cabeca"} & set(regs)):
         T = encostar_inclinado(h, ctx, T, regs, w)
         T = _apoiar_vertical(h, ctx, T, [r for r in regs if r in ("pelve", "gluteo")] or regs, w, lim)
         return encostar_inclinado(h, ctx, T, regs, w)
