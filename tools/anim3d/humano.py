@@ -2725,7 +2725,9 @@ def escolher_modo_braco(h, trilhas, ctx=None):
         q["_qb"] = 0.0
         h.posar(q, None)
     novo = ctx is None or ctx.barra_modo != "clean"  # clean: a barra troca de pegada para o rack (caminho de repouso)
-    h.modo_braco = {sf: novo and h._ang_max.get(sf, 0.0) > math.radians(38) for sf in (".L", ".R")}
+    # pegador único seguro pelas duas mãos juntas (pallof): antebraço segue o braço (sem torção de repouso)
+    forca = ctx is not None and "cabo" in ctx.tipos and aparelhos.tipo_cabo(ctx) == "unico"
+    h.modo_braco = {sf: forca or (novo and h._ang_max.get(sf, 0.0) > math.radians(38)) for sf in (".L", ".R")}
 
 
 def preparar_anim(h, anim, k, grupo):
