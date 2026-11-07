@@ -126,3 +126,16 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
   postura-crianca (flexão do quadril > 125° nos dados; inchworm com chaves por passo de mão), hack (geometria do aparelho x pose).
 - Pendências do motor (antigas): torção do antebraço na pegada supinada pendurada (barra-supinada, ~170°) e comprimento da
   alavanca do peck-deck quando a mão não alcança o arco; centro de massa dentro da base não é corrigido automaticamente.
+
+### Rodada de pendências do motor (pesquisa/motor-pendencias.md)
+- Rotação do úmero pelo plano do cotovelo, escolhida POR ANIMAÇÃO e por lado (`escolher_modo_braco`: só quando a torção
+  de repouso dobraria o cotovelo > 38° fora do plano, ou com pegador único; nunca no clean) — sem troca dentro do ciclo.
+- Paralelas (polegar automático), chin-up com cotovelos à frente, rack frontal (dedos sob a barra), encosto inclinado como
+  apoio das costas/cabeça (supinos), elástico pelas costas por baixo da axila, Scott, pegador único do pallof, hastes na
+  ponta de fora do pegador (desenvolvimento-máquina, hack), trilhos do hack por fora, troca de apoio sem os dois pés no ar
+  (trechos ≥ 0,4 s), arco do passo sobre caixa/degrau, centro de massa para dentro da base no apoio duplo firme.
+- Regressões achadas e corrigidas no QA dos três lotes: pops (step-up, salto-distância, nórdico, tríceps), peck-deck,
+  leg press, power-clean, arremesso rotacional, rolo-quadríceps, isometria de pescoço, pallof.
+- QA final (qa.py HEAD) nos 44 ids (ok do lote3 + regressões + pendências): todos os que estavam ok voltaram a sem erro ou
+  só avisos; erros restantes = dados/limitações listadas em motor-pendencias.md (afundo-halteres, box-jump, monster-walk:
+  CM no apoio simples; abdominal-bicicleta: braços dos dados; supinos inclinados: cabeça 5,5 cm pela medida do qa).
