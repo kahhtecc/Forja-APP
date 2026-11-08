@@ -1636,7 +1636,21 @@ def _polia(kit, ctx, pr, am):
         kit.disco(A, 1.7, 1.2, kit.quadro, verts=48)
         kit.toro(A + Vector((0.65, 0, 0)), 1.3, 0.07, kit.brasa)
         tras = ctx.p3(-11, 0.8)
-        kit.viga(Vector((0, A.y, 0.6)), Vector((0, tras.y, 0.6)), 1.0, 0.35, kit.quadro)
+        # monotrilho na altura do assento (logo abaixo dos ísquios no ponto mais baixo do ciclo), não fixo
+        zt = 0.6
+        est_ = getattr(ctx, "_estados", None) or []
+        zs_ = []
+        for est in est_[:: max(1, len(est_) // 12)]:
+            ctx.h.restaurar(est["est"])
+            P = ctx.h.proxy(est["T"])
+            Q = P[ctx.h.px_partes["tronco"] & (np.abs(P[:, 0]) < 1.3)]
+            if len(Q):
+                zs_.append(float(Q[:, 2].min()))
+        if zs_:
+            zt = max(0.45, min(zs_) - 0.5 - 0.2)  # assento (0,5) + metade da viga
+        kit.viga(Vector((0, A.y, zt)), Vector((0, tras.y, zt)), 1.0, 0.35, kit.quadro)
+        for yy in (A.y, tras.y):
+            kit.viga(Vector((0, yy, 0.1)), Vector((0, yy, zt)), 0.5, 0.5, kit.quadro)
         kit.caixa((0, A.y, 0.15), (5.0, 1.2, 0.3), kit.quadro, 0.05)
         kit.caixa((0, tras.y, 0.15), (4.0, 1.0, 0.3), kit.quadro, 0.05)
         polias.append(A + Vector((0, 0.9, 0.4)))
@@ -2236,6 +2250,17 @@ def _kettlebell(kit, ctx, h, maos="ambas"):
             d = dirs[id(est)]
         else:
             d = (Vector((0, 0, -1)) * 0.65 + ante * 0.35).normalized()
+            if len(lados) == 1 and ante.z > 0.0:
+                # braço para cima (overhead/rack de uma mão): o sino repousa no DORSO do antebraço, não pendura
+                h.restaurar(est["est"])
+                T_ = est["T"]
+                sf_ = lados[0]
+                Rr = h.rot("wrist" + sf_) @ h.rest_inv["wrist" + sf_].to_3x3()
+                palma = (T_.to_3x3() @ (Rr @ h.ref_mao[sf_].col[2])).normalized()
+                dorso = (-palma - ante * (-palma).dot(ante)).normalized()
+                d_dor = (dorso * 0.85 - ante * 0.5).normalized()
+                w_ = mov_suave(ante.z, 0.0, 0.5)
+                d = (d * (1 - w_) + d_dor * w_).normalized()
         por_kb(c, d, e)
     kit.moveis.append(upd)
 
