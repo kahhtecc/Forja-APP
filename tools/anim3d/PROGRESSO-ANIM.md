@@ -139,3 +139,13 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
 - QA final (qa.py HEAD) nos 44 ids (ok do lote3 + regressões + pendências): todos os que estavam ok voltaram a sem erro ou
   só avisos; erros restantes = dados/limitações listadas em motor-pendencias.md (afundo-halteres, box-jump, monster-walk:
   CM no apoio simples; abdominal-bicicleta: braços dos dados; supinos inclinados: cabeça 5,5 cm pela medida do qa).
+
+### Rodada do motor pós QA d5d516e (8 itens)
+- Parede/batente pela pele da mão espalmada; segura com alvo contínuo (sem pops); deitado de lado apoiado no ombro e no
+  quadril/coxa com nivelamento (só com "lado" no ciclo todo); caminho do braço simétrico e, com cabo, só acima de 120°
+  (puxadas/remada invertida); qa: pousada pela normal só em cima de faces voltadas para cima (supinos inclinados ok).
+- Revertidos por regressão: passos de mão com smootherstep (postura da criança), encosto completo nas chaves fora do "lado",
+  carro do remo (não era a causa), ease no afundo-halteres (qualquer ease piorava).
+- QA dos 175: 84 limpos, 82 avisos, 9 erros (antes 82 / 77 / 16). Erros restantes: dados (afundo-halteres, maior-alongamento,
+  turkish-getup, alongamento-gluteo, alongamento-triceps, remo-ergometro, inchworm), rotação torácica 4,5 cm (dados: joelhos
+  empilhados), abdominal-bicicleta (punho ulnar 51° x 50°).
