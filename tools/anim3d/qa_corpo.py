@@ -875,7 +875,9 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 if not p.visivel or p.cx is None or p.bvh is None:
                     continue
                 lo, hi = p.cx
-                perto = np.all((Q > lo - 0.6) & (Q < hi + 0.6), axis=1)
+                # só pontos em cima da face (projeção dentro da peça): fora dela a distância seria até a quina
+                perto = (np.all((Q[:, :2] > lo[:2]) & (Q[:, :2] < hi[:2]), axis=1) & (Q[:, 2] > lo[2] - 0.2)
+                         & (Q[:, 2] < hi[2] + 0.6))
                 for qq in Q[perto][::3]:
                     d_, dentro_, nw_ = p.mais_perto(qq)
                     if nw_.z > 0.3:  # só faces voltadas para cima (assento, encosto inclinado), não paredes/colunas

@@ -1915,7 +1915,8 @@ def colocar_chave(h, ctx, q):
     if all("lado" in (qq.get("apoio") or []) for qq in anim["quadros"]):  # deitado de lado o ciclo todo
         T = nivelar_de_lado(h, ctx, T)
     if regs:
-        T = apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False)
+        T = (apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False) if "lado" in (q.get("apoio") or [])
+             else apoiar_tronco(h, ctx, T, regs))
     # 4) barra fixa: mãos na barra (em todo quadro: quem pendura não solta a barra)
     if ctx.barra is not None and "barra3" in ref:
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
@@ -1942,7 +1943,8 @@ def colocar_chave(h, ctx, q):
         ref["quad"] = (p2["quadril"][0], T @ h.cabeca("root"))
     # 5) deitado de costas sobre banco: as costas encostam no estofado (o 2D não conhece a espessura do corpo 3D)
     if regs:
-        T = apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False)
+        T = (apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False) if "lado" in (q.get("apoio") or [])
+             else apoiar_tronco(h, ctx, T, regs))
         if "cabeca" in regs or "costas" in regs:
             cabeca_no_apoio(h, ctx, T)
     else:
@@ -2197,14 +2199,12 @@ def plantar(h, ctx, T, chaves, i, j, u):
                     m_ = 2 * jp + k_h if ambas else jp
                     # janelas de passo que se sobrepõem pela metade entre as mãos (passos mais lentos, sem tranco)
                     w0, w1 = (m_ / (nj + 1), (m_ + 2) / (nj + 1)) if ambas else (m_ / nj, (m_ + 1) / nj)
-                    w0, w1 = max(0.0, w0 - 0.25 / (nj + 1)), min(1.0, w1 + 0.25 / (nj + 1))  # passo mais longo
                     pa_, pb_ = a["pos"].lerp(b["pos"], jp / n_p), a["pos"].lerp(b["pos"], (jp + 1) / n_p)
                     if u < w0:
                         pos, rot = pa_, _slerp(a["rot"], b["rot"], jp / n_p)
                         break
                     if u <= w1:
-                        x_ = min(1.0, max(0.0, (u - w0) / (w1 - w0)))
-                        sm = x_ * x_ * x_ * (x_ * (x_ * 6 - 15) + 10)  # smootherstep: arranque e pouso sem tranco
+                        sm = mov.suave((u - w0) / (w1 - w0), 0.05, 0.95)
                         d_ = (pb_ - pa_).length
                         pos = pa_.lerp(pb_, sm) + Vector((0, 0, min(0.9, 0.3 * d_ + 0.25) * math.sin(math.pi * sm)))
                         rot = _slerp(a["rot"], b["rot"], (jp + sm) / n_p)
@@ -2378,7 +2378,8 @@ def centro_massa(h, P):
 def centro_na_base(h, ctx, T, pesos, seg, lim=0.6):
     """Em pé com os dois pés plantados (e sem mão presa a nada): se o centro de massa sai do polígono de apoio, o quadril
     desliza o que falta (até ~6 cm) e os pés continuam presos (IK). Peso contínuo pelo apoio dos pés."""
-    if not ctx.em_pe or ctx.barra is not None or ctx.ocupadas or getattr(ctx, "pegadores", None) or ctx.voos:
+    if (not ctx.em_pe or ctx.barra is not None or ctx.ocupadas or getattr(ctx, "pegadores", None) or ctx.voos
+            or any(pr.get("tipo") == "maquina" and pr.get("h", 0) >= 6.5 for pr in ctx.props)):  # mãos na parede/espaldar
         return T  # (com fase de voo o apoio duplo é curto demais: o deslocamento daria tranco na aterrissagem)
     if any(pesos.get(e, 0.0) > 0.05 for e in ("mao_f", "mao_t")):
         return T
@@ -2545,7 +2546,7 @@ def segurar_corpo(h, ctx, T, tau):
             dd = Vector((0, 0, 1)) - nrm * nrm.z
         R_alvo = h.rot_mao(sf, dd.normalized(), -nrm)
         R0 = h.rot("wrist" + sf).to_quaternion()
-        R = R0.slerp(R_alvo.to_quaternion(), w).to_matrix()
+        R = R0.slerp(R_alvo.to_quaternion(), w * 0.75).to_matrix()  # palma quase de frente para a pele (sem torcer o antebraço)
         if nome == "nuca":
             # mãos atrás da cabeça: cotovelo para fora, no plano frontal do tronco (rotação do ombro dentro do limite)
             Rs = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
