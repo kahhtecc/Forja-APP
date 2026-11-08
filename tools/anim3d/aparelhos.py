@@ -380,6 +380,12 @@ def depois_ik(ctx, h, T, tau, extras):
     """No fim de cada quadro (posição final do corpo): mãos presas a pegadores fixos no mundo, implementos de duas mãos."""
     ik_alavancas(ctx, h, T)  # alavanca rígida da máquina: comprimento constante também depois dos ajustes do corpo
     ik_pegadores(ctx, h, T)
+    if getattr(ctx, "parede", None) is not None:
+        # mão na parede/batente: fica presa no ponto da chave mesmo depois dos ajustes do corpo no quadro
+        pa = ctx.parede
+        Ti = T.inverted()
+        for _ in range(2):
+            h.ik("braco", pa["sf"], Ti @ pa["pos"], Ti.to_3x3() @ pa["rot"].to_matrix())
     pegada_implementos(ctx, h, T, tau, extras)
     halteres_fora_do_corpo(ctx, h, T)
 
@@ -613,8 +619,15 @@ def _preparar_parede(ctx, h, pr):
     ch = ctx.chaves[int(pr.get("chave", len(ctx.chaves) - 1)) % len(ctx.chaves)]
     h.restaurar(ch["est"])
     T = ch["T"]
+    Rr = h.rot("wrist" + sf) @ h.rest_inv["wrist" + sf].to_3x3()
+    nrm = (T.to_3x3() @ (Rr @ h.ref_mao[sf].col[2])).normalized()  # normal da palma (para fora dela, rumo à parede)
+    p = T @ h.palma_c(sf)
+    P = h.proxy(T)[h.px_partes["mao_" + ("f" if sf == ".L" else "t")]]
+    nh = Vector((nrm.x, nrm.y, 0.0))
+    nh = nh.normalized() if nh.length > 1e-3 else Vector((0, -1, 0))
+    d = float(((P - np.array(p)) @ np.array(nh)).max())  # pele da mão mais saliente rumo à parede (vertical)
     return {"sf": sf, "pos": T @ h.cabeca("wrist" + sf), "rot": (T.to_3x3() @ h.rot("wrist" + sf)).to_quaternion(),
-            "palma": T @ h.pegada(sf), "pr": pr}
+            "palma": p + nh * d, "nrm": nh, "pr": pr}
 
 
 def _antepe(h, sf):
@@ -1491,7 +1504,7 @@ def _almofadas_joelho(kit, ctx, h, fora=True):
 def _assento_remo(kit, ctx, h):
     """Remo: assento com rodinhas que desliza no trilho, sempre sob os ísquios (topo = pele mais baixa da pelve)."""
     banco = kit.caixa((0, 0, 0), (2.4, 2.6, 0.5), kit.estofado, 0.2)
-    carro = kit.caixa((0, 0, 0), (1.6, 2.2, 0.3), kit.quadro, 0.05)
+    carro = kit.caixa((0, 0, 0), (1.2, 1.4, 0.2), kit.quadro, 0.05)
 
     def upd(est):
         h.restaurar(est["est"])
@@ -1502,7 +1515,7 @@ def _assento_remo(kit, ctx, h):
         zb = float(Q[:, 2].min())
         y = float(Q[Q[:, 2] < zb + 0.3][:, 1].mean())
         banco.matrix_world = Matrix.Translation((0, y, zb - 0.25))
-        carro.matrix_world = Matrix.Translation((0, y, max(zb - 0.65, 0.5)))
+        carro.matrix_world = Matrix.Translation((0, y + 0.3, max(zb - 0.6, 0.5)))
     kit.moveis.append(upd)
 
 
@@ -2067,13 +2080,20 @@ def _parede(kit, ctx, h):
     sf = pa["sf"]
     s_ = 1 if sf == ".L" else -1
     p = pa["palma"]
-    # o batente fica à frente da palma; a parede continua para fora (lado oposto ao corpo)
-    yb = p.y - 0.75
-    xb = p.x
+    # a face do batente passa rente à palma (pele da palma + mão espalmada), perpendicular à normal da palma; a parede
+    # continua para fora (lado oposto ao corpo)
+    n = Vector((pa["nrm"].x, pa["nrm"].y, 0.0))
+    n = n.normalized() if n.length > 1e-3 else Vector((0, -1, 0))
+    t = Vector((0, 0, 1)).cross(n).normalized()
+    if t.x * s_ < 0:
+        t = -t
     alto = max(p.z + 4.0, 20.0)
-    kit.caixa(Vector((xb + s_ * 0.2, yb, alto / 2)), (1.2, 1.0, alto), kit.madeira, 0.08)
-    kit.caixa(Vector((xb + s_ * 2.8, yb - 0.1, alto / 2)), (4.0, 0.8, alto), kit.cinza, 0.04)
-    kit.caixa(Vector((xb + s_ * 0.2 - s_ * 4.2, yb, alto - 0.6)), (8.4, 1.0, 1.2), kit.madeira, 0.08)
+    Rz = Matrix((t, n, Vector((0, 0, 1)))).transposed().to_4x4()
+    c = p + n * (0.02 + 0.5)
+    for cen, tam, mat in ((c, (1.2, 1.0, alto), kit.madeira), (c + n * 0.1 + t * 2.6, (4.0, 0.8, alto), kit.cinza),
+                          (c - t * 4.0, (8.4, 1.0, 1.2), kit.madeira)):
+        o = kit.caixa((0, 0, 0), tam, mat, 0.06)
+        o.matrix_world = Matrix.Translation(Vector((cen.x, cen.y, tam[2] / 2 if tam[2] == alto else alto - 0.6))) @ Rz
 
 
 # ---- pesos nas mãos

@@ -1340,6 +1340,9 @@ class Contexto:
             self.mao_livre = {l_: _estado_mao(modo.get(l_), ESTADOS_MAO["rel"]) for l_ in ("f", "t")}
         else:
             self.mao_livre = {l_: _estado_mao(modo, ESTADOS_MAO["rel"]) for l_ in ("f", "t")}
+        for pr in self.props:
+            if pr.get("tipo") == "parede":
+                self.mao_livre[pr.get("mao", "f")] = -1.0  # mão espalmada na parede (dedos não entram nela)
         self.props_maos = bool(ocup)
         self.barra = None
         for pr in self.props:
@@ -1529,19 +1532,19 @@ def encostar_inclinado(h, ctx, T, regs, w=1.0):
     return T
 
 
-def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0):
+def apoiar_tronco(h, ctx, T, regs, w=1.0, lim=3.0, fade=True):
     """Desloca o corpo na vertical para a parte mais baixa das regiões de apoio encostar na superfície embaixo dela
     (sentado no assento real, deitado no banco/chão: nada de pousar no ar nem afundar); costas no encosto inclinado."""
     if not regs or w <= 1e-4:
         return T
     if "supino" in ctx.id and encostos(ctx) and ({"costas", "cabeca"} & set(regs)):
         T = encostar_inclinado(h, ctx, T, regs, w)
-        T = _apoiar_vertical(h, ctx, T, [r for r in regs if r in ("pelve", "gluteo")] or regs, w, lim)
+        T = _apoiar_vertical(h, ctx, T, [r for r in regs if r in ("pelve", "gluteo")] or regs, w, lim, fade)
         return encostar_inclinado(h, ctx, T, regs, w)
-    return _apoiar_vertical(h, ctx, T, regs, w, lim)
+    return _apoiar_vertical(h, ctx, T, regs, w, lim, fade)
 
 
-def _apoiar_vertical(h, ctx, T, regs, w=1.0, lim=3.0):
+def _apoiar_vertical(h, ctx, T, regs, w=1.0, lim=3.0, fade=True):
     if not regs or w <= 1e-4:
         return T
     P = h.proxy(T)
@@ -1553,7 +1556,10 @@ def _apoiar_vertical(h, ctx, T, regs, w=1.0, lim=3.0):
     g = float(gap.min())
     if abs(g) < 1e-3:
         return T
-    w *= 1.0 - mov.suave(abs(g), lim * 0.3, lim)  # some aos poucos (sem pulo quando o corpo sai do apoio)
+    if fade:
+        w *= 1.0 - mov.suave(abs(g), lim * 0.3, lim)  # some aos poucos (sem pulo quando o corpo sai do apoio)
+    elif abs(g) > lim:
+        return T
     return Matrix.Translation((0, 0, -g * w)) @ T
 
 
@@ -1884,7 +1890,7 @@ def colocar_chave(h, ctx, q):
         T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
     # 3b) tronco apoiado (sentado no assento, deitado no banco/chão, de lado): a parte mais baixa encosta na superfície
     if regs:
-        T = apoiar_tronco(h, ctx, T, regs)
+        T = apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False)
     # 4) barra fixa: mãos na barra (em todo quadro: quem pendura não solta a barra)
     if ctx.barra is not None and "barra3" in ref:
         g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
@@ -1911,7 +1917,7 @@ def colocar_chave(h, ctx, q):
         ref["quad"] = (p2["quadril"][0], T @ h.cabeca("root"))
     # 5) deitado de costas sobre banco: as costas encostam no estofado (o 2D não conhece a espessura do corpo 3D)
     if regs:
-        T = apoiar_tronco(h, ctx, T, regs)
+        T = apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False)
         if "cabeca" in regs or "costas" in regs:
             cabeca_no_apoio(h, ctx, T)
     else:
@@ -2166,12 +2172,14 @@ def plantar(h, ctx, T, chaves, i, j, u):
                     m_ = 2 * jp + k_h if ambas else jp
                     # janelas de passo que se sobrepõem pela metade entre as mãos (passos mais lentos, sem tranco)
                     w0, w1 = (m_ / (nj + 1), (m_ + 2) / (nj + 1)) if ambas else (m_ / nj, (m_ + 1) / nj)
+                    w0, w1 = max(0.0, w0 - 0.25 / (nj + 1)), min(1.0, w1 + 0.25 / (nj + 1))  # passo mais longo
                     pa_, pb_ = a["pos"].lerp(b["pos"], jp / n_p), a["pos"].lerp(b["pos"], (jp + 1) / n_p)
                     if u < w0:
                         pos, rot = pa_, _slerp(a["rot"], b["rot"], jp / n_p)
                         break
                     if u <= w1:
-                        sm = mov.suave((u - w0) / (w1 - w0), 0.05, 0.95)
+                        x_ = min(1.0, max(0.0, (u - w0) / (w1 - w0)))
+                        sm = x_ * x_ * x_ * (x_ * (x_ * 6 - 15) + 10)  # smootherstep: arranque e pouso sem tranco
                         d_ = (pb_ - pa_).length
                         pos = pa_.lerp(pb_, sm) + Vector((0, 0, min(0.9, 0.3 * d_ + 0.25) * math.sin(math.pi * sm)))
                         rot = _slerp(a["rot"], b["rot"], (jp + sm) / n_p)
@@ -2492,13 +2500,19 @@ def segurar_corpo(h, ctx, T, tau):
         A = ponto_segura(h, nome)
         pc = h.palma_c(sf)
         m = ~(h.px_partes["mao_f"] | h.px_partes["mao_t"] | h.px_partes["antebraco_" + lado])
-        idx = np.where(m & (np.linalg.norm(P - np.array(A), axis=1) < 1.0))[0]
+        dist = np.linalg.norm(P - np.array(A), axis=1)
+        idx = np.where(m & (dist < 1.0))[0]
         if not len(idx):
             continue
-        S = P[idx[np.argmin(np.linalg.norm(P[idx] - np.array(pc), axis=1))]]
-        S = Vector(S)
-        nrm = S - A
-        nrm = nrm.normalized() if nrm.length > 1e-4 else (pc - A).normalized()
+        # alvo contínuo: na direção da palma a partir do ponto anatômico, à distância média da pele em volta (o ponto de
+        # pele mais próximo pulava de um quadro para outro)
+        nrm = (pc - A)
+        nrm = nrm.normalized() if nrm.length > 1e-4 else Vector((0, 0, 1))
+        viz = P[idx] - np.array(A)
+        proj = viz @ np.array(nrm)
+        frente = proj > 0.3 * np.linalg.norm(viz, axis=1)
+        raio = float(np.percentile(proj[frente], 80)) if frente.sum() >= 5 else float(np.median(dist[idx]))
+        S = A + nrm * raio
         alvo_pc = pc.lerp(S + nrm * 0.1, w)
         ante = (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized()
         dd = ante - nrm * ante.dot(nrm)

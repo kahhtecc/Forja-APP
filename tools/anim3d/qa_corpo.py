@@ -868,10 +868,22 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 if abs(dv.z) > 0.5:
                     hover[rg].append(None)
                     continue
+            # folga = a menor entre a vertical (ponto mais baixo) e a distância pela normal até uma superfície próxima
+            # (encosto inclinado: a folga vertical sobre a face inclinada não é o vão real)
+            gap_ = q.z - zs
+            for p in ap.superficies:
+                if not p.visivel or p.cx is None or p.bvh is None:
+                    continue
+                lo, hi = p.cx
+                perto = np.all((Q > lo - 0.6) & (Q < hi + 0.6), axis=1)
+                for qq in Q[perto][::3]:
+                    d_, dentro_, nw_ = p.mais_perto(qq)
+                    if nw_.z > 0.3:  # só faces voltadas para cima (assento, encosto inclinado), não paredes/colunas
+                        gap_ = min(gap_, 0.0 if dentro_ else d_)
             cen = Q.mean(axis=0)
             mov_ = np.linalg.norm(cen - cent_ant[rg]) if rg in cent_ant else 0.0
             cent_ant[rg] = cen
-            hover[rg].append((q.z - zs, mov_, q.z - zs < 0.15))
+            hover[rg].append((gap_, mov_, gap_ < 0.15))
         zsup.append(z0)
         # ---------------- penetração corpo x aparelho e corpo x corpo (a cada 'passo' quadros)
         if j % passo:
