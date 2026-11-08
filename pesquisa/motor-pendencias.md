@@ -52,3 +52,13 @@ Formato: id | quadro (de 24 fps, como no qa.py) | o que acontece | prova.
 - Centro de massa fora da base: o quadril desliza (até ~6 cm) para dentro do polígono quando os dois pés estão plantados nas duas chaves do trecho (sem voo, sem joelho/tronco apoiado).
 - peck-deck: alavanca reprojetada também no fim do quadro (qa sem erro).
 - barra-supinada: cotovelos à frente na pegada supinada pendurada (torção do antebraço 175° → aviso 107°).
+
+## Rodada do motor (pós QA d5d516e)
+- **alongamento-peito, balanco-pernas** (batente): [RESOLVIDO] face do batente posta pela pele da mão espalmada na direção horizontal da palma; mão da parede espalmada e presa de novo no fim de cada quadro. qa: só avisos. (dado: no balanço a palma está virada para baixo — virar para a parede.)
+- **alongamento-quadriceps / triceps / gluteo** (`segura`): [RESOLVIDO os pops] alvo contínuo (ponto anatômico + raio da pele na direção da palma). Quadríceps sem erro; tríceps e glúteo sem pops — restam ROM/corpo dos ângulos (dados: tríceps rotação do ombro 180° e braço no tronco; figura 4 com rotação externa do quadril 93° e joelho 156°).
+- **inchworm**: [PARCIAL] passos de mão com smootherstep e janelas mais longas; restam pops de 7–10 cm no antebraço porque cada trecho tem um deslocamento longo das mãos (dados: uma chave por passo de mão).
+- **rotacao-toracica**: [PARCIAL→quase] apoio "lado" inclui ombro/braço e coxa de baixo e as chaves encostam por completo; com "lado" em todo o ciclo o corpo é nivelado no eixo longo. Base 19,3 → 4,5 cm em 7 quadros; pelve "pousada" 8 cm (quem apoia é a coxa) — dados: joelhos 90/90 empilhados no chão.
+- **remo-ergometro**: [DADO] o abdômen encosta no volante na pegada com flexão de quadril de 164° (não é o carro do assento): pegada menos profunda ou `ate` mais à frente.
+- **afundo-halteres**: [DADO] testado "ease" (con/exc em vários trechos): qualquer ease troca a curva automática dos outros trechos e piora (11 → 20 cm). Precisa de chave intermediária com o quadril já avançando sobre o pé da frente antes do pouso.
+- **supino-inclinado(-barra)**: [RESOLVIDO no qa] região pousada medida também pela normal das faces voltadas para cima; qa sem erro.
+- **puxada-frente, puxada-triangulo, remada-invertida**: [RESOLVIDO] o caminho novo do braço agora é decidido de forma simétrica e, com cabo/polia, só acima de 120°: os três voltam a só avisos/ok.
