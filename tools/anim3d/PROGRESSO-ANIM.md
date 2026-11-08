@@ -149,3 +149,9 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
 - QA dos 175: 84 limpos, 82 avisos, 9 erros (antes 82 / 77 / 16). Erros restantes: dados (afundo-halteres, maior-alongamento,
   turkish-getup, alongamento-gluteo, alongamento-triceps, remo-ergometro, inchworm), rotação torácica 4,5 cm (dados: joelhos
   empilhados), abdominal-bicicleta (punho ulnar 51° x 50°).
+
+### Rodada de dados r8 (animador)
+- Dados: abdominal-bicicleta, alongamento-triceps, rotacao-toracica (90/90 real), balanco-pernas (palma na parede),
+  alongamento-gluteo (figura 4 pela geometria, RE 93 → 67°), afundo-halteres (peso sobre o pé de apoio + chave de
+  empurrar de volta), remo-ergometro (banco acima do monotrilho, pegada menos profunda). Detalhes: pesquisa/animador-dados-r8.md.
+- QA dos 175: 85 limpos, 87 avisos, 3 erros (turkish-getup, inchworm, maior-alongamento), sem regressões.
