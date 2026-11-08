@@ -1439,7 +1439,8 @@ def _mask_regioes(h, regs):
         elif r == "cabeca":
             m |= h.px_partes["cabeca"]
         elif r == "lado":
-            m |= h.px_partes["tronco"]
+            # deitado de lado: o ombro/deltoide de baixo e o quadril apoiam (o braço de baixo entra no conjunto)
+            m |= h.px_partes["tronco"] | h.px_partes["braco_f"] | h.px_partes["braco_t"] | h.px_partes["coxa_f"] | h.px_partes["coxa_t"]
         elif r in REG_MEMBRO:
             m |= h.px_partes[REG_MEMBRO[r]]
     return m
@@ -1529,6 +1530,28 @@ def encostar_inclinado(h, ctx, T, regs, w=1.0):
         if abs(g) < 1e-3 or abs(g) > 1.5:
             continue
         T = Matrix.Translation(-n * g * w) @ T
+    return T
+
+
+def nivelar_de_lado(h, ctx, T):
+    """Deitado de lado: ombro (tronco de cima + braços) e quadril/joelhos de baixo encostam juntos — o corpo gira em
+    torno do eixo horizontal perpendicular ao tronco até as duas partes ficarem na mesma altura."""
+    for _ in range(3):
+        P = h.proxy(T)
+        cima = h.px_partes["costas"] | h.px_partes["braco_f"] | h.px_partes["braco_t"]
+        baixo = h.px_partes["pelve"] | h.px_partes["coxa_f"] | h.px_partes["coxa_t"] | h.px_partes["joelho_f"] | h.px_partes["joelho_t"]
+        ia = np.where(cima)[0][np.argmin(P[cima][:, 2])]
+        ib = np.where(baixo)[0][np.argmin(P[baixo][:, 2])]
+        a, b = Vector(P[ia]), Vector(P[ib])
+        d = b - a
+        dh = Vector((d.x, d.y, 0.0))
+        if dh.length < 1.0:
+            break
+        eixo = Vector((0, 0, 1)).cross(dh).normalized()
+        ang = math.atan2(d.z, dh.length)
+        if abs(ang) < 0.01:
+            break
+        T = _rot_eixo(a, eixo, max(-0.5, min(0.5, ang))) @ T
     return T
 
 
@@ -1889,6 +1912,8 @@ def colocar_chave(h, ctx, q):
     if q["z"]:
         T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
     # 3b) tronco apoiado (sentado no assento, deitado no banco/chão, de lado): a parte mais baixa encosta na superfície
+    if all("lado" in (qq.get("apoio") or []) for qq in anim["quadros"]):  # deitado de lado o ciclo todo
+        T = nivelar_de_lado(h, ctx, T)
     if regs:
         T = apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False)
     # 4) barra fixa: mãos na barra (em todo quadro: quem pendura não solta a barra)
