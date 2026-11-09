@@ -74,3 +74,13 @@ Formato: id | quadro (de 24 fps, como no qa.py) | o que acontece | prova.
 - **remo-ergometro** (monotrilho): [RESOLVIDO] trilho posto pela altura do assento (abaixo dos ísquios no ponto mais baixo do ciclo), com pés; só avisos.
 - **inchworm** (antebraço nos passos de mão): [EM ABERTO] o salto acontece na troca de trecho (IK da mão ancorada usa a dobra da pose livre; no passo o cotovelo muda de lado). Testados: polo fixo para trás/fora só no passo (sem efeito) e em todos os trechos de mão apoiada (piorou o inchworm e quebrou bear-crawl e pike-pushup) — revertidos. Próximo passo: polo com coerência temporal (o do quadro anterior) só nas mãos apoiadas.
 - **inchworm** (polo com coerência temporal): [TESTADO E REVERTIDO] polo do cotovelo da mão apoiada = direção do cotovelo do quadro anterior (até 0,1 s). Inchworm não melhorou (pops 8 → 9) e houve regressão em flexao-diamante (punho ulnar 58°, erro) e flexao-declinada (limpo → aviso). Os demais 19 exercícios com mão apoiada não mudaram. Conclusão: o salto não vem só do lado do cotovelo — no inchworm a mão anda enquanto o ombro passa por cima dela (braço quase reto e a distância ombro–mão muda rápido); fica para uma solução de trajetória do ombro/tronco ou de dados (passos mais curtos com o corpo parado).
+
+## Rodada de dados r10 (turkish-getup)
+- **turkish-getup** | fases sentado/ponte/moinho | O nivelamento por dois apoios (`colocar_chave`, passo 1) gira o corpo
+  inteiro quando a mão de apoio está atrás e o tronco reclinado: no ajoelhado com a mão no chão o joelho de trás vai
+  parar ao lado do pé da frente (3,7 dm à frente do ajoelhado ereto), e o pé de trás precisa dar um passo justamente na
+  troca de apoio da mão. Para o TGU real (tronco inclinado para o lado sobre a mão, mão e joelho alinhados ao lado do
+  corpo) falta: inclinação lateral do tronco além de 38° sem girar pelve e pernas (hoje `rol` gira o corpo todo e o
+  braço de apoio sobe), ou nivelamento que respeite um apoio lateral de mão. Achado de dados no deitado: pescoço de
+  repouso fletido (cabeça 16–18 cm acima do chão com `c` = `t`) e calcanhar da perna esticada em "apoio" levantando a
+  pelve 3 cm — detalhes em animador-dados-r8.md (r10).

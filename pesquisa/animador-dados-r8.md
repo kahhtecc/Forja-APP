@@ -60,3 +60,40 @@ Turkish-getup — o que resta e o que foi testado (fase a fase):
 qa.py completo depois da r9: **86 limpos, 88 só com aviso, 1 com erro** (antes 85 / 87 / 3). Comparação um a um com o QA
 de f7c54ba: só mudaram os três exercícios da rodada — inchworm erro → limpo, maior-alongamento erro → aviso,
 turkish-getup segue com erro (gravidade 48,4 → 41,9, 10 → 7 verificações). Nenhum outro exercício mudou.
+
+# Rodada r10 — turkish-getup (recoreografia tentada; dados mantidos da r9)
+
+Resultado: nenhuma variante ficou melhor que a da r9 no qa completo (24 fps, gravidade 41,9, 7 verificações com erro),
+então os dados não mudaram e o QA dos 175 continua o da r9 (86 limpos, 88 avisos, 1 erro). O que foi medido:
+
+**Pelve/costas "apoiadas" 3,5–6 cm no deitado — causa achada (sonda `<scratch>/r8/reg.py`, altura mínima da pele por
+região).** No deitado da r9 a cabeça fica 16–18 cm acima do chão, costas 6 cm, pelve 3 cm. Duas causas somadas:
+(1) o pescoço de repouso do MakeHuman é fletido: com `c` = `t` − 2 a cabeça levanta e puxa a parte de cima do tronco;
+com `c` −75 (15° de extensão relativa) cabeça, costas e pelve encostam (3,1 / 1,9 / 2,4 cm); (2) o calcanhar da perna
+esticada declarado em `"apoio"` (`pe_t`) é levado ao chão por IK e levanta a pelve ~3 cm; sem ele no apoio do deitado a
+pelve encosta (a perna fica a 2 cm, sem flutuar). Aplicado sozinho no ciclo, porém, o deitado assim cria pele 2 cm abaixo
+do chão (perna) e CM fora da base na volta para o deitado (o passo da mão de apoio entre o deitado e o sentado fica maior):
+gravidade 48,6 — descartado por enquanto. É a correção certa do deitado quando o resto da sequência for refeito.
+
+**Ombro do braço de apoio (37° além do limite) — resolvido em teste.** Peito girado para o lado do braço de apoio
+(`tr` −25 no sentado, ponte e ajoelhado com mão): o braço de trás vira abdução em vez de extensão; só aviso (17°).
+
+**Centro de massa nas transições — o que impede.**
+- Moinho (ajoelhado ↔ mão no chão): a sonda de chaves sem âncora (`r8/kpos.py`) mostra que o joelho e os dedos do pé de
+  trás andam 3,7 dm entre as duas chaves (o "nivelar por dois apoios" gira o corpo inteiro na chave com a mão atrás e
+  o tronco reclinado `t` −116, e o joelho vai parar ao lado do pé da frente). O pé de trás então dá um passo justamente
+  quando a mão sai/chega e a base fica só pé da frente + joelho. `y` explícito não desliga isso nessa chave (com
+  "joelho_t" no apoio o corpo é assentado pelo joelho). Tentativas: chaves intermediárias com a mão ainda no chão,
+  ajuste numérico de x/coxa para manter joelho e dedos (não converge: no ajoelhado ereto o joelho não alcança a posição
+  do ajoelhado reclinado com o pé da frente fixo).
+- Deitado ↔ sentado na mão: a mão do deitado (braço a 45° no chão) e a do sentado (atrás do quadril) ficam a 2–3,7 dm;
+  manter a mão no lugar do deitado em todas as fases resolve esse passo mas leva a mão para a frente e a varredura da
+  perna perde a base (CM 26–35 cm fora); reposicionar a mão sentado (passo de mão explícito, com e sem tronco ereto) deixa
+  o CM 21–23 cm fora durante o passo.
+- `rol` (corpo inteiro inclinado para o lado da mão, como no TGU real) gira também braço e pernas: o braço de apoio sobe
+  em vez de ir ao chão (render `r8/z/rA.jpg`).
+
+Conclusão: com os dados no plano sagital (mão de apoio "atrás" e tronco reclinado) o TGU não fecha a base; o caminho é
+modelar o apoio lateral de verdade (tronco inclinado sobre a mão do lado, mão e joelho alinhados ao lado do corpo), o que
+pede no motor um "inc"/"rol" só do tronco com a pelve e as pernas fora do giro (ou um apoio lateral de mão que o
+nivelamento respeite) — registrado em motor-pendencias.md.
