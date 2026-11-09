@@ -37,3 +37,26 @@ Comparação exercício a exercício com o QA anterior (`pesquisa/qa-resultado.j
 (categoria ou gravidade); mudaram só os sete alterados — afundo-halteres erro → limpo; abdominal-bicicleta,
 remo-ergometro, rotacao-toracica, alongamento-gluteo e alongamento-triceps erro → aviso; balanco-pernas segue com os
 mesmos avisos de quadril (a palma agora está na parede). Erros restantes: turkish-getup, inchworm, maior-alongamento.
+
+# Rodada r9 (motor f548274: kettlebell no antebraço e monotrilho do remo resolvidos no motor)
+
+| Exercício | Antes (qa) | Depois (qa) | Mudança nos dados |
+|---|---|---|---|
+| inchworm | erro: 8 saltos do antebraço (6–12 cm), skate do pé, CM fora da base | limpo | Refeito com separação estrita (hipótese do especialista do motor): o tronco/ombro fica PARADO enquanto uma mão avança ~2 dm, a outra mão segue, e o corpo só anda com as duas mãos plantadas (5 ciclos de passo na ida e na volta, 35 chaves, 9,6 s). As poses saem de um desenho 2D com `x`/`y` explícitos e sem `"fixo"`: antepé dos dois pés preso no mesmo ponto em todas as chaves (pé passa de chato para a ponta sem deslizar), ombro sobre o meio das duas posições da mão, braços por IK 2D até o chão com o cotovelo levemente dobrado. Gerador: `<scratch>/r8/inch8.py 5 0.22 0.27 5.4` + deslocamento de x 2,2. |
+| maior-alongamento | erro: CM fora da base 19,6 cm (passo de 2 dm do pé de trás na passagem para o posterior) | aviso | Afundo baixo: perna de trás `pt` [−24,−86,−50] (canela quase horizontal, joelho perto do chão) em vez de [−50,−75]; a passada encurta 1,4 dm e o quadril fica na mesma altura (mãos continuam no chão). O pé de trás da chave do posterior (que não mudou) cai a 0,6 dm do pé do afundo: fica preso na mesma âncora (sem passo, sem deslizar). |
+| turkish-getup | erro (10 verificações, gravidade 48,4) | erro (7, gravidade 41,9) | Perna dobrada no deitado/sentado com o joelho a ~147° (`pf` [135,−12] / [128,−12]: some "joelho 161°" e a pele abaixo do chão); coxa de trás mais vertical no ajoelhado (`pt` [−15,−90,−92]: extensão do quadril 51° → 44°). Uma das três faltas de base sumiu. |
+
+Turkish-getup — o que resta e o que foi testado (fase a fase):
+- Ombro do braço de apoio 37° além do limite (ponte/ajoelhado): a mão de apoio está atrás do quadril. Mão mais lateral
+  (abdução 40–55°, mesma posição em todas as fases por ajuste numérico, `<scratch>/r8/mao_fix*.py`) resolve o ombro, mas a
+  varredura da perna (ponte → ajoelhado) fica com a base só em mão + pé da frente e o CM sai 26–35 cm; mão atrás resolve a
+  varredura e devolve o ombro. A posição do deitado também não alcança a mão do sentado sem um passo de mão (> 1,6 dm).
+- Base no "moinho" (ajoelhado ↔ mão no chão): chaves intermediárias com o tronco meio inclinado e a mão ainda no chão
+  reduziram essa base (20 → 9 cm) mas criaram outras (extensão do quadril 61°, skate da mão): descartadas.
+- Pelve/costas "pousadas" 3,5–6 cm no deitado: não dependem da perna esticada (86/90/92/93 dão o mesmo) nem da dobrada; a
+  causa ficou em aberto (provável medida da região da pelve com o braço de apoio aberto).
+
+## Resultado do QA dos 175 (r9)
+qa.py completo depois da r9: **86 limpos, 88 só com aviso, 1 com erro** (antes 85 / 87 / 3). Comparação um a um com o QA
+de f7c54ba: só mudaram os três exercícios da rodada — inchworm erro → limpo, maior-alongamento erro → aviso,
+turkish-getup segue com erro (gravidade 48,4 → 41,9, 10 → 7 verificações). Nenhum outro exercício mudou.

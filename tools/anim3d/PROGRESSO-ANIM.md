@@ -155,3 +155,8 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
   alongamento-gluteo (figura 4 pela geometria, RE 93 → 67°), afundo-halteres (peso sobre o pé de apoio + chave de
   empurrar de volta), remo-ergometro (banco acima do monotrilho, pegada menos profunda). Detalhes: pesquisa/animador-dados-r8.md.
 - QA dos 175: 85 limpos, 87 avisos, 3 erros (turkish-getup, inchworm, maior-alongamento), sem regressões.
+
+### Rodada de dados r9 (animador)
+- inchworm refeito com passos de mão com o corpo parado (limpo); maior-alongamento em afundo baixo com o pé de trás fixo
+  (aviso); turkish-getup com joelho e quadril dentro dos limites (ainda erro: ombro do braço de apoio, base nas fases de
+  varredura/moinho, pelve pousada no deitado). QA dos 175: 86 limpos, 88 avisos, 1 erro, sem regressões.
