@@ -27,6 +27,8 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "dedos": giro da mão APOIADA (espalmada): "tras" (dedos para o corpo), "fora", "dentro" ou graus em torno da vertical
   "puf"/"put": flexão (+) / extensão (-) do punho da frente/trás; "pdf"/"pdt": desvio radial (+) / ulnar (-) (limite AAOS)
   "trt": torção só da coluna torácica (pelve e lombar paradas: rotação torácica, deitado de lado)
+  "rolt": inclinação lateral do tronco inteiro (pelve para cima) como um bloco, até ±60°, sem girar pernas e braços
+          (+ = para o lado da câmera): tronco deitado de lado sobre a mão de apoio (turkish get-up)
 Limites anatômicos aplicados automaticamente (suaves): joelho 160, cotovelo 150, quadril (extensão 34, abdução 55), coluna
 (torção 50, inclinação 38), pescoço (rotação 75, inclinação 42), punho (80/70/20/30), clavícula 13° com os braços para cima.
 Por animação:
@@ -840,14 +842,17 @@ class Humano:
         fr_trt = (0.0, 0.0, 0.08, 0.3, 0.65, 1.0)  # torção só torácica (pelve e lombar paradas)
         trp, trt = p.get("trp", 0.0), p.get("trt", 0.0)
         tr_total = p["tr"] + trt
+        # "rolt": o tronco inteiro (pelve para cima) inclina de lado como um bloco, sobre o quadril; pernas e braços seguem as
+        # direções dos dados (absolutas) e os apoios por IK — tronco deitado de lado sobre a mão sem girar as pernas
+        rolt = limite_suave(p.get("rolt", 0.0), -60.0, 60.0)
         for n, a, ft, fi, fp, fz in zip(COLUNA, ang, fr_tor, fr_inc, fr_trp, fr_trt):
-            self.girar(n, rot_corpo(a, p["inc"] * fi, p["tr"] * ft + trp * fp + trt * fz))
+            self.girar(n, rot_corpo(a, p["inc"] * fi + rolt, p["tr"] * ft + trp * fp + trt * fz))
         phi_up = ang[-1]
         # ---- pescoço e cabeça
         rel = _clamp(_wrap(p["c"] - phi_up), -62, 48)
         for n, w in zip(PESCOCO, (0.3, 0.55, 0.8, 1.0)):
-            self.girar(n, rot_corpo(phi_up + rel * w, p["inc"] + p["cinc"] * w, tr_total + p["cr"] * w))
-        R_up = rot_corpo(phi_up, p["inc"], tr_total)
+            self.girar(n, rot_corpo(phi_up + rel * w, p["inc"] + rolt + p["cinc"] * w, tr_total + p["cr"] * w))
+        R_up = rot_corpo(phi_up, p["inc"] + rolt, tr_total)
         up_t, fw_t = R_up @ CIMA, R_up @ FRENTE
         # ---- braços (com cintura escapular)
         dirs = {}
@@ -1605,9 +1610,9 @@ def cabeca_no_apoio(h, ctx, T):
                 g_ = min(g_, float((rel[ok_] @ np.array(n_)).min()) - 0.35)
         return g_
     g = gap_q(h.proxy(T)[m])
-    if not (0.03 < g < 1.3):
+    if not (0.03 < g < 2.1):
         return
-    peso = 1.0 - mov.suave(g, 0.9, 1.3)  # some aos poucos (sem pulo da cabeça)
+    peso = 1.0 - mov.suave(g, 1.5, 2.1)  # some aos poucos (sem pulo da cabeça)
     eixo = (T.to_3x3().inverted() @ ESQ).normalized()
     est0 = {n: h.basis[n].copy() for n in ("neck01", "neck02")}
 
