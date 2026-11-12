@@ -84,3 +84,10 @@ Formato: id | quadro (de 24 fps, como no qa.py) | o que acontece | prova.
   braço de apoio sobe), ou nivelamento que respeite um apoio lateral de mão. Achado de dados no deitado: pescoço de
   repouso fletido (cabeça 16–18 cm acima do chão com `c` = `t`) e calcanhar da perna esticada em "apoio" levantando a
   pelve 3 cm — detalhes em animador-dados-r8.md (r10).
+
+## Rodada do motor r10 (turkish-getup)
+- **Inclinação lateral do tronco sem girar pelve/pernas**: [FEITO] campo novo `"rolt"` (tronco inteiro inclina de lado sobre o quadril, até ±60°; pernas e braços mantêm as direções dos dados e os apoios seguem por IK). Aplicado no TGU: `rolt` −20 nas fases com mão e joelho no chão (chaves 2, 3, 7, 8) e `tr` −25 nas fases com mão (1, 2, 3, 7, 8, 9).
+- **Resultado no turkish-getup**: 7 → 6 verificações com erro: sumiram o ombro (37°) e a pelve "pousada"; base coxa esq 20,3 → 11,5 cm, coxa dir 28,0 → 22,8 cm, costas pousada 6,1 → 3,2 cm; pioraram joelho dir pousado (4,2 → 10,6 cm) e apareceu base costas 13,4 cm. Variantes testadas e descartadas: `rolt` −35 (10 erros), `rolt` também no sentado (9–10), só nas chaves 3/7 (8), `c` −75 no deitado (9, com pop).
+- **Pescoço no deitado**: [PARCIAL] o encosto da cabeça agora vale para vãos até ~20 cm, mas no TGU a cabeça fica olhando o kettlebell (`c` dos dados) e o vão não fechou; com `c` −75 fecha mas piora as transições (descartado).
+- **Calcanhar da perna esticada em apoio**: [NÃO ALTERADO] é a panturrilha da perna reta que fica abaixo do calcanhar quando a pelve encosta; tirar `pe_t` do apoio no deitado resolve a pelve mas cria base fora na volta (medido pelo animador). Fica para a recoreografia.
+- **Ainda falta para zerar o TGU (dados, com `rolt` disponível)**: mão de apoio ao lado do quadril (não atrás), joelho de trás alinhado com a mão no moinho, e extensão do quadril de trás (42° → < 30°).

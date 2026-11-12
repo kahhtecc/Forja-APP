@@ -6,68 +6,6 @@
   "quadros": 84,
   "T": 3.5
  },
- "agachamento-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 83,
-  "T": 3.45
- },
- "agachamento-salto": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 29,
-  "T": 1.2
- },
- "agachamento-goblet": {
-  "erros": [],
-  "avisos": [
-   "rom/antebraco_pro antebraço esq: pronação do antebraço 109° (limite 100°) no quadro 55, 86 quadros",
-   "apoio/penetra antebraco_t x kettlebell: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 74, 43 quadros",
-   "rom/antebraco_pro antebraço dir: pronação do antebraço 105° (limite 100°) no quadro 55, 62 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 55,
-    "valor": 109.25,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 86,
-    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 109° (limite 100°) no quadro 55, 86 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "antebraco_t x kettlebell",
-    "nivel": "aviso",
-    "quadro": 74,
-    "valor": 1.29,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 43,
-    "msg": "apoio/penetra antebraco_t x kettlebell: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 74, 43 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 55,
-    "valor": 105.24,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 62,
-    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 105° (limite 100°) no quadro 55, 62 quadros"
-   }
-  ],
-  "quadros": 86,
-  "T": 3.6
- },
  "agachamento-barra": {
   "erros": [],
   "avisos": [
@@ -103,174 +41,6 @@
   "quadros": 90,
   "T": 3.75
  },
- "agachamento-frontal": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 90,
-  "T": 3.75
- },
- "leg-press": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 10, 43 quadros",
-   "apoio/penetra mao_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 26, 1 quadros",
-   "apoio/penetra torax x estofado: pele dentro do aparelho 2.1 cm (limite 1.5 cm) no quadro 60, 14 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_f x estrutura",
-    "nivel": "aviso",
-    "quadro": 10,
-    "valor": 1.45,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 43,
-    "msg": "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 10, 43 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_f x estrutura",
-    "nivel": "aviso",
-    "quadro": 26,
-    "valor": 1.17,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra mao_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 26, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "torax x estofado",
-    "nivel": "aviso",
-    "quadro": 60,
-    "valor": 2.12,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 14,
-    "msg": "apoio/penetra torax x estofado: pele dentro do aparelho 2.1 cm (limite 1.5 cm) no quadro 60, 14 quadros"
-   }
-  ],
-  "quadros": 86,
-  "T": 3.6
- },
- "hack": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra braco_f x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 45 quadros",
-   "apoio/penetra pe_t x estrutura: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 86, 7 quadros",
-   "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 78, 7 quadros",
-   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 4, 28 quadros",
-   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 8.3 cm (limite 3.0 cm) no quadro 58, 13 quadros",
-   "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 8.6 cm (limite 3.0 cm) no quadro 61, 13 quadros",
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 7.5 cm (limite 3.0 cm) no quadro 6, 22 quadros",
-   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 7.6 cm (limite 3.0 cm) no quadro 6, 22 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "braco_f x estofado",
-    "nivel": "aviso",
-    "quadro": 62,
-    "valor": 1.64,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 45,
-    "msg": "apoio/penetra braco_f x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 45 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_t x estrutura",
-    "nivel": "aviso",
-    "quadro": 86,
-    "valor": 1.04,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 7,
-    "msg": "apoio/penetra pe_t x estrutura: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 86, 7 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_f x estrutura",
-    "nivel": "aviso",
-    "quadro": 78,
-    "valor": 1.2,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 7,
-    "msg": "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 78, 7 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "pelve",
-    "nivel": "aviso",
-    "quadro": 4,
-    "valor": 7.4,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 28,
-    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 4, 28 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "coxa esq",
-    "nivel": "aviso",
-    "quadro": 58,
-    "valor": 8.29,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 13,
-    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 8.3 cm (limite 3.0 cm) no quadro 58, 13 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "coxa dir",
-    "nivel": "aviso",
-    "quadro": 61,
-    "valor": 8.55,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 13,
-    "msg": "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 8.6 cm (limite 3.0 cm) no quadro 61, 13 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 7.47,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 22,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 7.5 cm (limite 3.0 cm) no quadro 6, 22 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 7.58,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 22,
-    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 7.6 cm (limite 3.0 cm) no quadro 6, 22 quadros"
-   }
-  ],
-  "quadros": 89,
-  "T": 3.7
- },
  "cadeira-extensora": {
   "erros": [],
   "avisos": [
@@ -293,207 +63,12 @@
   "quadros": 94,
   "T": 3.9
  },
- "cadeira-flexora": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 60, 18 quadros",
-   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 60, 16 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x estofado",
-    "nivel": "aviso",
-    "quadro": 60,
-    "valor": 2.39,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 18,
-    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 60, 18 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x estofado",
-    "nivel": "aviso",
-    "quadro": 60,
-    "valor": 2.0,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 16,
-    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 60, 16 quadros"
-   }
-  ],
-  "quadros": 83,
-  "T": 3.45
- },
- "mesa-flexora": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra mao_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 43 quadros",
-   "apoio/penetra mao_f x estofado: pele dentro do aparelho 1.5 cm (limite 1.5 cm) no quadro 30, 43 quadros",
-   "apoio/penetra mao_t x estrutura: pele dentro do aparelho 1.8 cm (limite 1.0 cm) no quadro 40, 1 quadros",
-   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 14.3 cm (limite 3.0 cm) no quadro 65, 86 quadros",
-   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 75, 27 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.1 cm (limite 3.0 cm) no quadro 75, 26 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_t x estofado",
-    "nivel": "aviso",
-    "quadro": 62,
-    "valor": 1.59,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 43,
-    "msg": "apoio/penetra mao_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 43 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_f x estofado",
-    "nivel": "aviso",
-    "quadro": 30,
-    "valor": 1.55,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 43,
-    "msg": "apoio/penetra mao_f x estofado: pele dentro do aparelho 1.5 cm (limite 1.5 cm) no quadro 30, 43 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_t x estrutura",
-    "nivel": "aviso",
-    "quadro": 40,
-    "valor": 1.79,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra mao_t x estrutura: pele dentro do aparelho 1.8 cm (limite 1.0 cm) no quadro 40, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "costas",
-    "nivel": "aviso",
-    "quadro": 65,
-    "valor": 14.3,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 86,
-    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 14.3 cm (limite 3.0 cm) no quadro 65, 86 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 75,
-    "valor": 6.86,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 27,
-    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 75, 27 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 75,
-    "valor": 7.08,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 26,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.1 cm (limite 3.0 cm) no quadro 75, 26 quadros"
-   }
-  ],
-  "quadros": 86,
-  "T": 3.6
- },
- "afundo": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 8.7 cm (limite 3.0 cm) no quadro 44, 15 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 44,
-    "valor": 8.71,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 15,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 8.7 cm (limite 3.0 cm) no quadro 44, 15 quadros"
-   }
-  ],
-  "quadros": 83,
-  "T": 3.45
- },
  "afundo-halteres": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 120,
   "T": 5.0
- },
- "passada-andando": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 72,
-  "T": 3.0
- },
- "bulgaro": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra perna_t x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 56, 15 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "perna_t x estofado",
-    "nivel": "aviso",
-    "quadro": 56,
-    "valor": 2.44,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 15,
-    "msg": "apoio/penetra perna_t x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 56, 15 quadros"
-   }
-  ],
-  "quadros": 85,
-  "T": 3.55
- },
- "step-up": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra perna_t x caixa: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 4, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "perna_t x caixa",
-    "nivel": "aviso",
-    "quadro": 4,
-    "valor": 1.31,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra perna_t x caixa: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 4, 1 quadros"
-   }
-  ],
-  "quadros": 71,
-  "T": 2.95
  },
  "terra": {
   "erros": [],
@@ -529,57 +104,6 @@
   ],
   "quadros": 86,
   "T": 3.6
- },
- "stiff": {
-  "erros": [],
-  "avisos": [
-   "pegada/dist mão esq: barra fora do túnel dos dedos 1.2 cm (limite 1.2 cm) no quadro 88, 2 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "pegada",
-    "sub": "dist",
-    "parte": "mão esq",
-    "nivel": "aviso",
-    "quadro": 88,
-    "valor": 1.21,
-    "unidade": "cm",
-    "limite": 1.2,
-    "n_quadros": 2,
-    "msg": "pegada/dist mão esq: barra fora do túnel dos dedos 1.2 cm (limite 1.2 cm) no quadro 88, 2 quadros"
-   }
-  ],
-  "quadros": 89,
-  "T": 3.7
- },
- "stiff-halteres": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 89,
-  "T": 3.7
- },
- "terra-uma-perna": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.5 cm (limite 3.5 cm) no quadro 78, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 78,
-    "valor": 3.53,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 1,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.5 cm (limite 3.5 cm) no quadro 78, 1 quadros"
-   }
-  ],
-  "quadros": 91,
-  "T": 3.8
  },
  "ponte-gluteo": {
   "erros": [],
@@ -623,96 +147,6 @@
   "quadros": 86,
   "T": 3.6
  },
- "ponte-unilateral": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.4 cm (limite 3.0 cm) no quadro 87, 42 quadros",
-   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.3 cm (limite 3.0 cm) no quadro 87, 16 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 87,
-    "valor": 3.35,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 42,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.4 cm (limite 3.0 cm) no quadro 87, 42 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 87,
-    "valor": 3.26,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 16,
-    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.3 cm (limite 3.0 cm) no quadro 87, 16 quadros"
-   }
-  ],
-  "quadros": 91,
-  "T": 3.8
- },
- "elevacao-quadril": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 68, 4 quadros",
-   "apoio/penetra coxa_f x barra: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 74, 2 quadros",
-   "apoio/pousada cabeça: região parada no ar acima de uma superfície (parece apoiada) 12.6 cm (limite 3.0 cm) no quadro 54, 36 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x barra",
-    "nivel": "aviso",
-    "quadro": 68,
-    "valor": 1.26,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 4,
-    "msg": "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 68, 4 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x barra",
-    "nivel": "aviso",
-    "quadro": 74,
-    "valor": 1.1,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 2,
-    "msg": "apoio/penetra coxa_f x barra: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 74, 2 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "cabeça",
-    "nivel": "aviso",
-    "quadro": 54,
-    "valor": 12.61,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 36,
-    "msg": "apoio/pousada cabeça: região parada no ar acima de uma superfície (parece apoiada) 12.6 cm (limite 3.0 cm) no quadro 54, 36 quadros"
-   }
-  ],
-  "quadros": 86,
-  "T": 3.6
- },
- "coice-gluteo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 73,
-  "T": 3.05
- },
  "abdutora": {
   "erros": [],
   "avisos": [
@@ -748,27 +182,6 @@
   "quadros": 84,
   "T": 3.5
  },
- "monster-walk": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 140,
-  "T": 5.85
- },
- "panturrilha-pe": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 91,
-  "T": 3.8
- },
- "panturrilha-sentado": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 91,
-  "T": 3.8
- },
  "panturrilha-elastico": {
   "erros": [],
   "avisos": [
@@ -780,189 +193,6 @@
     "sub": "congelado",
     "nivel": "aviso",
     "msg": "congelado 13 quadros"
-   }
-  ],
-  "quadros": 86,
-  "T": 3.6
- },
- "superman": {
-  "erros": [],
-  "avisos": [
-   "rom/coluna_extensao coluna: extensão da coluna 42° (limite 35°) no quadro 50, 51 quadros",
-   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 13.9 cm (limite 3.0 cm) no quadro 36, 65 quadros",
-   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 73, 30 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.6 cm (limite 3.0 cm) no quadro 74, 31 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "coluna_extensao",
-    "parte": "coluna",
-    "nivel": "aviso",
-    "quadro": 50,
-    "valor": 41.64,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 51,
-    "msg": "rom/coluna_extensao coluna: extensão da coluna 42° (limite 35°) no quadro 50, 51 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "costas",
-    "nivel": "aviso",
-    "quadro": 36,
-    "valor": 13.94,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 65,
-    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 13.9 cm (limite 3.0 cm) no quadro 36, 65 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 73,
-    "valor": 14.86,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 30,
-    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 73, 30 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 74,
-    "valor": 14.58,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 31,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.6 cm (limite 3.0 cm) no quadro 74, 31 quadros"
-   }
-  ],
-  "quadros": 103,
-  "T": 4.3
- },
- "hiperextensao": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.5 cm (limite 1.5 cm) no quadro 82, 43 quadros",
-   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.2 cm (limite 1.5 cm) no quadro 8, 32 quadros",
-   "apoio/penetra coxa_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 40, 13 quadros",
-   "apoio/penetra coxa_t x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 56, 9 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x estofado",
-    "nivel": "aviso",
-    "quadro": 82,
-    "valor": 2.47,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 43,
-    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.5 cm (limite 1.5 cm) no quadro 82, 43 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x estofado",
-    "nivel": "aviso",
-    "quadro": 8,
-    "valor": 2.24,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 32,
-    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.2 cm (limite 1.5 cm) no quadro 8, 32 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x estrutura",
-    "nivel": "aviso",
-    "quadro": 40,
-    "valor": 1.18,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 13,
-    "msg": "apoio/penetra coxa_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 40, 13 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x estrutura",
-    "nivel": "aviso",
-    "quadro": 56,
-    "valor": 1.19,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 9,
-    "msg": "apoio/penetra coxa_t x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 56, 9 quadros"
-   }
-  ],
-  "quadros": 85,
-  "T": 3.55
- },
- "prancha": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 14.1 cm (limite 3.0 cm) no quadro 21, 36 quadros",
-   "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 14.0 cm (limite 3.0 cm) no quadro 57, 37 quadros",
-   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 21, 36 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.5 cm (limite 3.0 cm) no quadro 57, 37 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "coxa esq",
-    "nivel": "aviso",
-    "quadro": 21,
-    "valor": 14.07,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 36,
-    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 14.1 cm (limite 3.0 cm) no quadro 21, 36 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "coxa dir",
-    "nivel": "aviso",
-    "quadro": 57,
-    "valor": 14.05,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 37,
-    "msg": "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 14.0 cm (limite 3.0 cm) no quadro 57, 37 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 21,
-    "valor": 14.86,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 36,
-    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 21, 36 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 57,
-    "valor": 14.53,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 37,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.5 cm (limite 3.0 cm) no quadro 57, 37 quadros"
    }
   ],
   "quadros": 86,
@@ -1015,70 +245,6 @@
   ],
   "quadros": 86,
   "T": 3.6
- },
- "abdominal": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 13.1 cm (limite 3.0 cm) no quadro 57, 12 quadros",
-   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 11.5 cm (limite 3.0 cm) no quadro 57, 12 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 57,
-    "valor": 13.06,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 12,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 13.1 cm (limite 3.0 cm) no quadro 57, 12 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 57,
-    "valor": 11.53,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 12,
-    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 11.5 cm (limite 3.0 cm) no quadro 57, 12 quadros"
-   }
-  ],
-  "quadros": 66,
-  "T": 2.75
- },
- "abdominal-infra": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 75, 77 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 75,
-    "valor": 4.21,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 77,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 75, 77 quadros"
-   }
-  ],
-  "quadros": 77,
-  "T": 3.2
- },
- "dead-bug": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 106,
-  "T": 4.4
  },
  "mountain-climber": {
   "erros": [],
@@ -1141,135 +307,6 @@
   "quadros": 19,
   "T": 0.8
  },
- "russian-twist": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 42, 10 quadros",
-   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 5.9 cm (limite 3.5 cm) no quadro 36, 9 quadros",
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 9 quadros",
-   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 26, 9 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 42,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 10,
-    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 42, 10 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 36,
-    "valor": 5.92,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 9,
-    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 5.9 cm (limite 3.5 cm) no quadro 36, 9 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 18,
-    "valor": 5.98,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 9,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 9 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 26,
-    "valor": 5.99,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 9,
-    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 26, 9 quadros"
-   }
-  ],
-  "quadros": 43,
-  "T": 1.8
- },
- "abdominal-bicicleta": {
-  "erros": [],
-  "avisos": [
-   "rom/punho_ulnar punho dir: desvio ulnar do punho 46° (limite 35°) no quadro 0, 13 quadros",
-   "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 4.9 cm (limite 3.5 cm) no quadro 0, 5 quadros",
-   "rom/punho_ulnar punho esq: desvio ulnar do punho 47° (limite 35°) no quadro 22, 14 quadros",
-   "apoio/corpo mao_f dentro de cabeça: corpo atravessando o próprio corpo 4.6 cm (limite 3.5 cm) no quadro 22, 4 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "punho_ulnar",
-    "parte": "punho dir",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 46.27,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 13,
-    "msg": "rom/punho_ulnar punho dir: desvio ulnar do punho 46° (limite 35°) no quadro 0, 13 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_t dentro de cabeça",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 4.87,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 5,
-    "msg": "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 4.9 cm (limite 3.5 cm) no quadro 0, 5 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "punho_ulnar",
-    "parte": "punho esq",
-    "nivel": "aviso",
-    "quadro": 22,
-    "valor": 47.04,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 14,
-    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 47° (limite 35°) no quadro 22, 14 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_f dentro de cabeça",
-    "nivel": "aviso",
-    "quadro": 22,
-    "valor": 4.64,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 4,
-    "msg": "apoio/corpo mao_f dentro de cabeça: corpo atravessando o próprio corpo 4.6 cm (limite 3.5 cm) no quadro 22, 4 quadros"
-   }
-  ],
-  "quadros": 43,
-  "T": 1.8
- },
- "elevacao-pernas-barra": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 78,
-  "T": 3.25
- },
  "roda-abdominal": {
   "erros": [],
   "avisos": [
@@ -1304,103 +341,6 @@
   ],
   "quadros": 91,
   "T": 3.8
- },
- "pallof": {
-  "erros": [],
-  "avisos": [
-   "congelado 7 quadros",
-   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 12 quadros",
-   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.8 cm (limite 3.5 cm) no quadro 92, 11 quadros",
-   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 5.1 cm (limite 3.5 cm) no quadro 84, 20 quadros",
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 5.0 cm (limite 3.5 cm) no quadro 84, 20 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "motor",
-    "sub": "congelado",
-    "nivel": "aviso",
-    "msg": "congelado 7 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 100,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 12,
-    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 12 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 92,
-    "valor": 5.81,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 11,
-    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.8 cm (limite 3.5 cm) no quadro 92, 11 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 84,
-    "valor": 5.13,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 20,
-    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 5.1 cm (limite 3.5 cm) no quadro 84, 20 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 84,
-    "valor": 4.97,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 20,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 5.0 cm (limite 3.5 cm) no quadro 84, 20 quadros"
-   }
-  ],
-  "quadros": 106,
-  "T": 4.4
- },
- "abdominal-polia": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
- "canivete": {
-  "erros": [],
-  "avisos": [
-   "rom/coluna_segmento coluna: coluna dobrada num segmento só 27° (limite 25°) no quadro 13, 12 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "coluna_segmento",
-    "parte": "coluna",
-    "nivel": "aviso",
-    "quadro": 13,
-    "valor": 26.68,
-    "unidade": "°",
-    "limite": 25,
-    "n_quadros": 12,
-    "msg": "rom/coluna_segmento coluna: coluna dobrada num segmento só 27° (limite 25°) no quadro 13, 12 quadros"
-   }
-  ],
-  "quadros": 64,
-  "T": 2.65
  },
  "box-jump": {
   "erros": [],
@@ -1450,149 +390,12 @@
   "quadros": 99,
   "T": 4.13
  },
- "salto-distancia": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 92,
-  "T": 3.82
- },
- "bound-lateral": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 38,
-  "T": 1.58
- },
- "salto-tesoura": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 31,
-  "T": 1.3
- },
  "tuck-jump": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 24,
   "T": 1.02
- },
- "arremesso-rotacional": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra pelve x halter: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 0, 1 quadros",
-   "apoio/penetra abdomen x halter: pele dentro do aparelho 1.6 cm (limite 1.0 cm) no quadro 2, 4 quadros",
-   "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 2, 7 quadros",
-   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 4, 14 quadros",
-   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 19 quadros",
-   "apoio/penetra antebraco_f x halter: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 6, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pelve x halter",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 1.0,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra pelve x halter: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 0, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "abdomen x halter",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 1.56,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 4,
-    "msg": "apoio/penetra abdomen x halter: pele dentro do aparelho 1.6 cm (limite 1.0 cm) no quadro 2, 4 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 7,
-    "msg": "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 2, 7 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 4,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 14,
-    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 4, 14 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 18,
-    "valor": 5.99,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 19,
-    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 19 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "antebraco_f x halter",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 1.11,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra antebraco_f x halter: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 6, 1 quadros"
-   }
-  ],
-  "quadros": 47,
-  "T": 1.97
- },
- "ponte-pescoco": {
-  "erros": [],
-  "avisos": [
-   "rom/coluna_rotacao coluna: rotação da coluna 53° (limite 50°) no quadro 15, 14 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "coluna_rotacao",
-    "parte": "coluna",
-    "nivel": "aviso",
-    "quadro": 15,
-    "valor": 53.03,
-    "unidade": "°",
-    "limite": 50,
-    "n_quadros": 14,
-    "msg": "rom/coluna_rotacao coluna: rotação da coluna 53° (limite 50°) no quadro 15, 14 quadros"
-   }
-  ],
-  "quadros": 49,
-  "T": 2.05
- },
- "fuga-quadril": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 53,
-  "T": 2.2
  },
  "nordico": {
   "erros": [],
@@ -1641,81 +444,6 @@
   ],
   "quadros": 110,
   "T": 4.6
- },
- "educativos-corrida": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 21,
-  "T": 0.88
- },
- "bike-subida": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra pe_t x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 22, 4 quadros",
-   "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros",
-   "apoio/penetra pe_f x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 4, 1 quadros",
-   "apoio/penetra pe_f x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 14, 2 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_t x pegador",
-    "nivel": "aviso",
-    "quadro": 22,
-    "valor": 1.17,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 4,
-    "msg": "apoio/penetra pe_t x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 22, 4 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_t x peça",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 1.01,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_f x peça",
-    "nivel": "aviso",
-    "quadro": 4,
-    "valor": 1.02,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra pe_f x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 4, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_f x pegador",
-    "nivel": "aviso",
-    "quadro": 14,
-    "valor": 1.22,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 2,
-    "msg": "apoio/penetra pe_f x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 14, 2 quadros"
-   }
-  ],
-  "quadros": 24,
-  "T": 1.02
- },
- "sentar-levantar": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 102,
-  "T": 4.25
  },
  "flexao": {
   "erros": [],
@@ -1777,42 +505,6 @@
   ],
   "quadros": 61,
   "T": 2.55
- },
- "flexao-inclinada": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 61,
-  "T": 2.55
- },
- "flexao-joelhos": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 12.9 cm (limite 3.0 cm) no quadro 27, 12 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "pelve",
-    "nivel": "aviso",
-    "quadro": 27,
-    "valor": 12.87,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 12,
-    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 12.9 cm (limite 3.0 cm) no quadro 27, 12 quadros"
-   }
-  ],
-  "quadros": 59,
-  "T": 2.45
- },
- "flexao-declinada": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 64,
-  "T": 2.65
  },
  "flexao-diamante": {
   "erros": [],
@@ -1940,27 +632,6 @@
   "quadros": 61,
   "T": 2.55
  },
- "flexao-pliometrica": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 39,
-  "T": 1.62
- },
- "supino-reto": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 62,
-  "T": 2.6
- },
- "supino-halteres": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 62,
-  "T": 2.6
- },
  "supino-inclinado": {
   "erros": [],
   "avisos": [],
@@ -1968,69 +639,12 @@
   "quadros": 62,
   "T": 2.6
  },
- "supino-inclinado-barra": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 65,
-  "T": 2.7
- },
- "supino-maquina": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 72,
-  "T": 3.0
- },
- "crucifixo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 84,
-  "T": 3.5
- },
  "crossover": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 77,
   "T": 3.2
- },
- "peck-deck": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 77,
-  "T": 3.2
- },
- "supino-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 65,
-  "T": 2.7
- },
- "crucifixo-elastico": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 2.1 cm (limite 1.5 cm) no quadro 0, 13 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "cabo/elástico x corpo",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 2.11,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 13,
-    "msg": "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 2.1 cm (limite 1.5 cm) no quadro 0, 13 quadros"
-   }
-  ],
-  "quadros": 74,
-  "T": 3.1
  },
  "paralelas": {
   "erros": [],
@@ -2093,6 +707,904 @@
   "quadros": 70,
   "T": 2.9
  },
+ "puxada-frente": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 3.3 cm (limite 1.5 cm) no quadro 14, 11 quadros",
+   "apoio/penetra cabeca x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 30, 8 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "cabo/elástico x corpo",
+    "nivel": "aviso",
+    "quadro": 14,
+    "valor": 3.33,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 11,
+    "msg": "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 3.3 cm (limite 1.5 cm) no quadro 14, 11 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "cabeca x pegador",
+    "nivel": "aviso",
+    "quadro": 30,
+    "valor": 1.17,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 8,
+    "msg": "apoio/penetra cabeca x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 30, 8 quadros"
+   }
+  ],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "remada-unilateral": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 73,
+  "T": 3.05
+ },
+ "pullover-polia": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "desenvolvimento-halteres": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 73,
+  "T": 3.05
+ },
+ "elevacao-lateral": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 84,
+  "T": 3.5
+ },
+ "arnold": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 73,
+  "T": 3.05
+ },
+ "rosca-halteres": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 130,
+  "T": 5.4
+ },
+ "triceps-polia": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 68,
+  "T": 2.85
+ },
+ "triceps-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 70,
+  "T": 2.9
+ },
+ "burpee": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 57,
+  "T": 2.37
+ },
+ "thruster": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 42,
+  "T": 1.75
+ },
+ "farmer-walk": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 21,
+  "T": 0.88
+ },
+ "sombra": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 29,
+  "T": 1.2
+ },
+ "corrida-leve": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra mao_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 2 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_f x tubo/barra fixa",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 1.38,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 2,
+    "msg": "apoio/penetra mao_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 2 quadros"
+   }
+  ],
+  "quadros": 17,
+  "T": 0.71
+ },
+ "longao": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 18,
+  "T": 0.74
+ },
+ "eliptico": {
+  "erros": [],
+  "avisos": [
+   "rom/antebraco_pro antebraço dir: pronação do antebraço 108° (limite 100°) no quadro 20, 9 quadros",
+   "pegada/atravessa mão dir: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 0, 1 quadros",
+   "rom/antebraco_pro antebraço esq: pronação do antebraço 108° (limite 100°) no quadro 8, 10 quadros",
+   "pegada/atravessa mão esq: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 12, 2 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 20,
+    "valor": 108.16,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 9,
+    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 108° (limite 100°) no quadro 20, 9 quadros"
+   },
+   {
+    "tipo": "pegada",
+    "sub": "atravessa",
+    "parte": "mão dir",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 1.54,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 1,
+    "msg": "pegada/atravessa mão dir: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 0, 1 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 8,
+    "valor": 108.37,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 10,
+    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 108° (limite 100°) no quadro 8, 10 quadros"
+   },
+   {
+    "tipo": "pegada",
+    "sub": "atravessa",
+    "parte": "mão esq",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 1.53,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 2,
+    "msg": "pegada/atravessa mão esq: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 12, 2 quadros"
+   }
+  ],
+  "quadros": 23,
+  "T": 0.96
+ },
+ "caminhada": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 23,
+  "T": 0.97
+ },
+ "flexor-quadril": {
+  "erros": [],
+  "avisos": [
+   "rom/quadril_extensao quadril dir: extensão do quadril 39° (limite 30°) no quadro 70, 81 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "quadril_extensao",
+    "parte": "quadril dir",
+    "nivel": "aviso",
+    "quadro": 70,
+    "valor": 39.36,
+    "unidade": "°",
+    "limite": 30,
+    "n_quadros": 81,
+    "msg": "rom/quadril_extensao quadril dir: extensão do quadril 39° (limite 30°) no quadro 70, 81 quadros"
+   }
+  ],
+  "quadros": 132,
+  "T": 5.5
+ },
+ "circulos-braco": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 23,
+  "T": 0.96
+ },
+ "rolo-it": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_t x peça laranja: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 20, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x peça laranja",
+    "nivel": "aviso",
+    "quadro": 20,
+    "valor": 1.02,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra coxa_t x peça laranja: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 20, 1 quadros"
+   }
+  ],
+  "quadros": 115,
+  "T": 4.8
+ },
+ "equilibrio-unipodal": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 106,
+  "T": 4.4
+ },
+ "circulos-ombro": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 38,
+  "T": 1.6
+ },
+ "abertura-peito-dinamica": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 26,
+  "T": 1.1
+ },
+ "alongamento-triceps": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 6 quadros",
+   "apoio/corpo antebraco_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 37 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_t dentro de cabeça",
+    "nivel": "aviso",
+    "quadro": 32,
+    "valor": 5.97,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 6,
+    "msg": "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 6 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_t dentro de cabeça",
+    "nivel": "aviso",
+    "quadro": 100,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 37,
+    "msg": "apoio/corpo antebraco_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 37 quadros"
+   }
+  ],
+  "quadros": 134,
+  "T": 5.6
+ },
+ "torcao-coluna": {
+  "erros": [],
+  "avisos": [
+   "congelado 7 quadros",
+   "flutua mao_f 1.6 cm",
+   "rom/punho_ulnar punho esq: desvio ulnar do punho 45° (limite 35°) no quadro 0, 16 quadros",
+   "rom/quadril_flexao quadril esq: flexão do quadril 157° (limite 145°) no quadro 71, 130 quadros",
+   "rom/punho_ulnar punho dir: desvio ulnar do punho 49° (limite 35°) no quadro 6, 27 quadros",
+   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.2 cm (limite 3.5 cm) no quadro 116, 53 quadros",
+   "rom/punho_radial punho esq: desvio radial do punho 27° (limite 25°) no quadro 24, 5 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 105, 130 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "motor",
+    "sub": "congelado",
+    "nivel": "aviso",
+    "msg": "congelado 7 quadros"
+   },
+   {
+    "tipo": "motor",
+    "sub": "flutua",
+    "nivel": "aviso",
+    "msg": "flutua mao_f 1.6 cm"
+   },
+   {
+    "tipo": "rom",
+    "sub": "punho_ulnar",
+    "parte": "punho esq",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 45.44,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 16,
+    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 45° (limite 35°) no quadro 0, 16 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "quadril_flexao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 71,
+    "valor": 157.25,
+    "unidade": "°",
+    "limite": 145,
+    "n_quadros": 130,
+    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 157° (limite 145°) no quadro 71, 130 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "punho_ulnar",
+    "parte": "punho dir",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 48.53,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 27,
+    "msg": "rom/punho_ulnar punho dir: desvio ulnar do punho 49° (limite 35°) no quadro 6, 27 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "perna esq dentro de perna dir",
+    "nivel": "aviso",
+    "quadro": 116,
+    "valor": 5.2,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 53,
+    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.2 cm (limite 3.5 cm) no quadro 116, 53 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "punho_radial",
+    "parte": "punho esq",
+    "nivel": "aviso",
+    "quadro": 24,
+    "valor": 26.83,
+    "unidade": "°",
+    "limite": 25,
+    "n_quadros": 5,
+    "msg": "rom/punho_radial punho esq: desvio radial do punho 27° (limite 25°) no quadro 24, 5 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 105,
+    "valor": 12.34,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 130,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 105, 130 quadros"
+   }
+  ],
+  "quadros": 130,
+  "T": 5.4
+ },
+ "agachamento-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 83,
+  "T": 3.45
+ },
+ "agachamento-frontal": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 90,
+  "T": 3.75
+ },
+ "cadeira-flexora": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 60, 18 quadros",
+   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 60, 16 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x estofado",
+    "nivel": "aviso",
+    "quadro": 60,
+    "valor": 2.39,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 18,
+    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 60, 18 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x estofado",
+    "nivel": "aviso",
+    "quadro": 60,
+    "valor": 2.0,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 16,
+    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 60, 16 quadros"
+   }
+  ],
+  "quadros": 83,
+  "T": 3.45
+ },
+ "passada-andando": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 72,
+  "T": 3.0
+ },
+ "stiff": {
+  "erros": [],
+  "avisos": [
+   "pegada/dist mão esq: barra fora do túnel dos dedos 1.2 cm (limite 1.2 cm) no quadro 88, 2 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "pegada",
+    "sub": "dist",
+    "parte": "mão esq",
+    "nivel": "aviso",
+    "quadro": 88,
+    "valor": 1.21,
+    "unidade": "cm",
+    "limite": 1.2,
+    "n_quadros": 2,
+    "msg": "pegada/dist mão esq: barra fora do túnel dos dedos 1.2 cm (limite 1.2 cm) no quadro 88, 2 quadros"
+   }
+  ],
+  "quadros": 89,
+  "T": 3.7
+ },
+ "ponte-unilateral": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.4 cm (limite 3.0 cm) no quadro 87, 42 quadros",
+   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.3 cm (limite 3.0 cm) no quadro 87, 16 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 87,
+    "valor": 3.35,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 42,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.4 cm (limite 3.0 cm) no quadro 87, 42 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 87,
+    "valor": 3.26,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 16,
+    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.3 cm (limite 3.0 cm) no quadro 87, 16 quadros"
+   }
+  ],
+  "quadros": 91,
+  "T": 3.8
+ },
+ "monster-walk": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 140,
+  "T": 5.85
+ },
+ "superman": {
+  "erros": [],
+  "avisos": [
+   "rom/coluna_extensao coluna: extensão da coluna 42° (limite 35°) no quadro 50, 51 quadros",
+   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 13.9 cm (limite 3.0 cm) no quadro 36, 65 quadros",
+   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 73, 30 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.6 cm (limite 3.0 cm) no quadro 74, 31 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "coluna_extensao",
+    "parte": "coluna",
+    "nivel": "aviso",
+    "quadro": 50,
+    "valor": 41.64,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 51,
+    "msg": "rom/coluna_extensao coluna: extensão da coluna 42° (limite 35°) no quadro 50, 51 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "costas",
+    "nivel": "aviso",
+    "quadro": 36,
+    "valor": 13.94,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 65,
+    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 13.9 cm (limite 3.0 cm) no quadro 36, 65 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 73,
+    "valor": 14.86,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 30,
+    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 73, 30 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 74,
+    "valor": 14.58,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 31,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.6 cm (limite 3.0 cm) no quadro 74, 31 quadros"
+   }
+  ],
+  "quadros": 103,
+  "T": 4.3
+ },
+ "abdominal": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 13.1 cm (limite 3.0 cm) no quadro 57, 12 quadros",
+   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 11.5 cm (limite 3.0 cm) no quadro 57, 12 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 57,
+    "valor": 13.06,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 12,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 13.1 cm (limite 3.0 cm) no quadro 57, 12 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 57,
+    "valor": 11.53,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 12,
+    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 11.5 cm (limite 3.0 cm) no quadro 57, 12 quadros"
+   }
+  ],
+  "quadros": 66,
+  "T": 2.75
+ },
+ "russian-twist": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 42, 10 quadros",
+   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 5.9 cm (limite 3.5 cm) no quadro 36, 9 quadros",
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 9 quadros",
+   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 26, 9 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 42,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 10,
+    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 42, 10 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 36,
+    "valor": 5.92,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 9,
+    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 5.9 cm (limite 3.5 cm) no quadro 36, 9 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 18,
+    "valor": 5.98,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 9,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 9 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 26,
+    "valor": 5.99,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 9,
+    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 26, 9 quadros"
+   }
+  ],
+  "quadros": 43,
+  "T": 1.8
+ },
+ "pallof": {
+  "erros": [],
+  "avisos": [
+   "congelado 7 quadros",
+   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 12 quadros",
+   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.8 cm (limite 3.5 cm) no quadro 92, 11 quadros",
+   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 5.1 cm (limite 3.5 cm) no quadro 84, 20 quadros",
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 5.0 cm (limite 3.5 cm) no quadro 84, 20 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "motor",
+    "sub": "congelado",
+    "nivel": "aviso",
+    "msg": "congelado 7 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 100,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 12,
+    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 12 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 92,
+    "valor": 5.81,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 11,
+    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.8 cm (limite 3.5 cm) no quadro 92, 11 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 84,
+    "valor": 5.13,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 20,
+    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 5.1 cm (limite 3.5 cm) no quadro 84, 20 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 84,
+    "valor": 4.97,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 20,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 5.0 cm (limite 3.5 cm) no quadro 84, 20 quadros"
+   }
+  ],
+  "quadros": 106,
+  "T": 4.4
+ },
+ "salto-distancia": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 92,
+  "T": 3.82
+ },
+ "arremesso-rotacional": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra pelve x halter: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 0, 1 quadros",
+   "apoio/penetra abdomen x halter: pele dentro do aparelho 1.6 cm (limite 1.0 cm) no quadro 2, 4 quadros",
+   "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 2, 7 quadros",
+   "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 4, 14 quadros",
+   "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 19 quadros",
+   "apoio/penetra antebraco_f x halter: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 6, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pelve x halter",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 1.0,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra pelve x halter: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 0, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "abdomen x halter",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 1.56,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 4,
+    "msg": "apoio/penetra abdomen x halter: pele dentro do aparelho 1.6 cm (limite 1.0 cm) no quadro 2, 4 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 7,
+    "msg": "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 2, 7 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 4,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 14,
+    "msg": "apoio/corpo antebraco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 4, 14 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 18,
+    "valor": 5.99,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 19,
+    "msg": "apoio/corpo braco_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 18, 19 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "antebraco_f x halter",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 1.11,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra antebraco_f x halter: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 6, 1 quadros"
+   }
+  ],
+  "quadros": 47,
+  "T": 1.97
+ },
+ "educativos-corrida": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 21,
+  "T": 0.88
+ },
+ "flexao-inclinada": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 61,
+  "T": 2.55
+ },
+ "flexao-pliometrica": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 39,
+  "T": 1.62
+ },
+ "supino-inclinado-barra": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 65,
+  "T": 2.7
+ },
+ "peck-deck": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 77,
+  "T": 3.2
+ },
  "barra-fixa": {
   "erros": [],
   "avisos": [
@@ -2127,6 +1639,1097 @@
   ],
   "quadros": 77,
   "T": 3.2
+ },
+ "puxada-triangulo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "remada-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 71,
+  "T": 2.95
+ },
+ "face-pull": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 72,
+  "T": 3.0
+ },
+ "desenvolvimento-barra": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 73,
+  "T": 3.05
+ },
+ "elevacao-lateral-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "pike-pushup": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 17, 28 quadros",
+   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 18, 27 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 17,
+    "valor": 3.8,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 28,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 17, 28 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 18,
+    "valor": 3.79,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 27,
+    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 18, 27 quadros"
+   }
+  ],
+  "quadros": 64,
+  "T": 2.65
+ },
+ "rosca-martelo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "triceps-frances": {
+  "erros": [],
+  "avisos": [
+   "rom/antebraco_pro antebraço dir: pronação do antebraço 110° (limite 100°) no quadro 43, 13 quadros",
+   "rom/antebraco_pro antebraço esq: pronação do antebraço 106° (limite 100°) no quadro 43, 12 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 43,
+    "valor": 109.79,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 13,
+    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 110° (limite 100°) no quadro 43, 13 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 43,
+    "valor": 105.61,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 12,
+    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 106° (limite 100°) no quadro 43, 12 quadros"
+   }
+  ],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "triceps-coice": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 66,
+  "T": 2.75
+ },
+ "polichinelo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 17,
+  "T": 0.72
+ },
+ "power-clean": {
+  "erros": [],
+  "avisos": [
+   "rom/antebraco_pro antebraço esq: pronação do antebraço 122° (limite 100°) no quadro 6, 3 quadros",
+   "rom/antebraco_pro antebraço dir: pronação do antebraço 124° (limite 100°) no quadro 6, 3 quadros",
+   "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros",
+   "pegada/dist mão dir: barra fora do túnel dos dedos 1.3 cm (limite 1.2 cm) no quadro 12, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 122.04,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 3,
+    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 122° (limite 100°) no quadro 6, 3 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 124.29,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 3,
+    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 124° (limite 100°) no quadro 6, 3 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x barra",
+    "nivel": "aviso",
+    "quadro": 8,
+    "valor": 1.23,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
+   },
+   {
+    "tipo": "pegada",
+    "sub": "dist",
+    "parte": "mão dir",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 1.35,
+    "unidade": "cm",
+    "limite": 1.2,
+    "n_quadros": 1,
+    "msg": "pegada/dist mão dir: barra fora do túnel dos dedos 1.3 cm (limite 1.2 cm) no quadro 12, 1 quadros"
+   }
+  ],
+  "quadros": 83,
+  "T": 3.47
+ },
+ "sled-push": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 40,
+  "T": 1.68
+ },
+ "saco-combinacoes": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra mao_t x peça: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_t x peça",
+    "nivel": "aviso",
+    "quadro": 8,
+    "valor": 1.18,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra mao_t x peça: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
+   }
+  ],
+  "quadros": 21,
+  "T": 0.89
+ },
+ "caminhada-corrida": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 18,
+  "T": 0.73
+ },
+ "bike-leve": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 2, 1 quadros",
+   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 1.8 cm (limite 1.5 cm) no quadro 12, 3 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x estofado",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 1.62,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 1,
+    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 2, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x estofado",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 1.8,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 3,
+    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 1.8 cm (limite 1.5 cm) no quadro 12, 3 quadros"
+   }
+  ],
+  "quadros": 16,
+  "T": 0.68
+ },
+ "remo-ergometro": {
+  "erros": [],
+  "avisos": [
+   "rom/quadril_flexao quadril esq: flexão do quadril 150° (limite 145°) no quadro 0, 34 quadros",
+   "rom/quadril_flexao quadril dir: flexão do quadril 151° (limite 145°) no quadro 0, 35 quadros",
+   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 32, 13 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 13.8 cm (limite 3.0 cm) no quadro 33, 14 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "quadril_flexao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 150.31,
+    "unidade": "°",
+    "limite": 145,
+    "n_quadros": 34,
+    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 150° (limite 145°) no quadro 0, 34 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "quadril_flexao",
+    "parte": "quadril dir",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 150.72,
+    "unidade": "°",
+    "limite": 145,
+    "n_quadros": 35,
+    "msg": "rom/quadril_flexao quadril dir: flexão do quadril 151° (limite 145°) no quadro 0, 35 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 32,
+    "valor": 12.29,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 13,
+    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 32, 13 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 33,
+    "valor": 13.82,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 14,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 13.8 cm (limite 3.0 cm) no quadro 33, 14 quadros"
+   }
+  ],
+  "quadros": 60,
+  "T": 2.5
+ },
+ "maior-alongamento": {
+  "erros": [],
+  "avisos": [
+   "rom/punho_extensao punho esq: extensão do punho 87° (limite 85°) no quadro 122, 25 quadros",
+   "rom/quadril_flexao quadril esq: flexão do quadril 156° (limite 145°) no quadro 15, 119 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 46, 82 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "punho_extensao",
+    "parte": "punho esq",
+    "nivel": "aviso",
+    "quadro": 122,
+    "valor": 86.62,
+    "unidade": "°",
+    "limite": 85,
+    "n_quadros": 25,
+    "msg": "rom/punho_extensao punho esq: extensão do punho 87° (limite 85°) no quadro 122, 25 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "quadril_flexao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 15,
+    "valor": 155.66,
+    "unidade": "°",
+    "limite": 145,
+    "n_quadros": 119,
+    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 156° (limite 145°) no quadro 15, 119 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 46,
+    "valor": 7.41,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 82,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 46, 82 quadros"
+   }
+  ],
+  "quadros": 185,
+  "T": 7.7
+ },
+ "alongamento-posterior": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 132,
+  "T": 5.5
+ },
+ "circulos-quadril": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 27 quadros",
+   "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 48, 27 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_t dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 32,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 27,
+    "msg": "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 27 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 48,
+    "valor": 6.0,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 27,
+    "msg": "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 48, 27 quadros"
+   }
+  ],
+  "quadros": 53,
+  "T": 2.2
+ },
+ "alongamento-peito": {
+  "erros": [],
+  "avisos": [
+   "congelado 7 quadros",
+   "rom/ombro_re ombro dir: ombro: rotação externa 107° (limite 95°) no quadro 85, 75 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "motor",
+    "sub": "congelado",
+    "nivel": "aviso",
+    "msg": "congelado 7 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "ombro_re",
+    "parte": "ombro dir",
+    "nivel": "aviso",
+    "quadro": 85,
+    "valor": 106.62,
+    "unidade": "°",
+    "limite": 95,
+    "n_quadros": 75,
+    "msg": "rom/ombro_re ombro dir: ombro: rotação externa 107° (limite 95°) no quadro 85, 75 quadros"
+   }
+  ],
+  "quadros": 130,
+  "T": 5.4
+ },
+ "balanco-pernas": {
+  "erros": [],
+  "avisos": [
+   "rom/quadril_extensao quadril esq: extensão do quadril 38° (limite 30°) no quadro 11, 8 quadros",
+   "rom/quadril_aducao quadril esq: adução do quadril 33° (limite 30°) no quadro 57, 4 quadros",
+   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 56, 2 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "quadril_extensao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 11,
+    "valor": 37.55,
+    "unidade": "°",
+    "limite": 30,
+    "n_quadros": 8,
+    "msg": "rom/quadril_extensao quadril esq: extensão do quadril 38° (limite 30°) no quadro 11, 8 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "quadril_aducao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 57,
+    "valor": 33.11,
+    "unidade": "°",
+    "limite": 30,
+    "n_quadros": 4,
+    "msg": "rom/quadril_aducao quadril esq: adução do quadril 33° (limite 30°) no quadro 57, 4 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "perna esq dentro de perna dir",
+    "nivel": "aviso",
+    "quadro": 56,
+    "valor": 5.64,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 2,
+    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 56, 2 quadros"
+   }
+  ],
+  "quadros": 69,
+  "T": 2.89
+ },
+ "circulos-joelho": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.6 cm (limite 3.5 cm) no quadro 36, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 36,
+    "valor": 3.65,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 1,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.6 cm (limite 3.5 cm) no quadro 36, 1 quadros"
+   }
+  ],
+  "quadros": 48,
+  "T": 2.0
+ },
+ "spider": {
+  "erros": [],
+  "avisos": [
+   "rom/quadril_flexao quadril esq: flexão do quadril 162° (limite 145°) no quadro 121, 90 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "quadril_flexao",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 121,
+    "valor": 162.34,
+    "unidade": "°",
+    "limite": 145,
+    "n_quadros": 90,
+    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 162° (limite 145°) no quadro 121, 90 quadros"
+   }
+  ],
+  "quadros": 144,
+  "T": 6.0
+ },
+ "alongamento-antebraco": {
+  "erros": [],
+  "avisos": [
+   "rom/antebraco_sup antebraço dir: supinação do antebraço 104° (limite 100°) no quadro 11, 19 quadros",
+   "rom/antebraco_sup antebraço esq: supinação do antebraço 104° (limite 100°) no quadro 12, 17 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "antebraco_sup",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 11,
+    "valor": 104.35,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 19,
+    "msg": "rom/antebraco_sup antebraço dir: supinação do antebraço 104° (limite 100°) no quadro 11, 19 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "antebraco_sup",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 103.85,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 17,
+    "msg": "rom/antebraco_sup antebraço esq: supinação do antebraço 104° (limite 100°) no quadro 12, 17 quadros"
+   }
+  ],
+  "quadros": 132,
+  "T": 5.5
+ },
+ "alongamento-dorsal": {
+  "erros": [],
+  "avisos": [
+   "congelado 8 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "motor",
+    "sub": "congelado",
+    "nivel": "aviso",
+    "msg": "congelado 8 quadros"
+   }
+  ],
+  "quadros": 130,
+  "T": 5.4
+ },
+ "agachamento-salto": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 29,
+  "T": 1.2
+ },
+ "leg-press": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 10, 43 quadros",
+   "apoio/penetra mao_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 26, 1 quadros",
+   "apoio/penetra torax x estofado: pele dentro do aparelho 2.1 cm (limite 1.5 cm) no quadro 60, 14 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_f x estrutura",
+    "nivel": "aviso",
+    "quadro": 10,
+    "valor": 1.45,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 43,
+    "msg": "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 10, 43 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_f x estrutura",
+    "nivel": "aviso",
+    "quadro": 26,
+    "valor": 1.17,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra mao_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 26, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "torax x estofado",
+    "nivel": "aviso",
+    "quadro": 60,
+    "valor": 2.12,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 14,
+    "msg": "apoio/penetra torax x estofado: pele dentro do aparelho 2.1 cm (limite 1.5 cm) no quadro 60, 14 quadros"
+   }
+  ],
+  "quadros": 86,
+  "T": 3.6
+ },
+ "mesa-flexora": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra mao_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 43 quadros",
+   "apoio/penetra mao_f x estofado: pele dentro do aparelho 1.5 cm (limite 1.5 cm) no quadro 30, 43 quadros",
+   "apoio/penetra mao_t x estrutura: pele dentro do aparelho 1.8 cm (limite 1.0 cm) no quadro 40, 1 quadros",
+   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 14.3 cm (limite 3.0 cm) no quadro 65, 86 quadros",
+   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 75, 27 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.1 cm (limite 3.0 cm) no quadro 75, 26 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_t x estofado",
+    "nivel": "aviso",
+    "quadro": 62,
+    "valor": 1.59,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 43,
+    "msg": "apoio/penetra mao_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 43 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_f x estofado",
+    "nivel": "aviso",
+    "quadro": 30,
+    "valor": 1.55,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 43,
+    "msg": "apoio/penetra mao_f x estofado: pele dentro do aparelho 1.5 cm (limite 1.5 cm) no quadro 30, 43 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_t x estrutura",
+    "nivel": "aviso",
+    "quadro": 40,
+    "valor": 1.79,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra mao_t x estrutura: pele dentro do aparelho 1.8 cm (limite 1.0 cm) no quadro 40, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "costas",
+    "nivel": "aviso",
+    "quadro": 65,
+    "valor": 14.3,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 86,
+    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 14.3 cm (limite 3.0 cm) no quadro 65, 86 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 75,
+    "valor": 6.86,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 27,
+    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 75, 27 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 75,
+    "valor": 7.08,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 26,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.1 cm (limite 3.0 cm) no quadro 75, 26 quadros"
+   }
+  ],
+  "quadros": 86,
+  "T": 3.6
+ },
+ "bulgaro": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra perna_t x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 56, 15 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "perna_t x estofado",
+    "nivel": "aviso",
+    "quadro": 56,
+    "valor": 2.44,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 15,
+    "msg": "apoio/penetra perna_t x estofado: pele dentro do aparelho 2.4 cm (limite 1.5 cm) no quadro 56, 15 quadros"
+   }
+  ],
+  "quadros": 85,
+  "T": 3.55
+ },
+ "stiff-halteres": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 89,
+  "T": 3.7
+ },
+ "elevacao-quadril": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 68, 4 quadros",
+   "apoio/penetra coxa_f x barra: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 74, 2 quadros",
+   "apoio/pousada cabeça: região parada no ar acima de uma superfície (parece apoiada) 12.6 cm (limite 3.0 cm) no quadro 54, 36 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x barra",
+    "nivel": "aviso",
+    "quadro": 68,
+    "valor": 1.26,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 4,
+    "msg": "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 68, 4 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x barra",
+    "nivel": "aviso",
+    "quadro": 74,
+    "valor": 1.1,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 2,
+    "msg": "apoio/penetra coxa_f x barra: pele dentro do aparelho 1.1 cm (limite 1.0 cm) no quadro 74, 2 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "cabeça",
+    "nivel": "aviso",
+    "quadro": 54,
+    "valor": 12.61,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 36,
+    "msg": "apoio/pousada cabeça: região parada no ar acima de uma superfície (parece apoiada) 12.6 cm (limite 3.0 cm) no quadro 54, 36 quadros"
+   }
+  ],
+  "quadros": 86,
+  "T": 3.6
+ },
+ "panturrilha-pe": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 91,
+  "T": 3.8
+ },
+ "hiperextensao": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.5 cm (limite 1.5 cm) no quadro 82, 43 quadros",
+   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.2 cm (limite 1.5 cm) no quadro 8, 32 quadros",
+   "apoio/penetra coxa_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 40, 13 quadros",
+   "apoio/penetra coxa_t x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 56, 9 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x estofado",
+    "nivel": "aviso",
+    "quadro": 82,
+    "valor": 2.47,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 43,
+    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 2.5 cm (limite 1.5 cm) no quadro 82, 43 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x estofado",
+    "nivel": "aviso",
+    "quadro": 8,
+    "valor": 2.24,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 32,
+    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.2 cm (limite 1.5 cm) no quadro 8, 32 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x estrutura",
+    "nivel": "aviso",
+    "quadro": 40,
+    "valor": 1.18,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 13,
+    "msg": "apoio/penetra coxa_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 40, 13 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x estrutura",
+    "nivel": "aviso",
+    "quadro": 56,
+    "valor": 1.19,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 9,
+    "msg": "apoio/penetra coxa_t x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 56, 9 quadros"
+   }
+  ],
+  "quadros": 85,
+  "T": 3.55
+ },
+ "abdominal-infra": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 75, 77 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 75,
+    "valor": 4.21,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 77,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 75, 77 quadros"
+   }
+  ],
+  "quadros": 77,
+  "T": 3.2
+ },
+ "abdominal-bicicleta": {
+  "erros": [],
+  "avisos": [
+   "rom/punho_ulnar punho dir: desvio ulnar do punho 46° (limite 35°) no quadro 0, 13 quadros",
+   "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 4.9 cm (limite 3.5 cm) no quadro 0, 5 quadros",
+   "rom/punho_ulnar punho esq: desvio ulnar do punho 47° (limite 35°) no quadro 22, 14 quadros",
+   "apoio/corpo mao_f dentro de cabeça: corpo atravessando o próprio corpo 4.6 cm (limite 3.5 cm) no quadro 22, 4 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "punho_ulnar",
+    "parte": "punho dir",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 46.27,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 13,
+    "msg": "rom/punho_ulnar punho dir: desvio ulnar do punho 46° (limite 35°) no quadro 0, 13 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_t dentro de cabeça",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 4.87,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 5,
+    "msg": "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 4.9 cm (limite 3.5 cm) no quadro 0, 5 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "punho_ulnar",
+    "parte": "punho esq",
+    "nivel": "aviso",
+    "quadro": 22,
+    "valor": 47.04,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 14,
+    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 47° (limite 35°) no quadro 22, 14 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_f dentro de cabeça",
+    "nivel": "aviso",
+    "quadro": 22,
+    "valor": 4.64,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 4,
+    "msg": "apoio/corpo mao_f dentro de cabeça: corpo atravessando o próprio corpo 4.6 cm (limite 3.5 cm) no quadro 22, 4 quadros"
+   }
+  ],
+  "quadros": 43,
+  "T": 1.8
+ },
+ "abdominal-polia": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "bound-lateral": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 38,
+  "T": 1.58
+ },
+ "ponte-pescoco": {
+  "erros": [],
+  "avisos": [
+   "rom/coluna_rotacao coluna: rotação da coluna 53° (limite 50°) no quadro 15, 14 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "coluna_rotacao",
+    "parte": "coluna",
+    "nivel": "aviso",
+    "quadro": 15,
+    "valor": 53.03,
+    "unidade": "°",
+    "limite": 50,
+    "n_quadros": 14,
+    "msg": "rom/coluna_rotacao coluna: rotação da coluna 53° (limite 50°) no quadro 15, 14 quadros"
+   }
+  ],
+  "quadros": 49,
+  "T": 2.05
+ },
+ "bike-subida": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra pe_t x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 22, 4 quadros",
+   "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros",
+   "apoio/penetra pe_f x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 4, 1 quadros",
+   "apoio/penetra pe_f x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 14, 2 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_t x pegador",
+    "nivel": "aviso",
+    "quadro": 22,
+    "valor": 1.17,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 4,
+    "msg": "apoio/penetra pe_t x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 22, 4 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_t x peça",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 1.01,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_f x peça",
+    "nivel": "aviso",
+    "quadro": 4,
+    "valor": 1.02,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra pe_f x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 4, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_f x pegador",
+    "nivel": "aviso",
+    "quadro": 14,
+    "valor": 1.22,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 2,
+    "msg": "apoio/penetra pe_f x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 14, 2 quadros"
+   }
+  ],
+  "quadros": 24,
+  "T": 1.02
+ },
+ "flexao-joelhos": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 12.9 cm (limite 3.0 cm) no quadro 27, 12 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "pelve",
+    "nivel": "aviso",
+    "quadro": 27,
+    "valor": 12.87,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 12,
+    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 12.9 cm (limite 3.0 cm) no quadro 27, 12 quadros"
+   }
+  ],
+  "quadros": 59,
+  "T": 2.45
+ },
+ "supino-reto": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 62,
+  "T": 2.6
+ },
+ "supino-maquina": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 72,
+  "T": 3.0
+ },
+ "supino-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 65,
+  "T": 2.7
  },
  "barra-supinada": {
   "erros": [],
@@ -2163,82 +2766,12 @@
   "quadros": 77,
   "T": 3.2
  },
- "barra-assistida": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 77,
-  "T": 3.2
- },
- "puxada-frente": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 3.3 cm (limite 1.5 cm) no quadro 14, 11 quadros",
-   "apoio/penetra cabeca x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 30, 8 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "cabo/elástico x corpo",
-    "nivel": "aviso",
-    "quadro": 14,
-    "valor": 3.33,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 11,
-    "msg": "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 3.3 cm (limite 1.5 cm) no quadro 14, 11 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "cabeca x pegador",
-    "nivel": "aviso",
-    "quadro": 30,
-    "valor": 1.17,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 8,
-    "msg": "apoio/penetra cabeca x pegador: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 30, 8 quadros"
-   }
-  ],
-  "quadros": 74,
-  "T": 3.1
- },
- "puxada-triangulo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
  "remada-baixa": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 73,
   "T": 3.05
- },
- "remada-curvada": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 70,
-  "T": 2.9
- },
- "remada-unilateral": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 73,
-  "T": 3.05
- },
- "remada-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 71,
-  "T": 2.95
  },
  "remada-invertida": {
   "erros": [],
@@ -2353,27 +2886,6 @@
   "quadros": 72,
   "T": 3.0
  },
- "pulldown-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 70,
-  "T": 2.9
- },
- "pullover-polia": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
- "face-pull": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 72,
-  "T": 3.0
- },
  "band-pull-apart": {
   "erros": [],
   "avisos": [
@@ -2396,33 +2908,1007 @@
   "quadros": 72,
   "T": 3.0
  },
- "encolhimento": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 79,
-  "T": 3.3
- },
- "desenvolvimento-halteres": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 73,
-  "T": 3.05
- },
- "desenvolvimento-barra": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 73,
-  "T": 3.05
- },
  "desenvolvimento-maquina": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 73,
   "T": 3.05
+ },
+ "elevacao-frontal": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "rotacao-externa": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.7 cm (limite 3.5 cm) no quadro 36, 6 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 36,
+    "valor": 3.74,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 6,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.7 cm (limite 3.5 cm) no quadro 36, 6 quadros"
+   }
+  ],
+  "quadros": 70,
+  "T": 2.9
+ },
+ "rosca-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "triceps-testa": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "passe-medicine": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 24,
+  "T": 1.0
+ },
+ "corda": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 11,
+  "T": 0.44
+ },
+ "arremesso-medicine": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 40,
+  "T": 1.68
+ },
+ "turkish-getup": {
+  "erros": [
+   "rom/quadril_extensao quadril dir: extensão do quadril 42° (limite 42°) no quadro 197, 40 quadros",
+   "apoio/base costas: centro de massa fora da base de apoio (9 quadros; costas a 3 cm da superfície) 13.4 cm (limite 3.0 cm) no quadro 282, 54 quadros",
+   "apoio/base coxa dir: centro de massa fora da base de apoio (10 quadros; coxa dir a 26 cm da superfície) 22.8 cm (limite 3.0 cm) no quadro 49, 30 quadros",
+   "apoio/base coxa esq: centro de massa fora da base de apoio (8 quadros; coxa esq a 36 cm da superfície) 11.5 cm (limite 3.0 cm) no quadro 199, 18 quadros",
+   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 3.2 cm (limite 3.0 cm) no quadro 292, 10 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 10.6 cm (limite 3.0 cm) no quadro 263, 32 quadros"
+  ],
+  "avisos": [
+   "rom/joelho_flexao joelho esq: flexão do joelho 154° (limite 150°) no quadro 276, 58 quadros",
+   "rom/ombro_ext_excesso ombro dir: ombro: braço para trás além do limite 22° (limite 10°) no quadro 81, 77 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "joelho_flexao",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 276,
+    "valor": 153.6,
+    "unidade": "°",
+    "limite": 150,
+    "n_quadros": 58,
+    "msg": "rom/joelho_flexao joelho esq: flexão do joelho 154° (limite 150°) no quadro 276, 58 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "ombro_ext_excesso",
+    "parte": "ombro dir",
+    "nivel": "aviso",
+    "quadro": 81,
+    "valor": 21.85,
+    "unidade": "°",
+    "limite": 10,
+    "n_quadros": 77,
+    "msg": "rom/ombro_ext_excesso ombro dir: ombro: braço para trás além do limite 22° (limite 10°) no quadro 81, 77 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "quadril_extensao",
+    "parte": "quadril dir",
+    "nivel": "erro",
+    "quadro": 197,
+    "valor": 42.46,
+    "unidade": "°",
+    "limite": 42,
+    "n_quadros": 40,
+    "msg": "rom/quadril_extensao quadril dir: extensão do quadril 42° (limite 42°) no quadro 197, 40 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "base",
+    "parte": "costas",
+    "nivel": "erro",
+    "quadro": 282,
+    "valor": 13.4,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 54,
+    "msg": "apoio/base costas: centro de massa fora da base de apoio (9 quadros; costas a 3 cm da superfície) 13.4 cm (limite 3.0 cm) no quadro 282, 54 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "base",
+    "parte": "coxa dir",
+    "nivel": "erro",
+    "quadro": 49,
+    "valor": 22.81,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 30,
+    "msg": "apoio/base coxa dir: centro de massa fora da base de apoio (10 quadros; coxa dir a 26 cm da superfície) 22.8 cm (limite 3.0 cm) no quadro 49, 30 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "base",
+    "parte": "coxa esq",
+    "nivel": "erro",
+    "quadro": 199,
+    "valor": 11.5,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 18,
+    "msg": "apoio/base coxa esq: centro de massa fora da base de apoio (8 quadros; coxa esq a 36 cm da superfície) 11.5 cm (limite 3.0 cm) no quadro 199, 18 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "costas",
+    "nivel": "erro",
+    "quadro": 292,
+    "valor": 3.24,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 10,
+    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 3.2 cm (limite 3.0 cm) no quadro 292, 10 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "erro",
+    "quadro": 263,
+    "valor": 10.58,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 32,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 10.6 cm (limite 3.0 cm) no quadro 263, 32 quadros"
+   }
+  ],
+  "quadros": 298,
+  "T": 12.4
+ },
+ "sprawl": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 32,
+  "T": 1.33
+ },
+ "tiros": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 15,
+  "T": 0.62
+ },
+ "bike-intervalado": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.9 cm (limite 1.5 cm) no quadro 2, 2 quadros",
+   "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros",
+   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 14, 5 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_t x estofado",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 1.88,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 2,
+    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.9 cm (limite 1.5 cm) no quadro 2, 2 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_t x peça",
+    "nivel": "aviso",
+    "quadro": 2,
+    "valor": 1.01,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "coxa_f x estofado",
+    "nivel": "aviso",
+    "quadro": 14,
+    "valor": 1.98,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 5,
+    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 14, 5 quadros"
+   }
+  ],
+  "quadros": 19,
+  "T": 0.79
+ },
+ "escada": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra mao_t x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 0, 2 quadros",
+   "apoio/penetra antebraco_t x tubo/barra fixa: pele dentro do aparelho 1.5 cm (limite 1.0 cm) no quadro 32, 5 quadros",
+   "apoio/penetra antebraco_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 9 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "mao_t x tubo/barra fixa",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 1.36,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 2,
+    "msg": "apoio/penetra mao_t x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 0, 2 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "antebraco_t x tubo/barra fixa",
+    "nivel": "aviso",
+    "quadro": 32,
+    "valor": 1.53,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 5,
+    "msg": "apoio/penetra antebraco_t x tubo/barra fixa: pele dentro do aparelho 1.5 cm (limite 1.0 cm) no quadro 32, 5 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "antebraco_f x tubo/barra fixa",
+    "nivel": "aviso",
+    "quadro": 12,
+    "valor": 1.39,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 9,
+    "msg": "apoio/penetra antebraco_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 9 quadros"
+   }
+  ],
+  "quadros": 36,
+  "T": 1.52
+ },
+ "gato-camelo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 106,
+  "T": 4.4
+ },
+ "alongamento-quadriceps": {
+  "erros": [],
+  "avisos": [
+   "rom/punho_ulnar punho esq: desvio ulnar do punho 35° (limite 35°) no quadro 75, 3 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "punho_ulnar",
+    "parte": "punho esq",
+    "nivel": "aviso",
+    "quadro": 75,
+    "valor": 35.06,
+    "unidade": "°",
+    "limite": 35,
+    "n_quadros": 3,
+    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 35° (limite 35°) no quadro 75, 3 quadros"
+   }
+  ],
+  "quadros": 154,
+  "T": 6.4
+ },
+ "rolo-quadriceps": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 3.9 cm (limite 3.0 cm) no quadro 58, 15 quadros",
+   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 4.1 cm (limite 3.0 cm) no quadro 65, 15 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "coxa esq",
+    "nivel": "aviso",
+    "quadro": 58,
+    "valor": 3.95,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 15,
+    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 3.9 cm (limite 3.0 cm) no quadro 58, 15 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 65,
+    "valor": 4.14,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 15,
+    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 4.1 cm (limite 3.0 cm) no quadro 65, 15 quadros"
+   }
+  ],
+  "quadros": 115,
+  "T": 4.8
+ },
+ "rotacao-toracica": {
+  "erros": [],
+  "avisos": [
+   "rom/coluna_rotacao coluna: rotação da coluna 62° (limite 50°) no quadro 81, 48 quadros",
+   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.3 cm (limite 3.0 cm) no quadro 9, 41 quadros",
+   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 0, 37 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 5.6 cm (limite 3.0 cm) no quadro 0, 38 quadros",
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 10.5 cm (limite 3.0 cm) no quadro 62, 21 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "coluna_rotacao",
+    "parte": "coluna",
+    "nivel": "aviso",
+    "quadro": 81,
+    "valor": 62.0,
+    "unidade": "°",
+    "limite": 50,
+    "n_quadros": 48,
+    "msg": "rom/coluna_rotacao coluna: rotação da coluna 62° (limite 50°) no quadro 81, 48 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "pelve",
+    "nivel": "aviso",
+    "quadro": 9,
+    "valor": 7.34,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 41,
+    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.3 cm (limite 3.0 cm) no quadro 9, 41 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "costas",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 6.88,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 37,
+    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 0, 37 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 5.65,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 38,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 5.6 cm (limite 3.0 cm) no quadro 0, 38 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 62,
+    "valor": 10.47,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 21,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 10.5 cm (limite 3.0 cm) no quadro 62, 21 quadros"
+   }
+  ],
+  "quadros": 115,
+  "T": 4.8
+ },
+ "circulos-tornozelo": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 5.4 cm (limite 3.5 cm) no quadro 18, 20 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "mao_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 18,
+    "valor": 5.36,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 20,
+    "msg": "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 5.4 cm (limite 3.5 cm) no quadro 18, 20 quadros"
+   }
+  ],
+  "quadros": 40,
+  "T": 1.68
+ },
+ "chute-gluteo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 15,
+  "T": 0.64
+ },
+ "alongamento-gluteo": {
+  "erros": [],
+  "avisos": [
+   "rom/quadril_re quadril esq: rotação externa do quadril 67° (limite 60°) no quadro 74, 34 quadros",
+   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.5 cm (limite 3.5 cm) no quadro 56, 11 quadros",
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 118, 39 quadros",
+   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 124, 36 quadros",
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 8.4 cm (limite 3.0 cm) no quadro 0, 37 quadros",
+   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 8.5 cm (limite 3.0 cm) no quadro 155, 40 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "quadril_re",
+    "parte": "quadril esq",
+    "nivel": "aviso",
+    "quadro": 74,
+    "valor": 67.37,
+    "unidade": "°",
+    "limite": 60,
+    "n_quadros": 34,
+    "msg": "rom/quadril_re quadril esq: rotação externa do quadril 67° (limite 60°) no quadro 74, 34 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "perna esq dentro de perna dir",
+    "nivel": "aviso",
+    "quadro": 56,
+    "valor": 5.54,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 11,
+    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.5 cm (limite 3.5 cm) no quadro 56, 11 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 118,
+    "valor": 5.99,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 39,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 118, 39 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "antebraco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 124,
+    "valor": 5.6,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 36,
+    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 124, 36 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 8.4,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 37,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 8.4 cm (limite 3.0 cm) no quadro 0, 37 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 155,
+    "valor": 8.51,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 40,
+    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 8.5 cm (limite 3.0 cm) no quadro 155, 40 quadros"
+   }
+  ],
+  "quadros": 158,
+  "T": 6.6
+ },
+ "alongamento-pescoco": {
+  "erros": [],
+  "avisos": [
+   "congelado 12 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "motor",
+    "sub": "congelado",
+    "nivel": "aviso",
+    "msg": "congelado 12 quadros"
+   }
+  ],
+  "quadros": 230,
+  "T": 9.6
+ },
+ "moinho": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 72,
+  "T": 3.0
+ },
+ "agachamento-goblet": {
+  "erros": [],
+  "avisos": [
+   "rom/antebraco_pro antebraço esq: pronação do antebraço 109° (limite 100°) no quadro 55, 86 quadros",
+   "apoio/penetra antebraco_t x kettlebell: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 74, 43 quadros",
+   "rom/antebraco_pro antebraço dir: pronação do antebraço 105° (limite 100°) no quadro 55, 62 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 55,
+    "valor": 109.25,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 86,
+    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 109° (limite 100°) no quadro 55, 86 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "antebraco_t x kettlebell",
+    "nivel": "aviso",
+    "quadro": 74,
+    "valor": 1.29,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 43,
+    "msg": "apoio/penetra antebraco_t x kettlebell: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 74, 43 quadros"
+   },
+   {
+    "tipo": "rom",
+    "sub": "antebraco_pro",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 55,
+    "valor": 105.24,
+    "unidade": "°",
+    "limite": 100,
+    "n_quadros": 62,
+    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 105° (limite 100°) no quadro 55, 62 quadros"
+   }
+  ],
+  "quadros": 86,
+  "T": 3.6
+ },
+ "hack": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra braco_f x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 45 quadros",
+   "apoio/penetra pe_t x estrutura: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 86, 7 quadros",
+   "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 78, 7 quadros",
+   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 4, 28 quadros",
+   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 8.3 cm (limite 3.0 cm) no quadro 58, 13 quadros",
+   "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 8.6 cm (limite 3.0 cm) no quadro 61, 13 quadros",
+   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 7.5 cm (limite 3.0 cm) no quadro 6, 22 quadros",
+   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 7.6 cm (limite 3.0 cm) no quadro 6, 22 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "braco_f x estofado",
+    "nivel": "aviso",
+    "quadro": 62,
+    "valor": 1.64,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 45,
+    "msg": "apoio/penetra braco_f x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 62, 45 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_t x estrutura",
+    "nivel": "aviso",
+    "quadro": 86,
+    "valor": 1.04,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 7,
+    "msg": "apoio/penetra pe_t x estrutura: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 86, 7 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "pe_f x estrutura",
+    "nivel": "aviso",
+    "quadro": 78,
+    "valor": 1.2,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 7,
+    "msg": "apoio/penetra pe_f x estrutura: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 78, 7 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "pelve",
+    "nivel": "aviso",
+    "quadro": 4,
+    "valor": 7.4,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 28,
+    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 4, 28 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "coxa esq",
+    "nivel": "aviso",
+    "quadro": 58,
+    "valor": 8.29,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 13,
+    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 8.3 cm (limite 3.0 cm) no quadro 58, 13 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "coxa dir",
+    "nivel": "aviso",
+    "quadro": 61,
+    "valor": 8.55,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 13,
+    "msg": "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 8.6 cm (limite 3.0 cm) no quadro 61, 13 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço esq",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 7.47,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 22,
+    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 7.5 cm (limite 3.0 cm) no quadro 6, 22 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "antebraço dir",
+    "nivel": "aviso",
+    "quadro": 6,
+    "valor": 7.58,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 22,
+    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 7.6 cm (limite 3.0 cm) no quadro 6, 22 quadros"
+   }
+  ],
+  "quadros": 89,
+  "T": 3.7
+ },
+ "afundo": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 8.7 cm (limite 3.0 cm) no quadro 44, 15 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 44,
+    "valor": 8.71,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 15,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 8.7 cm (limite 3.0 cm) no quadro 44, 15 quadros"
+   }
+  ],
+  "quadros": 83,
+  "T": 3.45
+ },
+ "step-up": {
+  "erros": [],
+  "avisos": [
+   "apoio/penetra perna_t x caixa: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 4, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "penetra",
+    "parte": "perna_t x caixa",
+    "nivel": "aviso",
+    "quadro": 4,
+    "valor": 1.31,
+    "unidade": "cm",
+    "limite": 1.0,
+    "n_quadros": 1,
+    "msg": "apoio/penetra perna_t x caixa: pele dentro do aparelho 1.3 cm (limite 1.0 cm) no quadro 4, 1 quadros"
+   }
+  ],
+  "quadros": 71,
+  "T": 2.95
+ },
+ "terra-uma-perna": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.5 cm (limite 3.5 cm) no quadro 78, 1 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "braco_f dentro de tronco",
+    "nivel": "aviso",
+    "quadro": 78,
+    "valor": 3.53,
+    "unidade": "cm",
+    "limite": 3.5,
+    "n_quadros": 1,
+    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.5 cm (limite 3.5 cm) no quadro 78, 1 quadros"
+   }
+  ],
+  "quadros": 91,
+  "T": 3.8
+ },
+ "coice-gluteo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 73,
+  "T": 3.05
+ },
+ "panturrilha-sentado": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 91,
+  "T": 3.8
+ },
+ "prancha": {
+  "erros": [],
+  "avisos": [
+   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 14.1 cm (limite 3.0 cm) no quadro 21, 36 quadros",
+   "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 14.0 cm (limite 3.0 cm) no quadro 57, 37 quadros",
+   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 21, 36 quadros",
+   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.5 cm (limite 3.0 cm) no quadro 57, 37 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "coxa esq",
+    "nivel": "aviso",
+    "quadro": 21,
+    "valor": 14.07,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 36,
+    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 14.1 cm (limite 3.0 cm) no quadro 21, 36 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "coxa dir",
+    "nivel": "aviso",
+    "quadro": 57,
+    "valor": 14.05,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 37,
+    "msg": "apoio/pousada coxa dir: região parada no ar acima de uma superfície (parece apoiada) 14.0 cm (limite 3.0 cm) no quadro 57, 37 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho esq",
+    "nivel": "aviso",
+    "quadro": 21,
+    "valor": 14.86,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 36,
+    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 14.9 cm (limite 3.0 cm) no quadro 21, 36 quadros"
+   },
+   {
+    "tipo": "apoio",
+    "sub": "pousada",
+    "parte": "joelho dir",
+    "nivel": "aviso",
+    "quadro": 57,
+    "valor": 14.53,
+    "unidade": "cm",
+    "limite": 3.0,
+    "n_quadros": 37,
+    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 14.5 cm (limite 3.0 cm) no quadro 57, 37 quadros"
+   }
+  ],
+  "quadros": 86,
+  "T": 3.6
+ },
+ "dead-bug": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 106,
+  "T": 4.4
+ },
+ "elevacao-pernas-barra": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 78,
+  "T": 3.25
+ },
+ "canivete": {
+  "erros": [],
+  "avisos": [
+   "rom/coluna_segmento coluna: coluna dobrada num segmento só 27° (limite 25°) no quadro 13, 12 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "rom",
+    "sub": "coluna_segmento",
+    "parte": "coluna",
+    "nivel": "aviso",
+    "quadro": 13,
+    "valor": 26.68,
+    "unidade": "°",
+    "limite": 25,
+    "n_quadros": 12,
+    "msg": "rom/coluna_segmento coluna: coluna dobrada num segmento só 27° (limite 25°) no quadro 13, 12 quadros"
+   }
+  ],
+  "quadros": 64,
+  "T": 2.65
+ },
+ "salto-tesoura": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 31,
+  "T": 1.3
+ },
+ "fuga-quadril": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 53,
+  "T": 2.2
+ },
+ "sentar-levantar": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 102,
+  "T": 4.25
+ },
+ "flexao-declinada": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 64,
+  "T": 2.65
+ },
+ "supino-halteres": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 62,
+  "T": 2.6
+ },
+ "crucifixo": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 84,
+  "T": 3.5
+ },
+ "crucifixo-elastico": {
+  "erros": [],
+  "avisos": [
+   "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 2.1 cm (limite 1.5 cm) no quadro 0, 13 quadros"
+  ],
+  "achados": [
+   {
+    "tipo": "apoio",
+    "sub": "corpo",
+    "parte": "cabo/elástico x corpo",
+    "nivel": "aviso",
+    "quadro": 0,
+    "valor": 2.11,
+    "unidade": "cm",
+    "limite": 1.5,
+    "n_quadros": 13,
+    "msg": "apoio/corpo cabo/elástico x corpo: cabo/elástico atravessando o corpo 2.1 cm (limite 1.5 cm) no quadro 0, 13 quadros"
+   }
+  ],
+  "quadros": 74,
+  "T": 3.1
+ },
+ "barra-assistida": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 77,
+  "T": 3.2
+ },
+ "remada-curvada": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 70,
+  "T": 2.9
+ },
+ "pulldown-elastico": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 70,
+  "T": 2.9
+ },
+ "encolhimento": {
+  "erros": [],
+  "avisos": [],
+  "achados": [],
+  "quadros": 79,
+  "T": 3.3
  },
  "desenvolvimento-elastico": {
   "erros": [],
@@ -2446,97 +3932,12 @@
   "quadros": 73,
   "T": 3.05
  },
- "elevacao-lateral": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 84,
-  "T": 3.5
- },
- "elevacao-lateral-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
- "elevacao-frontal": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
  "crucifixo-inverso": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 74,
   "T": 3.1
- },
- "arnold": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 73,
-  "T": 3.05
- },
- "pike-pushup": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 17, 28 quadros",
-   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 18, 27 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 17,
-    "valor": 3.8,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 28,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 17, 28 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 18,
-    "valor": 3.79,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 27,
-    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 3.8 cm (limite 3.0 cm) no quadro 18, 27 quadros"
-   }
-  ],
-  "quadros": 64,
-  "T": 2.65
- },
- "rotacao-externa": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.7 cm (limite 3.5 cm) no quadro 36, 6 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 36,
-    "valor": 3.74,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 6,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.7 cm (limite 3.5 cm) no quadro 36, 6 quadros"
-   }
-  ],
-  "quadros": 70,
-  "T": 2.9
  },
  "rosca-direta": {
   "erros": [],
@@ -2570,27 +3971,6 @@
     "msg": "rom/antebraco_sup antebraço dir: supinação do antebraço 112° (limite 100°) no quadro 26, 34 quadros"
    }
   ],
-  "quadros": 74,
-  "T": 3.1
- },
- "rosca-halteres": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 130,
-  "T": 5.4
- },
- "rosca-martelo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
- "rosca-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
   "quadros": 74,
   "T": 3.1
  },
@@ -2655,55 +4035,6 @@
   "quadros": 74,
   "T": 3.1
  },
- "triceps-polia": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 68,
-  "T": 2.85
- },
- "triceps-frances": {
-  "erros": [],
-  "avisos": [
-   "rom/antebraco_pro antebraço dir: pronação do antebraço 110° (limite 100°) no quadro 43, 13 quadros",
-   "rom/antebraco_pro antebraço esq: pronação do antebraço 106° (limite 100°) no quadro 43, 12 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 43,
-    "valor": 109.79,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 13,
-    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 110° (limite 100°) no quadro 43, 13 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 43,
-    "valor": 105.61,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 12,
-    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 106° (limite 100°) no quadro 43, 12 quadros"
-   }
-  ],
-  "quadros": 74,
-  "T": 3.1
- },
- "triceps-testa": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 74,
-  "T": 3.1
- },
  "triceps-banco": {
   "erros": [],
   "avisos": [
@@ -2739,27 +4070,6 @@
   "quadros": 67,
   "T": 2.8
  },
- "triceps-elastico": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 70,
-  "T": 2.9
- },
- "triceps-coice": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 66,
-  "T": 2.75
- },
- "passe-medicine": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 24,
-  "T": 1.0
- },
  "isometria-pescoco": {
   "erros": [],
   "avisos": [
@@ -2775,27 +4085,6 @@
   ],
   "quadros": 114,
   "T": 4.75
- },
- "burpee": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 57,
-  "T": 2.37
- },
- "polichinelo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 17,
-  "T": 0.72
- },
- "corda": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 11,
-  "T": 0.44
  },
  "swing": {
   "erros": [],
@@ -2832,215 +4121,12 @@
   "quadros": 29,
   "T": 1.22
  },
- "thruster": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 42,
-  "T": 1.75
- },
- "power-clean": {
-  "erros": [],
-  "avisos": [
-   "rom/antebraco_pro antebraço esq: pronação do antebraço 122° (limite 100°) no quadro 6, 3 quadros",
-   "rom/antebraco_pro antebraço dir: pronação do antebraço 124° (limite 100°) no quadro 6, 3 quadros",
-   "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros",
-   "pegada/dist mão dir: barra fora do túnel dos dedos 1.3 cm (limite 1.2 cm) no quadro 12, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 122.04,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 3,
-    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 122° (limite 100°) no quadro 6, 3 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 124.29,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 3,
-    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 124° (limite 100°) no quadro 6, 3 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x barra",
-    "nivel": "aviso",
-    "quadro": 8,
-    "valor": 1.23,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra coxa_t x barra: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
-   },
-   {
-    "tipo": "pegada",
-    "sub": "dist",
-    "parte": "mão dir",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 1.35,
-    "unidade": "cm",
-    "limite": 1.2,
-    "n_quadros": 1,
-    "msg": "pegada/dist mão dir: barra fora do túnel dos dedos 1.3 cm (limite 1.2 cm) no quadro 12, 1 quadros"
-   }
-  ],
-  "quadros": 83,
-  "T": 3.47
- },
- "arremesso-medicine": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 40,
-  "T": 1.68
- },
  "battle-rope": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 8,
   "T": 0.34
- },
- "farmer-walk": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 21,
-  "T": 0.88
- },
- "sled-push": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 40,
-  "T": 1.68
- },
- "turkish-getup": {
-  "erros": [
-   "rom/ombro_ext_excesso ombro dir: ombro: braço para trás além do limite 37° (limite 22°) no quadro 88, 96 quadros",
-   "rom/quadril_extensao quadril dir: extensão do quadril 44° (limite 42°) no quadro 197, 39 quadros",
-   "apoio/base coxa esq: centro de massa fora da base de apoio (65 quadros; coxa esq a 33 cm da superfície) 20.3 cm (limite 3.0 cm) no quadro 200, 125 quadros",
-   "apoio/base coxa dir: centro de massa fora da base de apoio (13 quadros; coxa dir a 2 cm da superfície) 28.0 cm (limite 3.0 cm) no quadro 294, 70 quadros",
-   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 3.5 cm (limite 3.0 cm) no quadro 259, 53 quadros",
-   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.1 cm (limite 3.0 cm) no quadro 0, 21 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 36, 76 quadros"
-  ],
-  "avisos": [
-   "rom/joelho_flexao joelho esq: flexão do joelho 154° (limite 150°) no quadro 255, 86 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "joelho_flexao",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 255,
-    "valor": 153.97,
-    "unidade": "°",
-    "limite": 150,
-    "n_quadros": 86,
-    "msg": "rom/joelho_flexao joelho esq: flexão do joelho 154° (limite 150°) no quadro 255, 86 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "ombro_ext_excesso",
-    "parte": "ombro dir",
-    "nivel": "erro",
-    "quadro": 88,
-    "valor": 37.14,
-    "unidade": "°",
-    "limite": 22,
-    "n_quadros": 96,
-    "msg": "rom/ombro_ext_excesso ombro dir: ombro: braço para trás além do limite 37° (limite 22°) no quadro 88, 96 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "quadril_extensao",
-    "parte": "quadril dir",
-    "nivel": "erro",
-    "quadro": 197,
-    "valor": 43.55,
-    "unidade": "°",
-    "limite": 42,
-    "n_quadros": 39,
-    "msg": "rom/quadril_extensao quadril dir: extensão do quadril 44° (limite 42°) no quadro 197, 39 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "base",
-    "parte": "coxa esq",
-    "nivel": "erro",
-    "quadro": 200,
-    "valor": 20.3,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 125,
-    "msg": "apoio/base coxa esq: centro de massa fora da base de apoio (65 quadros; coxa esq a 33 cm da superfície) 20.3 cm (limite 3.0 cm) no quadro 200, 125 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "base",
-    "parte": "coxa dir",
-    "nivel": "erro",
-    "quadro": 294,
-    "valor": 28.03,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 70,
-    "msg": "apoio/base coxa dir: centro de massa fora da base de apoio (13 quadros; coxa dir a 2 cm da superfície) 28.0 cm (limite 3.0 cm) no quadro 294, 70 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "pelve",
-    "nivel": "erro",
-    "quadro": 259,
-    "valor": 3.54,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 53,
-    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 3.5 cm (limite 3.0 cm) no quadro 259, 53 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "costas",
-    "nivel": "erro",
-    "quadro": 0,
-    "valor": 6.1,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 21,
-    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.1 cm (limite 3.0 cm) no quadro 0, 21 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "erro",
-    "quadro": 36,
-    "valor": 4.18,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 76,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 4.2 cm (limite 3.0 cm) no quadro 36, 76 quadros"
-   }
-  ],
-  "quadros": 298,
-  "T": 12.4
  },
  "inchworm": {
   "erros": [],
@@ -3049,84 +4135,12 @@
   "quadros": 231,
   "T": 9.64
  },
- "sombra": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 29,
-  "T": 1.2
- },
- "saco-combinacoes": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra mao_t x peça: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_t x peça",
-    "nivel": "aviso",
-    "quadro": 8,
-    "valor": 1.18,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra mao_t x peça: pele dentro do aparelho 1.2 cm (limite 1.0 cm) no quadro 8, 1 quadros"
-   }
-  ],
-  "quadros": 21,
-  "T": 0.89
- },
- "sprawl": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 32,
-  "T": 1.33
- },
  "bear-crawl": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 34,
   "T": 1.4
- },
- "corrida-leve": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra mao_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 2 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_f x tubo/barra fixa",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 1.38,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 2,
-    "msg": "apoio/penetra mao_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 2 quadros"
-   }
-  ],
-  "quadros": 17,
-  "T": 0.71
- },
- "caminhada-corrida": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 18,
-  "T": 0.73
- },
- "tiros": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 15,
-  "T": 0.62
  },
  "tempo-run": {
   "erros": [],
@@ -3163,96 +4177,6 @@
   "quadros": 16,
   "T": 0.67
  },
- "longao": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 18,
-  "T": 0.74
- },
- "bike-leve": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 2, 1 quadros",
-   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 1.8 cm (limite 1.5 cm) no quadro 12, 3 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x estofado",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 1.62,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 1,
-    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.6 cm (limite 1.5 cm) no quadro 2, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x estofado",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 1.8,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 3,
-    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 1.8 cm (limite 1.5 cm) no quadro 12, 3 quadros"
-   }
-  ],
-  "quadros": 16,
-  "T": 0.68
- },
- "bike-intervalado": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.9 cm (limite 1.5 cm) no quadro 2, 2 quadros",
-   "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros",
-   "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 14, 5 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x estofado",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 1.88,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 2,
-    "msg": "apoio/penetra coxa_t x estofado: pele dentro do aparelho 1.9 cm (limite 1.5 cm) no quadro 2, 2 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "pe_t x peça",
-    "nivel": "aviso",
-    "quadro": 2,
-    "valor": 1.01,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra pe_t x peça: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 2, 1 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_f x estofado",
-    "nivel": "aviso",
-    "quadro": 14,
-    "valor": 1.98,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 5,
-    "msg": "apoio/penetra coxa_f x estofado: pele dentro do aparelho 2.0 cm (limite 1.5 cm) no quadro 14, 5 quadros"
-   }
-  ],
-  "quadros": 19,
-  "T": 0.79
- },
  "bike-cadencia": {
   "erros": [],
   "avisos": [
@@ -3288,244 +4212,12 @@
   "quadros": 13,
   "T": 0.53
  },
- "eliptico": {
-  "erros": [],
-  "avisos": [
-   "rom/antebraco_pro antebraço dir: pronação do antebraço 108° (limite 100°) no quadro 20, 9 quadros",
-   "pegada/atravessa mão dir: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 0, 1 quadros",
-   "rom/antebraco_pro antebraço esq: pronação do antebraço 108° (limite 100°) no quadro 8, 10 quadros",
-   "pegada/atravessa mão esq: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 12, 2 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 20,
-    "valor": 108.16,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 9,
-    "msg": "rom/antebraco_pro antebraço dir: pronação do antebraço 108° (limite 100°) no quadro 20, 9 quadros"
-   },
-   {
-    "tipo": "pegada",
-    "sub": "atravessa",
-    "parte": "mão dir",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 1.54,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 1,
-    "msg": "pegada/atravessa mão dir: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 0, 1 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "antebraco_pro",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 8,
-    "valor": 108.37,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 10,
-    "msg": "rom/antebraco_pro antebraço esq: pronação do antebraço 108° (limite 100°) no quadro 8, 10 quadros"
-   },
-   {
-    "tipo": "pegada",
-    "sub": "atravessa",
-    "parte": "mão esq",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 1.53,
-    "unidade": "cm",
-    "limite": 1.5,
-    "n_quadros": 2,
-    "msg": "pegada/atravessa mão esq: mão atravessando pegador 1.5 cm (limite 1.5 cm) no quadro 12, 2 quadros"
-   }
-  ],
-  "quadros": 23,
-  "T": 0.96
- },
- "remo-ergometro": {
-  "erros": [],
-  "avisos": [
-   "rom/quadril_flexao quadril esq: flexão do quadril 150° (limite 145°) no quadro 0, 34 quadros",
-   "rom/quadril_flexao quadril dir: flexão do quadril 151° (limite 145°) no quadro 0, 35 quadros",
-   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 32, 13 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 13.8 cm (limite 3.0 cm) no quadro 33, 14 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "quadril_flexao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 150.31,
-    "unidade": "°",
-    "limite": 145,
-    "n_quadros": 34,
-    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 150° (limite 145°) no quadro 0, 34 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "quadril_flexao",
-    "parte": "quadril dir",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 150.72,
-    "unidade": "°",
-    "limite": 145,
-    "n_quadros": 35,
-    "msg": "rom/quadril_flexao quadril dir: flexão do quadril 151° (limite 145°) no quadro 0, 35 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 32,
-    "valor": 12.29,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 13,
-    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 32, 13 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 33,
-    "valor": 13.82,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 14,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 13.8 cm (limite 3.0 cm) no quadro 33, 14 quadros"
-   }
-  ],
-  "quadros": 60,
-  "T": 2.5
- },
- "escada": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra mao_t x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 0, 2 quadros",
-   "apoio/penetra antebraco_t x tubo/barra fixa: pele dentro do aparelho 1.5 cm (limite 1.0 cm) no quadro 32, 5 quadros",
-   "apoio/penetra antebraco_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 9 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "mao_t x tubo/barra fixa",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 1.36,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 2,
-    "msg": "apoio/penetra mao_t x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 0, 2 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "antebraco_t x tubo/barra fixa",
-    "nivel": "aviso",
-    "quadro": 32,
-    "valor": 1.53,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 5,
-    "msg": "apoio/penetra antebraco_t x tubo/barra fixa: pele dentro do aparelho 1.5 cm (limite 1.0 cm) no quadro 32, 5 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "antebraco_f x tubo/barra fixa",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 1.39,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 9,
-    "msg": "apoio/penetra antebraco_f x tubo/barra fixa: pele dentro do aparelho 1.4 cm (limite 1.0 cm) no quadro 12, 9 quadros"
-   }
-  ],
-  "quadros": 36,
-  "T": 1.52
- },
  "prova": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 16,
   "T": 0.66
- },
- "caminhada": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 23,
-  "T": 0.97
- },
- "maior-alongamento": {
-  "erros": [],
-  "avisos": [
-   "rom/punho_extensao punho esq: extensão do punho 87° (limite 85°) no quadro 122, 25 quadros",
-   "rom/quadril_flexao quadril esq: flexão do quadril 156° (limite 145°) no quadro 15, 119 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 46, 82 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "punho_extensao",
-    "parte": "punho esq",
-    "nivel": "aviso",
-    "quadro": 122,
-    "valor": 86.62,
-    "unidade": "°",
-    "limite": 85,
-    "n_quadros": 25,
-    "msg": "rom/punho_extensao punho esq: extensão do punho 87° (limite 85°) no quadro 122, 25 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "quadril_flexao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 15,
-    "valor": 155.66,
-    "unidade": "°",
-    "limite": 145,
-    "n_quadros": 119,
-    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 156° (limite 145°) no quadro 15, 119 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 46,
-    "valor": 7.41,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 82,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 7.4 cm (limite 3.0 cm) no quadro 46, 82 quadros"
-   }
-  ],
-  "quadros": 185,
-  "T": 7.7
- },
- "gato-camelo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 106,
-  "T": 4.4
  },
  "postura-crianca": {
   "erros": [],
@@ -3679,57 +4371,6 @@
   "quadros": 170,
   "T": 7.1
  },
- "flexor-quadril": {
-  "erros": [],
-  "avisos": [
-   "rom/quadril_extensao quadril dir: extensão do quadril 39° (limite 30°) no quadro 70, 81 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "quadril_extensao",
-    "parte": "quadril dir",
-    "nivel": "aviso",
-    "quadro": 70,
-    "valor": 39.36,
-    "unidade": "°",
-    "limite": 30,
-    "n_quadros": 81,
-    "msg": "rom/quadril_extensao quadril dir: extensão do quadril 39° (limite 30°) no quadro 70, 81 quadros"
-   }
-  ],
-  "quadros": 132,
-  "T": 5.5
- },
- "alongamento-posterior": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 132,
-  "T": 5.5
- },
- "alongamento-quadriceps": {
-  "erros": [],
-  "avisos": [
-   "rom/punho_ulnar punho esq: desvio ulnar do punho 35° (limite 35°) no quadro 75, 3 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "punho_ulnar",
-    "parte": "punho esq",
-    "nivel": "aviso",
-    "quadro": 75,
-    "valor": 35.06,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 3,
-    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 35° (limite 35°) no quadro 75, 3 quadros"
-   }
-  ],
-  "quadros": 154,
-  "T": 6.4
- },
  "alongamento-panturrilha": {
   "erros": [],
   "avisos": [
@@ -3791,83 +4432,6 @@
   "quadros": 130,
   "T": 5.4
  },
- "circulos-braco": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 23,
-  "T": 0.96
- },
- "circulos-quadril": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 27 quadros",
-   "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 48, 27 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_t dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 32,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 27,
-    "msg": "apoio/corpo mao_t dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 27 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 48,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 27,
-    "msg": "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 48, 27 quadros"
-   }
-  ],
-  "quadros": 53,
-  "T": 2.2
- },
- "rolo-quadriceps": {
-  "erros": [],
-  "avisos": [
-   "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 3.9 cm (limite 3.0 cm) no quadro 58, 15 quadros",
-   "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 4.1 cm (limite 3.0 cm) no quadro 65, 15 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "coxa esq",
-    "nivel": "aviso",
-    "quadro": 58,
-    "valor": 3.95,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 15,
-    "msg": "apoio/pousada coxa esq: região parada no ar acima de uma superfície (parece apoiada) 3.9 cm (limite 3.0 cm) no quadro 58, 15 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho esq",
-    "nivel": "aviso",
-    "quadro": 65,
-    "valor": 4.14,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 15,
-    "msg": "apoio/pousada joelho esq: região parada no ar acima de uma superfície (parece apoiada) 4.1 cm (limite 3.0 cm) no quadro 65, 15 quadros"
-   }
-  ],
-  "quadros": 115,
-  "T": 4.8
- },
  "rolo-panturrilha": {
   "erros": [],
   "avisos": [
@@ -3890,131 +4454,6 @@
   "quadros": 115,
   "T": 4.8
  },
- "rolo-it": {
-  "erros": [],
-  "avisos": [
-   "apoio/penetra coxa_t x peça laranja: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 20, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "penetra",
-    "parte": "coxa_t x peça laranja",
-    "nivel": "aviso",
-    "quadro": 20,
-    "valor": 1.02,
-    "unidade": "cm",
-    "limite": 1.0,
-    "n_quadros": 1,
-    "msg": "apoio/penetra coxa_t x peça laranja: pele dentro do aparelho 1.0 cm (limite 1.0 cm) no quadro 20, 1 quadros"
-   }
-  ],
-  "quadros": 115,
-  "T": 4.8
- },
- "alongamento-peito": {
-  "erros": [],
-  "avisos": [
-   "congelado 7 quadros",
-   "rom/ombro_re ombro dir: ombro: rotação externa 107° (limite 95°) no quadro 85, 75 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "motor",
-    "sub": "congelado",
-    "nivel": "aviso",
-    "msg": "congelado 7 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "ombro_re",
-    "parte": "ombro dir",
-    "nivel": "aviso",
-    "quadro": 85,
-    "valor": 106.62,
-    "unidade": "°",
-    "limite": 95,
-    "n_quadros": 75,
-    "msg": "rom/ombro_re ombro dir: ombro: rotação externa 107° (limite 95°) no quadro 85, 75 quadros"
-   }
-  ],
-  "quadros": 130,
-  "T": 5.4
- },
- "rotacao-toracica": {
-  "erros": [],
-  "avisos": [
-   "rom/coluna_rotacao coluna: rotação da coluna 62° (limite 50°) no quadro 81, 48 quadros",
-   "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.3 cm (limite 3.0 cm) no quadro 9, 41 quadros",
-   "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 0, 37 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 5.6 cm (limite 3.0 cm) no quadro 0, 38 quadros",
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 10.5 cm (limite 3.0 cm) no quadro 62, 21 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "coluna_rotacao",
-    "parte": "coluna",
-    "nivel": "aviso",
-    "quadro": 81,
-    "valor": 62.0,
-    "unidade": "°",
-    "limite": 50,
-    "n_quadros": 48,
-    "msg": "rom/coluna_rotacao coluna: rotação da coluna 62° (limite 50°) no quadro 81, 48 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "pelve",
-    "nivel": "aviso",
-    "quadro": 9,
-    "valor": 7.34,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 41,
-    "msg": "apoio/pousada pelve: região parada no ar acima de uma superfície (parece apoiada) 7.3 cm (limite 3.0 cm) no quadro 9, 41 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "costas",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 6.88,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 37,
-    "msg": "apoio/pousada costas: região parada no ar acima de uma superfície (parece apoiada) 6.9 cm (limite 3.0 cm) no quadro 0, 37 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 5.65,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 38,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 5.6 cm (limite 3.0 cm) no quadro 0, 38 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 62,
-    "valor": 10.47,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 21,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 10.5 cm (limite 3.0 cm) no quadro 62, 21 quadros"
-   }
-  ],
-  "quadros": 115,
-  "T": 4.8
- },
  "alongamento-adutores": {
   "erros": [],
   "avisos": [
@@ -4031,83 +4470,6 @@
   "quadros": 132,
   "T": 5.5
  },
- "equilibrio-unipodal": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 106,
-  "T": 4.4
- },
- "balanco-pernas": {
-  "erros": [],
-  "avisos": [
-   "rom/quadril_extensao quadril esq: extensão do quadril 38° (limite 30°) no quadro 11, 8 quadros",
-   "rom/quadril_aducao quadril esq: adução do quadril 33° (limite 30°) no quadro 57, 4 quadros",
-   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 56, 2 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "quadril_extensao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 11,
-    "valor": 37.55,
-    "unidade": "°",
-    "limite": 30,
-    "n_quadros": 8,
-    "msg": "rom/quadril_extensao quadril esq: extensão do quadril 38° (limite 30°) no quadro 11, 8 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "quadril_aducao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 57,
-    "valor": 33.11,
-    "unidade": "°",
-    "limite": 30,
-    "n_quadros": 4,
-    "msg": "rom/quadril_aducao quadril esq: adução do quadril 33° (limite 30°) no quadro 57, 4 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "perna esq dentro de perna dir",
-    "nivel": "aviso",
-    "quadro": 56,
-    "valor": 5.64,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 2,
-    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 56, 2 quadros"
-   }
-  ],
-  "quadros": 69,
-  "T": 2.89
- },
- "circulos-tornozelo": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 5.4 cm (limite 3.5 cm) no quadro 18, 20 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 18,
-    "valor": 5.36,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 20,
-    "msg": "apoio/corpo mao_f dentro de tronco: corpo atravessando o próprio corpo 5.4 cm (limite 3.5 cm) no quadro 18, 20 quadros"
-   }
-  ],
-  "quadros": 40,
-  "T": 1.68
- },
  "circulos-punho": {
   "erros": [],
   "avisos": [],
@@ -4115,164 +4477,12 @@
   "quadros": 29,
   "T": 1.2
  },
- "circulos-ombro": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 38,
-  "T": 1.6
- },
- "circulos-joelho": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.6 cm (limite 3.5 cm) no quadro 36, 1 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 36,
-    "valor": 3.65,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 1,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 3.6 cm (limite 3.5 cm) no quadro 36, 1 quadros"
-   }
-  ],
-  "quadros": 48,
-  "T": 2.0
- },
- "chute-gluteo": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 15,
-  "T": 0.64
- },
  "carioca": {
   "erros": [],
   "avisos": [],
   "achados": [],
   "quadros": 42,
   "T": 1.76
- },
- "abertura-peito-dinamica": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 26,
-  "T": 1.1
- },
- "spider": {
-  "erros": [],
-  "avisos": [
-   "rom/quadril_flexao quadril esq: flexão do quadril 162° (limite 145°) no quadro 121, 90 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "quadril_flexao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 121,
-    "valor": 162.34,
-    "unidade": "°",
-    "limite": 145,
-    "n_quadros": 90,
-    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 162° (limite 145°) no quadro 121, 90 quadros"
-   }
-  ],
-  "quadros": 144,
-  "T": 6.0
- },
- "alongamento-gluteo": {
-  "erros": [],
-  "avisos": [
-   "rom/quadril_re quadril esq: rotação externa do quadril 67° (limite 60°) no quadro 74, 34 quadros",
-   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.5 cm (limite 3.5 cm) no quadro 56, 11 quadros",
-   "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 118, 39 quadros",
-   "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 124, 36 quadros",
-   "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 8.4 cm (limite 3.0 cm) no quadro 0, 37 quadros",
-   "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 8.5 cm (limite 3.0 cm) no quadro 155, 40 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "quadril_re",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 74,
-    "valor": 67.37,
-    "unidade": "°",
-    "limite": 60,
-    "n_quadros": 34,
-    "msg": "rom/quadril_re quadril esq: rotação externa do quadril 67° (limite 60°) no quadro 74, 34 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "perna esq dentro de perna dir",
-    "nivel": "aviso",
-    "quadro": 56,
-    "valor": 5.54,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 11,
-    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.5 cm (limite 3.5 cm) no quadro 56, 11 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "braco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 118,
-    "valor": 5.99,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 39,
-    "msg": "apoio/corpo braco_f dentro de tronco: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 118, 39 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_f dentro de tronco",
-    "nivel": "aviso",
-    "quadro": 124,
-    "valor": 5.6,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 36,
-    "msg": "apoio/corpo antebraco_f dentro de tronco: corpo atravessando o próprio corpo 5.6 cm (limite 3.5 cm) no quadro 124, 36 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 8.4,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 37,
-    "msg": "apoio/pousada antebraço esq: região parada no ar acima de uma superfície (parece apoiada) 8.4 cm (limite 3.0 cm) no quadro 0, 37 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 155,
-    "valor": 8.51,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 40,
-    "msg": "apoio/pousada antebraço dir: região parada no ar acima de uma superfície (parece apoiada) 8.5 cm (limite 3.0 cm) no quadro 155, 40 quadros"
-   }
-  ],
-  "quadros": 158,
-  "T": 6.6
  },
  "abraco-joelhos": {
   "erros": [],
@@ -4335,92 +4545,6 @@
   "quadros": 77,
   "T": 3.2
  },
- "alongamento-triceps": {
-  "erros": [],
-  "avisos": [
-   "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 6 quadros",
-   "apoio/corpo antebraco_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 37 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "mao_t dentro de cabeça",
-    "nivel": "aviso",
-    "quadro": 32,
-    "valor": 5.97,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 6,
-    "msg": "apoio/corpo mao_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 32, 6 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "antebraco_t dentro de cabeça",
-    "nivel": "aviso",
-    "quadro": 100,
-    "valor": 6.0,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 37,
-    "msg": "apoio/corpo antebraco_t dentro de cabeça: corpo atravessando o próprio corpo 6.0 cm (limite 3.5 cm) no quadro 100, 37 quadros"
-   }
-  ],
-  "quadros": 134,
-  "T": 5.6
- },
- "alongamento-antebraco": {
-  "erros": [],
-  "avisos": [
-   "rom/antebraco_sup antebraço dir: supinação do antebraço 104° (limite 100°) no quadro 11, 19 quadros",
-   "rom/antebraco_sup antebraço esq: supinação do antebraço 104° (limite 100°) no quadro 12, 17 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "rom",
-    "sub": "antebraco_sup",
-    "parte": "antebraço dir",
-    "nivel": "aviso",
-    "quadro": 11,
-    "valor": 104.35,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 19,
-    "msg": "rom/antebraco_sup antebraço dir: supinação do antebraço 104° (limite 100°) no quadro 11, 19 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "antebraco_sup",
-    "parte": "antebraço esq",
-    "nivel": "aviso",
-    "quadro": 12,
-    "valor": 103.85,
-    "unidade": "°",
-    "limite": 100,
-    "n_quadros": 17,
-    "msg": "rom/antebraco_sup antebraço esq: supinação do antebraço 104° (limite 100°) no quadro 12, 17 quadros"
-   }
-  ],
-  "quadros": 132,
-  "T": 5.5
- },
- "alongamento-pescoco": {
-  "erros": [],
-  "avisos": [
-   "congelado 12 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "motor",
-    "sub": "congelado",
-    "nivel": "aviso",
-    "msg": "congelado 12 quadros"
-   }
-  ],
-  "quadros": 230,
-  "T": 9.6
- },
  "alongamento-lateral": {
   "erros": [],
   "avisos": [
@@ -4468,129 +4592,5 @@
   ],
   "quadros": 240,
   "T": 10.0
- },
- "torcao-coluna": {
-  "erros": [],
-  "avisos": [
-   "congelado 7 quadros",
-   "flutua mao_f 1.6 cm",
-   "rom/punho_ulnar punho esq: desvio ulnar do punho 45° (limite 35°) no quadro 0, 16 quadros",
-   "rom/quadril_flexao quadril esq: flexão do quadril 157° (limite 145°) no quadro 71, 130 quadros",
-   "rom/punho_ulnar punho dir: desvio ulnar do punho 49° (limite 35°) no quadro 6, 27 quadros",
-   "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.2 cm (limite 3.5 cm) no quadro 116, 53 quadros",
-   "rom/punho_radial punho esq: desvio radial do punho 27° (limite 25°) no quadro 24, 5 quadros",
-   "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 105, 130 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "motor",
-    "sub": "congelado",
-    "nivel": "aviso",
-    "msg": "congelado 7 quadros"
-   },
-   {
-    "tipo": "motor",
-    "sub": "flutua",
-    "nivel": "aviso",
-    "msg": "flutua mao_f 1.6 cm"
-   },
-   {
-    "tipo": "rom",
-    "sub": "punho_ulnar",
-    "parte": "punho esq",
-    "nivel": "aviso",
-    "quadro": 0,
-    "valor": 45.44,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 16,
-    "msg": "rom/punho_ulnar punho esq: desvio ulnar do punho 45° (limite 35°) no quadro 0, 16 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "quadril_flexao",
-    "parte": "quadril esq",
-    "nivel": "aviso",
-    "quadro": 71,
-    "valor": 157.25,
-    "unidade": "°",
-    "limite": 145,
-    "n_quadros": 130,
-    "msg": "rom/quadril_flexao quadril esq: flexão do quadril 157° (limite 145°) no quadro 71, 130 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "punho_ulnar",
-    "parte": "punho dir",
-    "nivel": "aviso",
-    "quadro": 6,
-    "valor": 48.53,
-    "unidade": "°",
-    "limite": 35,
-    "n_quadros": 27,
-    "msg": "rom/punho_ulnar punho dir: desvio ulnar do punho 49° (limite 35°) no quadro 6, 27 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "corpo",
-    "parte": "perna esq dentro de perna dir",
-    "nivel": "aviso",
-    "quadro": 116,
-    "valor": 5.2,
-    "unidade": "cm",
-    "limite": 3.5,
-    "n_quadros": 53,
-    "msg": "apoio/corpo perna esq dentro de perna dir: corpo atravessando o próprio corpo 5.2 cm (limite 3.5 cm) no quadro 116, 53 quadros"
-   },
-   {
-    "tipo": "rom",
-    "sub": "punho_radial",
-    "parte": "punho esq",
-    "nivel": "aviso",
-    "quadro": 24,
-    "valor": 26.83,
-    "unidade": "°",
-    "limite": 25,
-    "n_quadros": 5,
-    "msg": "rom/punho_radial punho esq: desvio radial do punho 27° (limite 25°) no quadro 24, 5 quadros"
-   },
-   {
-    "tipo": "apoio",
-    "sub": "pousada",
-    "parte": "joelho dir",
-    "nivel": "aviso",
-    "quadro": 105,
-    "valor": 12.34,
-    "unidade": "cm",
-    "limite": 3.0,
-    "n_quadros": 130,
-    "msg": "apoio/pousada joelho dir: região parada no ar acima de uma superfície (parece apoiada) 12.3 cm (limite 3.0 cm) no quadro 105, 130 quadros"
-   }
-  ],
-  "quadros": 130,
-  "T": 5.4
- },
- "alongamento-dorsal": {
-  "erros": [],
-  "avisos": [
-   "congelado 8 quadros"
-  ],
-  "achados": [
-   {
-    "tipo": "motor",
-    "sub": "congelado",
-    "nivel": "aviso",
-    "msg": "congelado 8 quadros"
-   }
-  ],
-  "quadros": 130,
-  "T": 5.4
- },
- "moinho": {
-  "erros": [],
-  "avisos": [],
-  "achados": [],
-  "quadros": 72,
-  "T": 3.0
  }
 }
