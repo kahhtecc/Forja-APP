@@ -109,3 +109,10 @@ Se reiniciar: agentes podem ter parado por limite → SendMessage "continue".
 - 07/11: usuário escolheu UM especialista por vez (economia de limite). Ordem: motor termina regressões (step-up, salto-distancia, nordico) → retomar animador lote3 sozinho → revisor independente → render CI → builds → entrega. Animador lote3 parado pelo usuário em 27acaf7 (sem mudanças pendentes).
 - 07/11: AUTORIZAÇÃO DO USUÁRIO: manter os agentes trabalhando e iniciar automaticamente o próximo agente da fila (um por vez), sem pedir permissão. Fila: animador lote3 (+ restos lote1/2) → revisor independente → (se reprovar: animador/motor corrige) → render CI anim3d.yml → builds Android (assinar local) + iOS + site → entregar.
 - 08/11: animador lote3 terminou (d5d516e). QA 175: 82 limpos, 77 avisos, 16 erros. Próximo: motor (8 itens: parede, segura, inchworm, rotação torácica, remo, ease do afundo, falso positivo do qa nos supinos inclinados, regressões das puxadas/remada-invertida) → animador (turkish-getup, maior-alongamento, figura 4 do glúteo) → revisor.
+
+## Fila atual (pedido do usuário em 12/11)
+Um agente por vez, iniciado automaticamente:
+1. Animador: recoreografia do turkish-getup com `rolt` (r11) — em andamento.
+2. Revisor independente dos 175 (reprovados voltam para correção).
+3. **Agente de aprimoramento (modelo Fable)**: depois que tudo acima terminar, rever todas as melhorias feitas nas animações (motor + dados, rodadas 5–11) e melhorar ainda mais — atacar os 88 avisos do QA, naturalidade do movimento (ritmo, easing, respiração, olhar), pegadas e apoios; sem regressões, QA completo no fim.
+4. Render de produção no CI, builds Android/iOS/site, entrega ao usuário.
