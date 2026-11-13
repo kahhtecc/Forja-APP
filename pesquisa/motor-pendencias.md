@@ -141,3 +141,23 @@ motor de 539adaa e o atual; QA um a um contra pesquisa/qa-resultado.json anterio
 - **Fica para o animador (dados)**: torcao-coluna, prancha-lateral, arnold, arremesso-rotacional, abdominal-bicicleta,
   isometria-pescoco, alongamento-quadriceps, fuga-quadril, alongamento-adutores; hack com pegadores nos ombros (se
   desejado); degraus da escada como bloco (aparelho, leve).
+
+## Rodada pós-revisão (animador, dados; pesquisa/animador-pos-revisao.md)
+Achados de motor que os dados só contornam (o motor não foi alterado):
+- **"segura" na cabeça/nuca põe a palma dentro do crânio** | `segurar_corpo` estima a distância da pele pelo percentil 80 das
+  projeções dos pontos a menos de 1,0 dm do ponto anatômico. Na cabeça o raio real é 0,7–1,15 dm, então a palma fica dentro:
+  medido na pose de repouso (sonda `<scratch>/pr/cab2.py`), "cabeca" pela frente (testa) 1,5–2,4 cm dentro, "nuca" por trás e
+  por baixo 2,8–7 cm dentro; pelo lado fica 0,5–1,3 cm fora. Além disso a mão só gira 75 % até a orientação de contato, e com o
+  antebraço apontando para a cabeça (mãos atrás da cabeça, mão na testa) a ponta dos dedos entra no crânio (bicicleta: 4,9 cm).
+  Contorno nos dados: punho em extensão (`puf`/`put` −68) e braço escolhido para a palma chegar onde a estimativa acerta.
+  Sugestão: distância da pele por raio (máximo da projeção num cilindro estreito em volta da normal) e giro de 100 % na cabeça.
+- **"segura" fecha a mão sempre em 0,55** (alvos de `ALVOS_SEGURA_PEGA`) e 0,05 (joelho, nuca, cabeça), qualquer que seja o
+  alvo e sem `"maos"` valer. Tornozelo, punho e canela são finos: a mão poderia fechar até encostar (como a pegada calibrada
+  pelo raio do implemento). Hoje os dedos ficam meio abertos em volta do tornozelo (alongamento-quadriceps).
+- **Pé sem rotação em torno da canela** | o pé só aponta (`d2(pe−27, pa·0,3)`); não dá para virar a sola para dentro. A borboleta
+  (alongamento-adutores) fica com os pés juntos, sola para baixo, em vez das solas unidas.
+- **`nivelar_de_lado` só roda se todas as chaves tiverem "lado"** | numa sequência que alterna deitado de costas e de lado
+  (fuga de quadril alternando lados) as chaves de lado ficam com o quadril 1,3 dm no ar, apoiadas no ombro de baixo e no pé
+  de cima, e o QA dá centro de massa fora da base. Os dados ficaram num lado só (todas as chaves "lado").
+- **Barra fixa: a pegada depende do braço FK da chave** | na remada-invertida, mudar só os ângulos do braço da chave de baixo
+  (mesmo corpo) tira as mãos da barra (6 cm fora do túnel dos dedos, erro). O IK das mãos na barra parece partir da pose FK.
