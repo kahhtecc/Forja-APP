@@ -217,9 +217,9 @@ MAQ_ASSENTO = ("leg-press", "extensora", "cadeira-flexora", "abdutora", "adutora
 def maos_em_pegadores(ctx):
     """Lados cujas mãos seguram um pegador/guidão/manopla/corrimão do aparelho (o motor faz a IK até ele)."""
     idd, t = ctx.id, ctx.tipos
-    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t
+    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t
             or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "sled",
-                                                      "roda-abdominal"))):
+                                                      "roda-abdominal", "escada"))):
         return {"f", "t"}
     return set()
 
@@ -250,7 +250,7 @@ def _tipo_pegador(ctx):
     if "treno" in ctx.tipos or "sled" in idd:
         return "treno"
     if "escada" in ctx.tipos or "escada" in idd:
-        return "escada"  # corrimãos desenhados; as mãos ficam livres, apoiadas de leve (sem IK: evitava pop)
+        return "escada"  # corrimãos laterais fixos: as mãos fecham neles (IK em todo quadro)
     if "eliptico" in ctx.tipos or "eliptico" in idd:
         return "eliptico"
     if "mesa-flexora" in idd:
@@ -291,11 +291,27 @@ def preparar_pegadores(ctx, h):
         for sf, sx in ((".L", 1), (".R", -1)):
             cfg[sf] = (Vector((sx * 1.9, y_fr + 0.9, zt - 0.9)), Vector((1, 0, 0)))
     elif tipo == "escada":
-        zs = [(T @ h.pegada(sf)).z for sf in (".L", ".R")]
-        ys = [(T @ h.pegada(sf)).y for sf in (".L", ".R")]
-        z = min(max(sum(zs) / 2, r.z + 0.6), r.z + 2.6)
+        # corrimãos onde as mãos estão em média nas chaves (as mãos fecham neles por IK em todo quadro)
+        # inclinação do corrimão (subindo para a frente, como no aparelho real) perpendicular ao antebraço no plano
+        # sagital: punho neutro (corrimão horizontal com o antebraço para a frente exigia ~58° de desvio ulnar)
+        xs, ys, zs = [], [], []
+        fa = Vector()
+        for ch in ctx.chaves:
+            h.restaurar(ch["est"])
+            for sf in (".L", ".R"):
+                g = ch["T"] @ h.pegada(sf)
+                xs.append(abs(g.x))
+                ys.append(g.y)
+                zs.append(g.z)
+                fa += ch["T"].to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf))
+        h.restaurar(c0["est"])
+        z = min(max(sum(zs) / len(zs), r.z + 0.6), r.z + 2.6)
+        x = max(2.8, sum(xs) / len(xs))
+        beta = math.atan2(-fa.z, -fa.y) if fa.length > 1e-6 else math.pi / 2  # antebraço abaixo da horizontal (frente = -y)
+        inc = max(0.0, min(math.radians(55), math.pi / 2 - beta))
+        e = Vector((0, -math.cos(inc), math.sin(inc)))  # sobe para a frente
         for sf, sx in ((".L", 1), (".R", -1)):
-            cfg[sf] = (Vector((sx * 3.5, sum(ys) / 2, z)), Vector((0, 1, 0)))
+            cfg[sf] = (Vector((sx * x, sum(ys) / len(ys), z)), e)
     elif tipo == "eliptico":
         mq = [pr for pr in ctx.props if pr.get("tipo") == "maquina"]
         toes = []
@@ -336,8 +352,6 @@ def _alvo_pegador(ctx, h, T, sf, sx):
     if not cfg:
         return None
     tipo = cfg["tipo"]
-    if tipo == "escada":
-        return None
     if sf in cfg:
         return cfg[sf]
     if tipo == "coxa":
@@ -1139,7 +1153,7 @@ def _pegadores(kit, ctx, h):
     elif tipo == "escada":
         for sf, sx in ((".L", 1), (".R", -1)):
             p, e = cfg[sf]
-            a, b = p - Y * 4.0, p + Y * 3.0
+            a, b = p + e * 2.2, p - e * 3.0  # a: ponta da frente (alta), b: de trás
             kit.cil(a, b, 0.17, kit.metal, 16)
             kit.cil(Vector((a.x + sx * 0.3, a.y, a.z)), Vector((a.x + sx * 0.3, a.y - 0.6, 0.2)), 0.2, kit.quadro, 12)
             kit.cil(Vector((b.x + sx * 0.3, b.y, b.z)), Vector((b.x + sx * 0.3, b.y, 0.2)), 0.2, kit.quadro, 12)
