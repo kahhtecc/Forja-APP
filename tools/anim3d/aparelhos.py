@@ -214,9 +214,59 @@ def halter_peca(kit):
 MAQ_ASSENTO = ("leg-press", "extensora", "cadeira-flexora", "abdutora", "adutora")
 
 
+def espaldar_prop(props, k):
+    """Prop alto e fino (h >= 14 dm, largura <= 2,6 dm) desenhado como espaldar (barras de parede), ou None."""
+    for pr in props:
+        if pr.get("tipo") in ("banco", "maquina", "caixa") and pr.get("h", 4) * k >= 14 and pr.get("w", 8) * k <= 2.6:
+            return pr
+    return None
+
+
+ESPALDAR_Z0, ESPALDAR_PASSO, ESPALDAR_R = 1.2, 1.6, 0.16
+
+
+def preparar_espaldar(ctx, h):
+    """Mãos no espaldar: cada mão fecha no degrau mais próximo da sua altura média nas chaves (alvo fixo no mundo)."""
+    ctx.espaldar = None
+    pr = espaldar_prop(ctx.props, ctx.k)
+    if pr is None or not ctx.chaves:
+        return
+    a, b = ctx.p3(pr.get("x", 0), 0), ctx.p3(pr.get("x", 0) + pr.get("w", 8), 0)
+    cy = (a.y + b.y) / 2
+    zt = (pr.get("y", 0) + pr.get("h", 4)) * ctx.k
+    degraus = []
+    zz = ESPALDAR_Z0
+    while zz < zt - 0.3:
+        degraus.append(zz)
+        zz += ESPALDAR_PASSO
+    g = {".L": [], ".R": []}
+    for ch in ctx.chaves:
+        h.restaurar(ch["est"])
+        for sf in g:
+            g[sf].append(ch["T"] @ h.pegada(sf))
+    h.restaurar(ctx.chaves[0]["est"])
+    alvo = {}
+    for sf in g:
+        m = sum(g[sf], Vector()) / len(g[sf])
+        z = min(degraus, key=lambda d: abs(d - m.z))
+        alvo[sf] = Vector((m.x, cy, z))
+    ctx.espaldar = {"cy": cy, "alvo": alvo}
+
+
+def maos_no_espaldar(ctx, h, T):
+    esp = getattr(ctx, "espaldar", None)
+    if not esp:
+        return
+    for _ in range(2):
+        for sf in (".L", ".R"):
+            pegar_em(h, T, sf, esp["alvo"][sf], X.copy(), False, passes=1)
+
+
 def maos_em_pegadores(ctx):
     """Lados cujas mãos seguram um pegador/guidão/manopla/corrimão do aparelho (o motor faz a IK até ele)."""
     idd, t = ctx.id, ctx.tipos
+    if espaldar_prop(ctx.props, ctx.k) is not None:
+        return {"f", "t"}
     if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t
             or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "sled",
                                                       "roda-abdominal", "escada"))):
@@ -404,6 +454,7 @@ def depois_ik(ctx, h, T, tau, extras):
         for _ in range(2):
             h.ik("braco", pa["sf"], Ti @ pa["pos"], Ti.to_3x3() @ pa["rot"].to_matrix())
     pegada_implementos(ctx, h, T, tau, extras)
+    maos_no_espaldar(ctx, h, T)
     halteres_fora_do_corpo(ctx, h, T)
 
 
@@ -605,6 +656,7 @@ def preparar(ctx, h):
     ctx.alavancas = preparar_alavancas(ctx, h)
     preparar_pegadores(ctx, h)
     preparar_implementos(ctx, h)
+    preparar_espaldar(ctx, h)
     for pr in ctx.props:
         if pr.get("tipo") == "parede":
             ctx.parede = _preparar_parede(ctx, h, pr)
@@ -895,10 +947,10 @@ def _bloco(kit, ctx, h, r, rects, am, idd, k):
                 xm = max(4.0, max(max(abs(a["gL"].x), abs(a["gR"].x)) for a in am) + 1.2)
                 for sx in (-1, 1):
                     kit.viga((sx * xm, cy, 0), (sx * xm, cy, zt), 0.5, 0.7, kit.madeira)
-                zz = 1.2
+                zz = ESPALDAR_Z0
                 while zz < zt - 0.3:
-                    kit.cil((-xm, cy, zz), (xm, cy, zz), 0.16, kit.madeira, 12)
-                    zz += 1.6
+                    kit.cil((-xm, cy, zz), (xm, cy, zz), ESPALDAR_R, kit.madeira, 12)
+                    zz += ESPALDAR_PASSO
                 return
             if assento:
                 zs = max(s["zt"] for s in assento)
