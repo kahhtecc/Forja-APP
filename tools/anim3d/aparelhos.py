@@ -2428,6 +2428,9 @@ def _picos_salto(ctx):
     return [float(ctx.trilhas.t0[i]) for i, v in enumerate(ays) if v >= m * 0.8]
 
 
+ATRASO_CORDA = math.radians(70)
+
+
 def _corda(kit, ctx, h):
     """Corda de pular: manoplas nas mãos; a corda sai de cada mão para fora dos ombros e gira em volta do corpo num círculo
     (eixo lateral na altura das mãos), uma volta por salto, passando sob os pés só no pico do voo (nunca pelo corpo)."""
@@ -2456,13 +2459,18 @@ def _corda(kit, ctx, h):
         gR, _ = _por_alca(mans[".R"], h, T, ".R", 0.6)
         C = (gL + gR) / 2
         R = max(C.z - ctx.z0 - 0.08, 3.0)
-        phi = fase(est["tau"])  # 0 = corda embaixo (pico do salto); gira para a frente
-        d = Vector((0, -math.sin(phi), -math.cos(phi)))
+        # 0 = corda embaixo (pico do salto); gira para a frente: embaixo -> atrás -> em cima -> na frente (frente = -y).
+        # (antes o sinal invertido girava para trás: a corda passava sob os pés de trás para a frente)
+        phi = fase(est["tau"])
         W = max(abs(gL.x - gR.x) / 2 + 0.5, 2.4)
         pts = []
         for i in range(n + 1):
             sv = i / n
             bb = math.sin(math.pi * sv) ** 0.5
+            # o meio da corda fica para trás das pontas (arrasto): de perfil a corda é um arco em "C" e não dois fios retos
+            # (dois fios retos até a ponta pareciam um aro/bambolê em volta do corpo)
+            ph = phi + ATRASO_CORDA * (1.0 - bb)
+            d = Vector((0, math.sin(ph), -math.cos(ph)))
             arco = Vector((0, C.y, C.z)) + X * (W * math.cos(math.pi * sv)) + d * R
             p = gL.lerp(gR, sv) * (1 - bb) + arco * bb
             p.z = max(p.z, ctx.z0 + 0.05)
