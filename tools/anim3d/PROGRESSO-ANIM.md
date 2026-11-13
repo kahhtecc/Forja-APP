@@ -160,3 +160,12 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
 - inchworm refeito com passos de mão com o corpo parado (limpo); maior-alongamento em afundo baixo com o pé de trás fixo
   (aviso); turkish-getup com joelho e quadril dentro dos limites (ainda erro: ombro do braço de apoio, base nas fases de
   varredura/moinho, pelve pousada no deitado). QA dos 175: 86 limpos, 88 avisos, 1 erro, sem regressões.
+
+### Rodada do motor pós-revisão independente (pesquisa/revisao-independente.md)
+- Roscas (4): motor já correto (ombro 12–19°, cotovelo 4→139° medidos no esqueleto); defeito era a câmera de quase perfil →
+  `cam` 75 nos dados. supino-maquina: pivô da alavanca no alto, na mediatriz das pegadas (agora há movimento). eliptico:
+  coluna à frente e alça acima da mão (mão de trás visível na alça). escada: mãos fechadas no corrimão inclinado (IK).
+  hack: pegador lateral no plano sagital, visível nas duas mãos. corda: gira para a frente, meio atrasado (arco em C).
+  alongamento-panturrilha: mãos fecham no degrau do espaldar.
+- QA novo: `motor/amplitude` (ausência de movimento), `apoio/tubo` (tubo fino atravessando mão/antebraço), mãos ocupadas
+  em escada/hack/espaldar. QA dos 175: 88 limpos, 86 avisos, 1 erro (turkish-getup), sem regressões.

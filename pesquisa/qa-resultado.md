@@ -2,16 +2,16 @@
 
 Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 exercícios. Critérios, limiares e método de validação em `tools/anim3d/qa_corpo.py` e na seção final.
 
-**1 exercícios com erro, 88 só com aviso, 86 limpos.**
+**1 exercícios com erro, 86 só com aviso, 88 limpos.**
 
 ## Exercícios com defeito, por tipo
 
 | Tipo | Exercícios com erro | Só aviso |
 |---|---|---|
 | Pegada | 0 | 7 |
-| Amplitude (ROM) | 1 | 29 |
-| Apoio / interpenetração | 1 | 64 |
-| Motor (pops, skate, chão...) | 0 | 9 |
+| Amplitude (ROM) | 1 | 28 |
+| Apoio / interpenetração | 1 | 62 |
+| Motor (pops, skate, chão...) | 0 | 10 |
 
 ## Erros por verificação (nº de exercícios)
 
@@ -91,7 +91,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | sombra | 0 | 0 | 0 | 0 | ok |
 | corrida-leve | 0 | 0 | 0 (1) | 0 | só avisos |
 | longao | 0 | 0 | 0 | 0 | ok |
-| eliptico | 0 (2) | 0 (2) | 0 | 0 | só avisos |
+| eliptico | 0 (2) | 0 | 0 | 0 | só avisos |
 | caminhada | 0 | 0 | 0 | 0 | ok |
 | flexor-quadril | 0 | 0 (1) | 0 | 0 | só avisos |
 | circulos-braco | 0 | 0 | 0 | 0 | ok |
@@ -165,7 +165,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | supino-elastico | 0 | 0 | 0 | 0 | ok |
 | barra-supinada | 0 | 0 (2) | 0 | 0 | só avisos |
 | remada-baixa | 0 | 0 | 0 | 0 | ok |
-| remada-invertida | 0 (4) | 0 (2) | 0 (2) | 0 | só avisos |
+| remada-invertida | 0 (4) | 0 (2) | 0 (2) | 0 (2) | só avisos |
 | band-pull-apart | 0 | 0 | 0 (1) | 0 | só avisos |
 | desenvolvimento-maquina | 0 | 0 | 0 | 0 | ok |
 | elevacao-frontal | 0 | 0 | 0 | 0 | ok |
@@ -179,7 +179,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | sprawl | 0 | 0 | 0 | 0 | ok |
 | tiros | 0 | 0 | 0 | 0 | ok |
 | bike-intervalado | 0 | 0 | 0 (3) | 0 | só avisos |
-| escada | 0 | 0 | 0 (3) | 0 | só avisos |
+| escada | 0 | 0 | 0 | 0 | ok |
 | gato-camelo | 0 | 0 | 0 | 0 | ok |
 | alongamento-quadriceps | 0 | 0 (1) | 0 | 0 | só avisos |
 | rolo-quadriceps | 0 | 0 | 0 (2) | 0 | só avisos |
@@ -190,7 +190,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | alongamento-pescoco | 0 | 0 | 0 | 0 (1) | só avisos |
 | moinho | 0 | 0 | 0 | 0 | ok |
 | agachamento-goblet | 0 | 0 (2) | 0 (1) | 0 | só avisos |
-| hack | 0 | 0 | 0 (8) | 0 | só avisos |
+| hack | 0 | 0 | 0 (6) | 0 | só avisos |
 | afundo | 0 | 0 | 0 (1) | 0 | só avisos |
 | step-up | 0 | 0 | 0 (1) | 0 | só avisos |
 | terra-uma-perna | 0 | 0 | 0 (1) | 0 | só avisos |
@@ -225,7 +225,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | bike-cadencia | 0 | 0 | 0 (2) | 0 | só avisos |
 | prova | 0 | 0 | 0 | 0 | ok |
 | postura-crianca | 0 | 0 (4) | 0 (7) | 0 | só avisos |
-| alongamento-panturrilha | 0 | 0 | 0 (4) | 0 | só avisos |
+| alongamento-panturrilha | 0 | 0 | 0 | 0 | ok |
 | rolo-panturrilha | 0 | 0 | 0 (1) | 0 | só avisos |
 | alongamento-adutores | 0 | 0 | 0 | 0 (1) | só avisos |
 | circulos-punho | 0 | 0 | 0 | 0 | ok |

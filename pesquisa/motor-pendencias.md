@@ -98,3 +98,46 @@ Formato: id | quadro (de 24 fps, como no qa.py) | o que acontece | prova.
   escorrega 8–12 mm/quadro. Sugestão: `rolt` em torno do centro da pelve, ou baixar o quadril junto. Recoreografia
   completa testada (8 verificações, não melhor que as 6 atuais): detalhes e o que já ficou resolvido em
   animador-dados-r8.md (r11).
+
+## Rodada pós-revisão (motor; pesquisa/revisao-independente.md)
+Comparação antes/depois: tiras de 6–8 quadros (`humano.py --tira`) e zoom das mãos (`zoom.py`) de cada exercício, com o
+motor de 539adaa e o atual; QA um a um contra pesquisa/qa-resultado.json anterior.
+- **rosca-direta, rosca-halteres, rosca-martelo, rosca-elastico** | [NÃO ERA O MOTOR → câmera] | Medido no esqueleto
+  (`sonda_rosca`): ombro 12–19° e cotovelo 4→139° em todo o ciclo, iguais aos dados (o arco de círculo máximo dos braços
+  não arrasta o úmero: com abdução constante ele coincide com a interpolação do ângulo). De perfil (az 90) a rosca é
+  correta, cotovelo junto ao tronco. Na câmera dos dados (cam 40 ≈ perfil) o úmero do braço de trás fica atrás do tronco e
+  o antebraço na horizontal parece um braço esticado saindo do ombro. Mudado só o campo `cam` para 75 (3/4 de frente: os
+  dois cotovelos aparecem junto ao corpo). QA igual.
+- **supino-maquina** | [RESOLVIDO] | A alavanca rígida tinha pivô abaixo e atrás do ombro com o raio médio das pegadas
+  (3,6 e 7,1 dm do pivô): a mão era projetada no meio do caminho e o braço ficava esticado o ciclo todo. Pivô agora no alto
+  (6 dm acima), na mediatriz das pegadas extremas das chaves, por fora da mão; o arco passa pelas duas pegadas, a mão anda
+  2,5 → 5,9 dm e o pegador vai junto (braço de suporte saindo do pórtico). QA limpo.
+- **eliptico** | [RESOLVIDO] | A mão de trás segurava a alça, mas na vista de 3/4 a coluna/console ficava entre a câmera e
+  a mão (a alça sumia e a mão parecia solta). Coluna 1,5 dm mais à frente e alça continuando 2 dm acima da mão. QA: só
+  avisos (sumiu a pronação de 108°).
+- **escada** | [RESOLVIDO] | Mãos agora fecham no corrimão por IK em todo quadro (antes ficavam livres, sem IK). O
+  corrimão fica onde as mãos estão nas chaves e sobe para a frente, perpendicular ao antebraço (horizontal dava 58° de
+  desvio ulnar). QA de aviso para limpo. Os degraus como bloco ao lado das pernas ficaram como estavam (aparelho).
+- **hack** | [RESOLVIDO no motor; posição das mãos é dado] | As duas mãos já seguravam pegadores, mas o pegador seguia o
+  eixo do polegar e, na mão de trás, ficava escondido atrás do punho. Pegador lateral agora com eixo no plano sagital,
+  perpendicular ao antebraço, saindo acima e abaixo do punho, mão fechada nele (IK) e haste até a lateral do carrinho;
+  hack entra nas mãos ocupadas (o QA confere a pegada). Pegadores na altura das ombreiras (variante comum) exigiriam
+  outros ângulos de braço nos dados (bf [40,62] deixa as mãos ao lado das coxas).
+- **corda** | [RESOLVIDO] | A fase girava para trás (corda passando sob os pés de trás para a frente) e os dois fios retos
+  até a ponta formavam um aro. Agora gira para a frente e o meio da corda fica 70° atrás das pontas (arrasto): de perfil é
+  um arco em "C" que passa sobre a cabeça e sob os pés. QA limpo.
+- **alongamento-panturrilha** | [RESOLVIDO] | Prop alto e fino (espaldar) virou pegador: cada mão fecha (pegada pronada,
+  IK) no degrau mais próximo da sua altura média nas chaves, no plano das barras. QA de aviso para limpo.
+- **QA novo** (qa_corpo.py): (a) `motor/amplitude`: amplitude renderizada de cotovelo/joelho x a dos dados (≥ 40°):
+  < 50 % aviso, < 35 % erro — no motor antigo pega o supino-maquina (31 %); (b) mãos ocupadas agora incluem escada, hack e
+  espaldar (pegada conferida em todo quadro); (c) `apoio/tubo`: eixo de tubo fino fixo dentro do volume da mão/antebraço
+  que não o segura (> 0,5 cm erro) — no motor antigo pega escada (1,4 cm) e alongamento-panturrilha (2,1 cm), que antes
+  eram só aviso de penetração rasa.
+- **QA dos 175 depois da rodada**: 88 limpos, 86 avisos, 1 erro (turkish-getup, dados), antes 86 / 88 / 1. Sem regressão
+  de status: escada e alongamento-panturrilha de aviso para limpo; hack e eliptico com menos avisos; o único aviso novo é
+  `motor/amplitude` na remada-invertida (cotovelo renderizado 48 % da amplitude dos dados; aprovada na revisão, a barra
+  fixa limita o fim da puxada — conferir nos dados). Amostra de aprovados com código vizinho re-renderizada (peck-deck,
+  desenvolvimento-maquina, leg-press, crossover): iguais.
+- **Fica para o animador (dados)**: torcao-coluna, prancha-lateral, arnold, arremesso-rotacional, abdominal-bicicleta,
+  isometria-pescoco, alongamento-quadriceps, fuga-quadril, alongamento-adutores; hack com pegadores nos ombros (se
+  desejado); degraus da escada como bloco (aparelho, leve).

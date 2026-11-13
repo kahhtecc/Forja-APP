@@ -29,6 +29,10 @@ APOIO
   pousada   pelve/costas/cabeça (e coxa/joelho/antebraço deitados) parados de 3 a 15 cm acima de uma superfície: erro se
             coincide com a base falhando ou, no tronco, se dura >= 1 s e >= 40 % do ciclo a <= 10 cm; senão aviso
   penetra   pele dentro de aparelho: > 1,5 cm erro (estofado: > 2,5 cm)
+  amplitude (tipo "motor") amplitude renderizada do cotovelo/joelho x a dos dados (>= 40°): < 50 % aviso, < 35 % erro
+  tubo      eixo de um tubo fino fixo (corrimão, espaldar, barra) DENTRO da mão/antebraço que não o segura (o tubo
+            passa pelo meio do volume; a profundidade da pele sozinha não passa de ~1,6 cm num tubo fino): eixo > 0,5 cm
+            dentro = erro, > 0,2 cm aviso
   corpo     cabo/elástico atravessando o corpo: > 3 cm erro, > 1,5 cm aviso; braço dentro do tronco/cabeça e perna dentro da
             outra: só aviso (> 3,5 cm) — o teste de interior por vizinhos da pele satura em 6 cm e deu falso positivo em
             exercícios aprovados pela auditoria (russian-twist, alongamento-lateral)
@@ -39,6 +43,8 @@ import numpy as np
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 from mathutils.kdtree import KDTree
+
+import movimento as MOV  # mesmo diretório do motor (qa.py põe no sys.path)
 
 X = Vector((1, 0, 0))
 Y = Vector((0, 1, 0))
@@ -75,6 +81,10 @@ NOMES_ROM = {
     "pescoco_rotacao": "rotação do pescoço",
 }
 LADO = {".L": "esq", ".R": "dir"}
+# MOVIMENTO (ausência de movimento): amplitude renderizada do cotovelo/joelho x amplitude dos dados (ângulos das chaves
+# interpolados): com >= 40° nos dados, renderizado < 50 % = aviso, < 35 % = erro (ex.: mão presa a um pegador parado;
+# o supino-maquina antigo dava 31 %, a remada invertida aprovada na revisão 48 %)
+AMP_MIN, AMP_AVISO, AMP_ERRO = 40.0, 0.5, 0.35
 COLUNA = ("root", "spine05", "spine04", "spine03", "spine02", "spine01")
 PESCOCO = ("spine01", "neck01", "neck02", "neck03", "head")
 
@@ -732,11 +742,34 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
     com, zmp_ok, poligonos, suporte_extra, sem_contato, zsup = [], [], [], [], [], []
     hover = {r: [] for r in REGIOES_POUSO}
     cent_ant = {}
+    amp = {}  # (articulação, lado) -> ([dados], [renderizado]) em graus
     for j, est in enumerate(estados):
         h.restaurar(est["est"])
         T = est["T"]
         kit.atualizar(est)
         ap.ler()
+        # ---------------- MOVIMENTO: ângulo do cotovelo/joelho nos dados x no esqueleto
+        q_ = ctx.trilhas(est["tau"], vida=False)
+        for sf, lado, s_ in ((".L", "f", 1), (".R", "t", -1)):
+            b_, a_ = q_["b" + lado]
+            dd = q_.get("_dirs", {}).get(lado)
+            if dd is not None:
+                ub, fa = np.asarray(dd[0]), np.asarray(dd[1])
+            else:
+                ub, fa = MOV.d2np(b_, q_["b" + lado + "a"], s_), MOV.d2np(a_, q_["a" + lado + "a"], s_)
+            cd = _deg(math.acos(float(np.clip(np.dot(ub, fa) / max(np.linalg.norm(ub) * np.linalg.norm(fa), 1e-9), -1, 1))))
+            S_, E_, W_ = h.cabeca("upperarm01" + sf), h.cabeca("lowerarm01" + sf), h.cabeca("wrist" + sf)
+            cr = _deg((E_ - S_).angle(W_ - E_))
+            v_ = amp.setdefault(("cotovelo", sf), ([], []))
+            v_[0].append(cd)
+            v_[1].append(cr)
+            c_, sh_, _ = q_["p" + lado]
+            kd_ = _deg(math.acos(float(np.clip(np.dot(MOV.d2np(c_, q_["p" + lado + "a"], s_), MOV.d2np(sh_, q_["c" + lado + "a"], s_)), -1, 1))))
+            Q_, K_, A_ = h.cabeca("upperleg01" + sf), h.cabeca("lowerleg01" + sf), h.cabeca("foot" + sf)
+            kr = _deg((K_ - Q_).angle(A_ - K_))
+            v_ = amp.setdefault(("joelho", sf), ([], []))
+            v_[0].append(kd_)
+            v_[1].append(kr)
         # ---------------- ROM
         ang = corpo.angulos()
         for (chave, parte), v in avaliar_rom(ang, None).items():
@@ -917,6 +950,32 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
             for s, d in pior.items():
                 reg.add("apoio", "penetra", f"{s} x {nome}", j, d * 10, 1.0 if not macio else 1.5, 1.5 if not macio else 2.5, "cm",
                         "pele dentro do aparelho")
+        # tubo fino fixo (corrimão, espaldar, barra) com o EIXO dentro da mão/antebraço que não o segura
+        tubos = [p for p in ap.pecas if p.tipo == "tubo" and p.visivel and p.cx is not None]
+        if tubos:
+            for sf, lado in ((".L", "f"), (".R", "t")):
+                regs = ["antebraco_" + lado] + ([] if sf in esperadas else ["mao_" + lado])
+                idx = np.where(np.any([m[r_] for r_ in regs if r_ in m], axis=0))[0]
+                if not len(idx):
+                    continue
+                lo_m, hi_m = P[idx].min(axis=0) - 0.3, P[idx].max(axis=0) + 0.3
+                kd_m = None
+                pior_t = 0.0
+                for p in tubos:
+                    lo, hi = p.cx
+                    if np.any(hi < lo_m) or np.any(lo > hi_m):
+                        continue
+                    a, b = p.eixo()
+                    L = (b - a).length
+                    if kd_m is None:
+                        kd_m = _kd(P, idx)
+                    for s_ in np.linspace(0.0, 1.0, max(3, int(L / 0.08))):
+                        q = a.lerp(b, float(s_))
+                        if np.any(np.array(q) < lo_m) or np.any(np.array(q) > hi_m):
+                            continue
+                        pior_t = max(pior_t, _dentro(kd_m, q, N))
+                reg.add("apoio", "tubo", ("antebraço " if sf in esperadas else "mão/antebraço ") + LADO[sf], j, pior_t * 10,
+                        0.2, 0.5, "cm", "tubo fino atravessando a mão/antebraço (eixo dentro do volume)")
         # fio (cabo/elástico) atravessando o corpo
         kd_corpo = None
         for p in ap.pecas:
@@ -1035,4 +1094,15 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 erro_ = 3.0 if (sem_base or (longo and g_ <= 10.0 and rg in ("pelve", "costas", "cabeca"))) else 1e9
                 reg.add("apoio", "pousada", nomes_reg[rg], jj, g_, 3.0, erro_, "cm",
                         "região parada no ar acima de uma superfície (parece apoiada)")
+    # ---------------- ausência de movimento: amplitude renderizada x dados
+    for (art, sf), (vd, vr) in amp.items():
+        rd = max(vd) - min(vd)
+        if rd < AMP_MIN:
+            continue
+        rr = max(vr) - min(vr)
+        falta = (1.0 - rr / rd) * 100.0
+        jd = int(np.argmax(np.abs(np.array(vd) - np.array(vr))))
+        for jj in (jd, (jd + 1) % n):
+            reg.add("motor", "amplitude", f"{art} {LADO[sf]}", jj, falta, (1 - AMP_AVISO) * 100, (1 - AMP_ERRO) * 100, "%",
+                    f"amplitude renderizada {rr:.0f}° de {rd:.0f}° dos dados (falta de movimento)")
     return reg.achados()

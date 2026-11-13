@@ -267,7 +267,7 @@ def maos_em_pegadores(ctx):
     idd, t = ctx.id, ctx.tipos
     if espaldar_prop(ctx.props, ctx.k) is not None:
         return {"f", "t"}
-    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t
+    if ("bike" in t or "roda" in t or "treno" in t or "eliptico" in t or "escada" in t or "hack" in t
             or any(s_ in idd for s_ in MAQ_ASSENTO + ("mesa-flexora", "panturrilha-sentado", "eliptico", "sled",
                                                       "roda-abdominal", "escada"))):
         return {"f", "t"}
