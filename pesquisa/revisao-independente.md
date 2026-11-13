@@ -8,7 +8,7 @@ e zoom de corpo inteiro de outros ângulos nos suspeitos. Ordem: turkish-getup, 
 Nada foi corrigido: só revisão. Gravidade: **grave** = defeito que o usuário vê na hora (mão vazia, apoio no vazio, atravessar corpo/aparelho grande, pose impossível);
 **média** = visível ao prestar atenção; **leve** = detalhe.
 
-Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
+Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 
 | # | exercício | veredito | gravidade | defeito visto | fase/quadro | causa provável |
 |---|---|---|---|---|---|---|
@@ -22,10 +22,12 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 9 | flexao | APROVADO |  | sem defeito visível | — | — |
 | 10 | torcao-coluna | REPROVADO | grave | a mão que deveria segurar o joelho fica aberta, dedos espalhados, flutuando ao lado do joelho (não há "segura" nos dados) | 0,25–1,0 (torção) | dados (falta "segura" mao_t→joelho_f) |
 | 11 | prancha-lateral | REPROVADO | grave | apoio declarado no cotovelo, mas o corpo está apoiado num punho fechado com o antebraço vertical (cotovelo no ar): prancha lateral "sobre o soco", não existe assim | ciclo inteiro | dados ("maos": {"t":"punho"} + bt [0,90] com rol 70) / motor (cotovelo_t não desce ao chão) |
+| 12 | rotacao-toracica | APROVADO | leve | deitado de lado com joelhos empilhados, braço de cima abre para o outro lado; na abertura máxima os joelhos se descolam um pouco (perna de cima sobe) | 0,4–0,6 | dados |
 | 13 | alongamento-gluteo | APROVADO | leve | braços cruzam perto da coxa (mãos atrás da coxa ok); antebraço roça o tronco | 0,5–0,8 | dados |
 | 14 | remo-ergometro | APROVADO |  | duas mãos fechadas no puxador, carro e pés coerentes | — | — |
 | 15 | arremesso-rotacional | REPROVADO | média | na preparação a bola entra no quadril/abdômen (metade da bola dentro do corpo) e o antebraço de trás atravessa o tronco | 0–0,2 e 0,9–1,0 (carga) | dados (bola muito colada ao quadril; tr/bf da carga) |
 | 16 | abdominal | APROVADO | leve | antebraços pairando ~3 cm acima do chão no início (parecem apoiados) | 0 | dados |
+| 17 | abraco-joelhos | APROVADO |  | deitado, mãos nas canelas puxando os joelhos | — | — |
 | 18 | elevacao-quadril | APROVADO | leve | barra encosta/entra um pouco nas coxas no fundo; mãos seguram a barra | 0 | motor (colisão barra×coxa) |
 | 19 | russian-twist | APROVADO | leve | mãos abertas soltas (normalmente unidas/segurando peso); antebraço roça o tronco nas viradas | 0,1 e 0,9 | dados |
 | 20 | rosca-scott | APROVADO |  | cotovelos no apoio (vista de trás confirma), pegada fechada | — | — |
@@ -37,21 +39,27 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 26 | nordico | APROVADO |  | tornozelos presos, queda controlada com amparo das mãos | — | — |
 | 27 | abdominal-bicicleta | REPROVADO | média | mãos "atrás da cabeça" com dedos abertos esticados no ar e a mão entrando no crânio | 0,25–0,75 | motor ("segura" nuca sem mão espalmada) / dados |
 | 28 | maior-alongamento | APROVADO |  | afundo com mão no chão, rotação com braço para cima, isquiotibiais; coerente | — | — |
+| 29 | box-jump | APROVADO |  | salto para cima da caixa e descida em passo | — | — |
 | 30 | agachamento-goblet | APROVADO |  | duas mãos nas alças do kettlebell, agachamento profundo coerente | — | — |
 | 31 | roda-abdominal | APROVADO |  | mãos nas manoplas, roda no chão, joelhos apoiados | — | — |
+| 32 | eliptico | REPROVADO | grave | a mão de trás solta a alça móvel: de 0,25 a 0,75 fica aberta ao lado da coluna/console, sem segurar nada (só a mão da frente segura) | 0,25–0,75 | motor (IK das alças do elíptico só para uma mão / alvo da mão de trás) |
 | 33 | circulos-quadril | APROVADO | leve | círculo do quadril pequeno, pouco visível | ciclo | dados (amplitude) |
 | 34 | flexao-joelhos | APROVADO |  | sem defeito visível | — | — |
+| 35 | leg-press | APROVADO | leve | mão de trás escondida sob a coxa (não dá para confirmar que segura o pegador); pés na placa, costas no encosto | ciclo | — |
 | 36 | power-clean | APROVADO |  | chão → quadril → rack frontal → volta; pegada fechada | — | — |
 | 37 | escada | REPROVADO | grave | mãos abertas por baixo do corrimão, sem segurar; corrimão atravessa punho/antebraço; degraus parecem um bloco ao lado das pernas | todo o ciclo | motor (corrimão da escada x IK da mão) + aparelho |
 | 38 | triceps-banco | APROVADO |  | mãos espalmadas na borda do banco, pés no chão | — | — |
 | 39 | bike-subida | APROVADO |  | em pé nos pedais, mãos nas manoplas | — | — |
 | 40 | agachamento-barra | APROVADO |  | vista de trás: pegada larga na barra apoiada no trapézio, agachamento correto | — | — |
+| 41 | balanco-pernas | APROVADO | leve | palma na parede, perna balança; no balanço para a frente o pé passa rente ao batente | 0,9–1,0 | dados |
 | 43 | alongamento-lateral | APROVADO |  | mão na cintura, braço por cima, inclinação lateral coerente | — | — |
+| 44 | alongamento-triceps | APROVADO | leve | mão que puxa o cotovelo fica com os dedos abertos (encosta, não segura) | 0,3–0,7 | motor ("segura" cotovelo sem fechar os dedos) |
+| 45 | puxada-frente | APROVADO |  | barra nas mãos, desce à frente do rosto até o peito | — | — |
 | 46 | pike-pushup | APROVADO |  | mãos no chão, quadril alto, cabeça desce entre as mãos | — | — |
 | 47 | cadeira-flexora | APROVADO |  | mãos nos pegadores, rolo atrás dos tornozelos, flexão coerente | — | — |
 | 48 | afundo | APROVADO |  | sem defeito visível | — | — |
 | 49 | barra-supinada | APROVADO | leve | subida termina com a barra na testa (queixo não passa da barra) | 0,4–0,6 | dados (amplitude) |
-| 50 | rosca-direta | APROVADO |  | pegada fechada, cotovelo junto ao corpo | — | — |
+| 50 | rosca-direta | REPROVADO | grave | a rosca não é uma rosca: na subida e na descida o braço inteiro vai para a frente esticado (cotovelo reto, ombro a ~60–80°, como elevação frontal) e só no topo dobra o cotovelo; nos dados o ombro varia só 2→10° e o cotovelo 6→146° | 0,05–0,3 e 0,6–0,95 (vista 3/4 de trás) | motor (direção dos braços por arco de círculo máximo em movimento.py: o antebraço é interpolado em direção de mundo e arrasta o úmero para a frente) |
 | 51 | tempo-run | REPROVADO | média | no balanço dos braços a mão/antebraço passa por dentro do corrimão lateral da esteira | 0,25–0,5 (cada passada) | dados (largura/altura do balanço) + motor (sem colisão mão×corrimão) |
 | 52 | rolo-quadriceps | APROVADO |  | coxas no rolo, antebraços no chão | — | — |
 | 53 | barra-fixa | APROVADO | leve | subida termina com a barra na altura dos olhos (queixo não passa da barra) | 0,4–0,6 | dados (amplitude) |
@@ -61,6 +69,15 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 57 | abdominal-infra | APROVADO |  | sem defeito visível | — | — |
 | 59 | ponte-gluteo | APROVADO |  | sem defeito visível | — | — |
 | 60 | terra | APROVADO |  | barra do chão ao quadril junto às pernas | — | — |
+| 62 | triceps-frances | APROVADO |  | halter nas duas mãos, desce atrás da cabeça | — | — |
+| 63 | rolo-panturrilha | APROVADO |  | panturrilhas no rolo, mãos no chão atrás | — | — |
+| 64 | alongamento-antebraco | APROVADO |  | quatro apoios com dedos para trás | — | — |
+| 65 | desenvolvimento-elastico | APROVADO |  | elástico sob os pés, mãos fechadas no elástico | — | — |
+| 66 | circulos-tornozelo | APROVADO |  | mãos na cintura, ponta do pé no chão girando | — | — |
+| 67 | flexor-quadril | APROVADO |  | semiajoelhado, braço sobe | — | — |
+| 68 | bulgaro | APROVADO | leve | no fundo o halter da mão de perto passa rente/na frente da coxa da perna de apoio (parece encostar) | 0,5–0,7 | dados (bfa) |
+| 69 | spider | APROVADO |  | prancha, pé ao lado da mão, rotação com braço para cima | — | — |
+| 70 | alongamento-peito | APROVADO |  | antebraço no batente, tronco gira | — | — |
 | 89 | supino-inclinado | APROVADO |  | halteres nas mãos, costas no banco inclinado, pés no chão | — | — |
 | 90 | crossover | APROVADO |  | pegadores nas mãos, cabos das torres, cruzamento à frente | — | — |
 | 91 | remada-unilateral | APROVADO |  | joelho e mão de apoio no banco, halter na mão de trabalho | — | — |
@@ -68,7 +85,7 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 93 | desenvolvimento-halteres | APROVADO |  | halteres nas mãos, subida e descida coerentes | — | — |
 | 94 | elevacao-lateral | APROVADO |  | halteres nas mãos, braços até a horizontal | — | — |
 | 95 | arnold | REPROVADO | média | halter da mão de trás atravessa o rosto/cabeça na posição inicial (rotação de Arnold com halteres colados à face) | 0 e 1,0 (início/fim do ciclo) | dados (bt [72,182] bta 18 deixa a mão na frente do rosto; precisa afastar/abrir) |
-| 96 | rosca-halteres | REPROVADO | média | movimento não reconhecível como rosca: no 3º quadro os dois halteres vão para a frente do quadril com cotovelos estendidos e no 6º o braço sobe reto à frente (elevação frontal) em vez de dobrar o cotovelo; a interpolação dos braços de bf [9,146] para [2,6] passa por braço esticado na horizontal | transições 0,3–0,5 e 0,9–1,0 | dados (chaves sem quadro intermediário) + motor (interpolação de ângulos do braço sem manter o cotovelo junto ao corpo) |
+| 96 | rosca-halteres | REPROVADO | grave | mesmo defeito da rosca direta: halter sobe com o braço esticado à frente (elevação frontal) em vez de dobrar o cotovelo junto ao corpo; nos dados ombro 2→9° e cotovelo 6→146° | transições de cada braço | motor (arco de círculo máximo dos braços) |
 | 97 | triceps-polia | APROVADO |  | barra/corda nas mãos, cotovelos junto ao corpo | — | — |
 | 98 | triceps-elastico | APROVADO | leve | elástico preso sob o pé de trás, mãos fechadas no elástico acima da cabeça; elástico passa colado ao corpo | ciclo | — |
 | 99 | burpee | APROVADO |  | agacha, mãos no chão, prancha, volta, salto | — | — |
@@ -96,7 +113,7 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 121 | face-pull | APROVADO |  | corda nas mãos, puxada até a face com cotovelos altos | — | — |
 | 122 | desenvolvimento-barra | APROVADO |  | barra nas mãos, sobe acima da cabeça | — | — |
 | 123 | elevacao-lateral-elastico | APROVADO |  | elástico sob os pés, pegadores nas mãos | — | — |
-| 124 | rosca-martelo | REPROVADO | média | mesmo defeito da rosca com halteres: braço sobe esticado para a frente (parece elevação frontal) e os dois halteres saem do lado do corpo na transição | 0,2–0,3 e 0,8–0,9 | dados/motor (interpolação do braço) |
+| 124 | rosca-martelo | REPROVADO | grave | mesmo defeito: braço sobe esticado à frente antes de dobrar; dados com ombro 2→10° e cotovelo 6→140° | transições | motor (arco de círculo máximo dos braços) |
 | 125 | triceps-coice | APROVADO |  | tronco inclinado, extensão do cotovelo para trás | — | — |
 | 126 | polichinelo | APROVADO |  | reconhecível | — | — |
 | 127 | sled-push | APROVADO |  | mãos nos postes do trenó, passos de empurrar | — | — |
@@ -109,12 +126,12 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 134 | abdominal-polia | APROVADO |  | ajoelhado, corda junto à cabeça, flexão do tronco | — | — |
 | 135 | bound-lateral | APROVADO |  | saltos laterais unipodais | — | — |
 | 136 | supino-reto | APROVADO |  | barra nas mãos, desce ao peito, costas no banco | — | — |
-| 137 | supino-maquina | REPROVADO | grave | as mãos fechadas empurram o ar: não há pegadores/alavancas na altura das mãos (a alavanca da máquina fica na altura do abdômen, atrás dos braços) e o movimento quase não existe (braços parados à frente em todos os quadros) | ciclo inteiro | motor (alavancas do supino máquina não acompanham a mão) + dados (bf [79,86] ≈ 1º quadro só no início) |
+| 137 | supino-maquina | REPROVADO | grave | não há movimento: braços ficam esticados à frente em todos os quadros (0,1–0,9 idênticos) apesar de o 1º quadro dos dados ter cotovelos atrás (bf [-28,102]); as mãos parecem presas no pegador parado da alavanca | ciclo inteiro | motor (alavanca/pegador do supino máquina não acompanha a pose; IK prende a mão) |
 | 138 | supino-elastico | APROVADO | leve | elástico passa por trás das costas pelas axilas (correto), mas contorna o tronco um pouco afastado | ciclo | — |
 | 139 | remada-baixa | APROVADO |  | pegador nas duas mãos, pés na plataforma | — | — |
 | 140 | desenvolvimento-maquina | APROVADO |  | mãos nos pegadores, sobe e desce | — | — |
 | 141 | elevacao-frontal | APROVADO |  | halteres nas mãos, subida à frente | — | — |
-| 142 | rosca-elastico | APROVADO | leve | elástico sob o pé com as duas mãos; a mão de trás sobe pouco | ciclo | dados |
+| 142 | rosca-elastico | REPROVADO | grave | mesmo defeito das roscas: a mão da frente sai esticada para a frente na transição (quadros 2 e 5 da tira) | transições | motor (arco de círculo máximo dos braços) |
 | 143 | triceps-testa | APROVADO |  | barra W nas mãos, desce até a testa | — | — |
 | 144 | passe-medicine | APROVADO |  | bola entre as mãos, passe de peito | — | — |
 | 145 | corda | REPROVADO | média | a corda de pular gira na horizontal/diagonal ao redor da cintura como um bambolê (anel elíptico em volta do corpo) em vez de passar por cima da cabeça e por baixo dos pés | 0,2–0,5 e 0,8–0,9 | motor (corda girando no plano errado) |
@@ -135,7 +152,7 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 160 | flexao-declinada | APROVADO |  | pés no banco, mãos no chão | — | — |
 | 161 | supino-halteres | APROVADO |  | halteres nas mãos, costas no banco | — | — |
 | 162 | crucifixo | APROVADO |  | halteres nas mãos, abre e fecha no banco inclinado | — | — |
-| 163 | barra-assistida | REPROVADO | média | o corpo fica "pendurado" com o pé de trás no ar e o joelho da frente no laço do elástico, mas o elástico passa por fora/atrás do corpo e está preso ao chão (vai da barra até o pé no chão), não sustenta nada; pé livre flutua | ciclo inteiro | motor (laço da barra assistida ancorado no chão) + dados |
+| 163 | barra-assistida | APROVADO | leve | pé no laço do elástico com a perna estendida à frente e elástico em diagonal (o normal é o joelho/pé sob o corpo com o elástico vertical); a outra perna pendurada | ciclo | dados (perna do laço) |
 | 164 | remada-curvada | APROVADO |  | barra nas mãos, tronco inclinado, puxa ao abdômen | — | — |
 | 165 | pulldown-elastico | APROVADO |  | elástico no alto do poste, mãos nos pegadores | — | — |
 | 166 | encolhimento | APROVADO |  | halteres nas mãos, ombros sobem | — | — |
@@ -145,6 +162,6 @@ Revisados: 136 de 175 — APROVADO 119, REPROVADO 17.
 | 170 | inchworm | APROVADO |  | mãos andam até prancha e voltam | — | — |
 | 171 | bear-crawl | APROVADO |  | quatro apoios com joelhos no ar, mão e pé opostos avançam | — | — |
 | 172 | prova | APROVADO |  | corrida reconhecível | — | — |
-| 173 | alongamento-adutores | REPROVADO | grave | pernas cruzadas em pose impossível: coxa de trás atravessa a perna da frente e os pés somem dentro das coxas; mãos não seguram os pés (mãos abertas no chão) | ciclo inteiro | dados (borboleta: pf/pt e "segura" pés) |
+| 173 | alongamento-adutores | REPROVADO | média | borboleta sentada lida como cócoras: de 3/4 a perna de trás atravessa a da frente e os pés somem sob as coxas; nas vistas laterais as mãos parecem soltas perto dos pés | ciclo inteiro (isometria) | dados (pf/pt da borboleta) + motor (segura pés) |
 | 174 | circulos-punho | APROVADO |  | antebraços parados, punhos fechados giram | — | — |
 | 175 | carioca | APROVADO | leve | passo cruzado pouco visível na vista frontal | ciclo | câmera |
