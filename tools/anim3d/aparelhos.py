@@ -959,7 +959,18 @@ def preparar_alavancas(ctx, h):
         o = omb[sf]
         if tipo == "supino":
             ax = X.copy()
-            piv = Vector((sx * (abs(o.x) + 3.2), o.y + 0.8, o.z - 1.0))  # por fora e abaixo do braço (não corta o ombro)
+            # pivô no alto, na mediatriz (plano sagital) das pegadas extremas das chaves (peito e braço estendido): o arco
+            # da alavanca passa pelas duas, a mão anda com os dados e o pegador vai junto (pivô fixo abaixo e atrás do
+            # ombro dava raio médio e prendia a mão no meio do caminho, braço sempre estendido)
+            A, B = min(G, key=lambda p: p.y), max(G, key=lambda p: p.y)
+            M = (A + B) / 2
+            d = Vector((0, B.y - A.y, B.z - A.z))
+            nrm = Vector((0, -d.z, d.y)).normalized() if d.length > 0.3 else CIMA.copy()
+            if nrm.z < 0:
+                nrm = -nrm
+            t = 6.0 / max(nrm.z, 0.3)
+            piv = M + nrm * t
+            piv.x = sx * (max(abs(p.x) for p in G) + 1.0)  # por fora da mão (não corta o braço)
         elif tipo == "peck":
             ax = CIMA.copy()
             piv = Vector((sx * 1.9, o.y + 0.4, 0.0))
@@ -1025,6 +1036,7 @@ def _bracos_maquina(kit, ctx, h, encosto):
     for sf, sx in ((".L", 1), (".R", -1)):
         piv, ax, L = cfg[sf]
         if tipo == "supino":
+            # braço de suporte saindo do alto do pórtico até o pivô, por cima da cabeça
             kit.disco(piv, 0.5, 0.6, kit.quadro, verts=20)
             kit.viga(piv, Vector((sx * 3.4, y + 1.2, piv.z)), 0.4, 0.4, kit.quadro)
             kit.viga(Vector((sx * 3.4, y + 1.2, piv.z)), Vector((sx * 3.4, y + 1.2, 0.1)), 0.45, 0.45, kit.quadro)
@@ -1052,7 +1064,7 @@ def _bracos_maquina(kit, ctx, h, encosto):
             Kit.por_cil(pega[sf], g - e * 0.75, g + e * 0.75)
             eixo[sf].hide_render = True
             if tipo == "supino":
-                base = g - e * 0.7
+                base = g + e * 0.7 if piv.z > g.z else g - e * 0.7  # ligação na ponta do pegador do lado do pivô
                 E = Vector((piv.x, base.y, base.z))
                 Kit.por_cil(liga[sf], base, E)
                 Kit.por_cil(alav[sf], E, piv)
