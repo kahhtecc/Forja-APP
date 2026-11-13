@@ -308,6 +308,9 @@ def preparar_pegadores(ctx, h):
         yc = min(toes) - 1.6
         if mq:
             yc = min(yc, ctx.p3(mq[0].get("x", 4), 0).y)
+        # coluna/console mais à frente: na vista de 3/4 de frente a coluna ficava entre a câmera e a mão de trás
+        # (a mão e a alça sumiam atrás dela e a mão parecia solta)
+        yc -= 1.5
         cfg["yc"] = yc
         cfg["zc"] = sum(zs) / len(zs) - 1.0
         cfg["piv"] = {sf: Vector((sx * 1.7, yc - 0.2, cfg["zc"] - 4.5)) for sf, sx in ((".L", 1), (".R", -1))}
@@ -1299,7 +1302,9 @@ def _eliptico(kit, ctx, h, am):
             g = T @ h.pegada(sf)
             pv = piv.get(sf, Vector((sx * 1.6, yc, 7.0)))
             e = (g - pv).normalized()
-            Kit.por_cil(alca[sf], pv, g + e * 0.9)
+            # a alça continua acima da mão (como no aparelho real): a ponta de cima aparece por trás do console na vista
+            # de 3/4 e a mão de trás se lê segurando (antes o trecho visível era só o de baixo, escondido pela coluna)
+            Kit.por_cil(alca[sf], pv, g + e * 2.0)
             Kit.por_cil(alca_b[sf], pv, Vector((sx * 0.9, c.y - 1.2, c.z + 0.2)))
     kit.moveis.append(upd)
 
