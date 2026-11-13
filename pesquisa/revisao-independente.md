@@ -8,10 +8,11 @@ e zoom de corpo inteiro de outros ângulos nos suspeitos. Ordem: turkish-getup, 
 Nada foi corrigido: só revisão. Gravidade: **grave** = defeito que o usuário vê na hora (mão vazia, apoio no vazio, atravessar corpo/aparelho grande, pose impossível);
 **média** = visível ao prestar atenção; **leve** = detalhe.
 
-Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
+Revisados: 175 de 175 — APROVADO 156, REPROVADO 19.
 
 | # | exercício | veredito | gravidade | defeito visto | fase/quadro | causa provável |
 |---|---|---|---|---|---|---|
+| 1 | turkish-getup | APROVADO | leve | sequência legível (deitado → cotovelo → mão → ponte → joelho → em pé e volta), kettlebell sempre na mão; o "erro" do QA não aparece como defeito visível. Detalhes: punho do kettlebell dobrado para trás no deitado e braço de apoio muito aberto atrás no sentar | 0,02–0,14 | dados (detalhe) |
 | 2 | postura-crianca | APROVADO |  | sem defeito visível (ajoelhado → criança → volta; mãos no chão) | — | — |
 | 3 | flexao-diamante | APROVADO |  | mãos juntas no chão, corpo em prancha, descida coerente | — | — |
 | 4 | prancha | APROVADO |  | prancha em antebraços estável, apoios no chão | — | — |
@@ -52,6 +53,7 @@ Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 | 39 | bike-subida | APROVADO |  | em pé nos pedais, mãos nas manoplas | — | — |
 | 40 | agachamento-barra | APROVADO |  | vista de trás: pegada larga na barra apoiada no trapézio, agachamento correto | — | — |
 | 41 | balanco-pernas | APROVADO | leve | palma na parede, perna balança; no balanço para a frente o pé passa rente ao batente | 0,9–1,0 | dados |
+| 42 | bike-intervalado | APROVADO | leve | selim baixo/recuado: joelho sobe quase até o guidão e o glúteo fica na ponta de trás do selim (parece "empoleirado"); mãos no guidão, pés nos pedais | ciclo | dados (y/x do quadril) ou aparelho (altura do selim) |
 | 43 | alongamento-lateral | APROVADO |  | mão na cintura, braço por cima, inclinação lateral coerente | — | — |
 | 44 | alongamento-triceps | APROVADO | leve | mão que puxa o cotovelo fica com os dedos abertos (encosta, não segura) | 0,3–0,7 | motor ("segura" cotovelo sem fechar os dedos) |
 | 45 | puxada-frente | APROVADO |  | barra nas mãos, desce à frente do rosto até o peito | — | — |
@@ -60,15 +62,17 @@ Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 | 48 | afundo | APROVADO |  | sem defeito visível | — | — |
 | 49 | barra-supinada | APROVADO | leve | subida termina com a barra na testa (queixo não passa da barra) | 0,4–0,6 | dados (amplitude) |
 | 50 | rosca-direta | REPROVADO | grave | a rosca não é uma rosca: na subida e na descida o braço inteiro vai para a frente esticado (cotovelo reto, ombro a ~60–80°, como elevação frontal) e só no topo dobra o cotovelo; nos dados o ombro varia só 2→10° e o cotovelo 6→146° | 0,05–0,3 e 0,6–0,95 (vista 3/4 de trás) | motor (direção dos braços por arco de círculo máximo em movimento.py: o antebraço é interpolado em direção de mundo e arrasta o úmero para a frente) |
-| 51 | tempo-run | REPROVADO | média | no balanço dos braços a mão/antebraço passa por dentro do corrimão lateral da esteira | 0,25–0,5 (cada passada) | dados (largura/altura do balanço) + motor (sem colisão mão×corrimão) |
+| 51 | tempo-run | APROVADO | leve | no balanço dos braços a mão roça o corrimão lateral da esteira (≈1,5 cm, 1–2 quadros por passada) | 0,25–0,5 | dados (largura do balanço) + motor (sem colisão mão×corrimão) |
 | 52 | rolo-quadriceps | APROVADO |  | coxas no rolo, antebraços no chão | — | — |
 | 53 | barra-fixa | APROVADO | leve | subida termina com a barra na altura dos olhos (queixo não passa da barra) | 0,4–0,6 | dados (amplitude) |
 | 54 | abdutora | APROVADO | leve | joelhos encostam um pouco dentro do estofado (≈2 cm) | ciclo | motor (colisão perna×estofado) |
 | 55 | ponte-unilateral | APROVADO |  | sem defeito visível | — | — |
 | 56 | swing | APROVADO |  | duas mãos na alça, kettlebell entre as pernas e até a altura do ombro | — | — |
 | 57 | abdominal-infra | APROVADO |  | sem defeito visível | — | — |
+| 58 | bike-cadencia | APROVADO | leve | mesmo enquadramento e pose da bike-intervalado (tiras praticamente idênticas); selim baixo, joelho alto | ciclo | dados |
 | 59 | ponte-gluteo | APROVADO |  | sem defeito visível | — | — |
 | 60 | terra | APROVADO |  | barra do chão ao quadril junto às pernas | — | — |
+| 61 | bike-leve | APROVADO | leve | mesma pose das outras bikes sentadas (vista lateral confirma glúteo no selim); joelho alto | ciclo | dados |
 | 62 | triceps-frances | APROVADO |  | halter nas duas mãos, desce atrás da cabeça | — | — |
 | 63 | rolo-panturrilha | APROVADO |  | panturrilhas no rolo, mãos no chão atrás | — | — |
 | 64 | alongamento-antebraco | APROVADO |  | quatro apoios com dedos para trás | — | — |
@@ -78,6 +82,24 @@ Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 | 68 | bulgaro | APROVADO | leve | no fundo o halter da mão de perto passa rente/na frente da coxa da perna de apoio (parece encostar) | 0,5–0,7 | dados (bfa) |
 | 69 | spider | APROVADO |  | prancha, pé ao lado da mão, rotação com braço para cima | — | — |
 | 70 | alongamento-peito | APROVADO |  | antebraço no batente, tronco gira | — | — |
+| 71 | cadeira-extensora | APROVADO |  | sentado, rolo nos tornozelos, extensão do joelho | — | — |
+| 72 | crucifixo-elastico | APROVADO |  | elástico preso atrás, pegadores nas mãos, braços fecham à frente | — | — |
+| 73 | corrida-leve | APROVADO | leve | mesmo roçar da mão no corrimão lateral da esteira (≈1,4 cm, 2 quadros) | 0,25–0,5 | dados/motor |
+| 74 | ponte-pescoco | APROVADO | leve | na ponte os braços ficam estendidos para cima no ar (sem função; normalmente cruzados no peito ou no chão) | 0,2–0,7 | dados (braços) |
+| 75 | step-up | APROVADO |  | halteres nas mãos, sobe e desce da caixa | — | — |
+| 76 | canivete | APROVADO |  | V-up reconhecível | — | — |
+| 77 | saco-combinacoes | APROVADO |  | golpes em direção ao saco, punhos fechados | — | — |
+| 78 | rotacao-externa | APROVADO |  | elástico do poste à mão, cotovelo junto ao corpo | — | — |
+| 79 | band-pull-apart | APROVADO |  | elástico nas duas mãos, abre à altura do peito | — | — |
+| 80 | circulos-joelho | APROVADO |  | mãos nos joelhos, círculos | — | — |
+| 81 | stiff | APROVADO | leve | no fundo as anilhas ficam rente ao chão (parecem tocar o piso) | 0,5–0,7 | dados (profundidade) |
+| 82 | rolo-it | APROVADO |  | deitado de lado sobre o rolo, antebraço e pé de cima apoiados | — | — |
+| 83 | alongamento-quadriceps | REPROVADO | média | a mão que deveria segurar o pé fica espalmada sobre o dorso do pé/canela com os dedos abertos (encosta, não agarra o tornozelo) | 0,25–0,75 | motor ("segura" pé sem fechar a mão) |
+| 84 | terra-uma-perna | APROVADO |  | kettlebell numa mão, perna de trás sobe, mão livre ao lado | — | — |
+| 85 | agachamento-livre | APROVADO |  | reconhecível | — | — |
+| 86 | afundo-halteres | APROVADO |  | halteres nas mãos, afundo e volta | — | — |
+| 87 | panturrilha-elastico | APROVADO |  | elástico sob os pés, mãos nos ombros | — | — |
+| 88 | tuck-jump | APROVADO |  | salto com joelhos ao peito | — | — |
 | 89 | supino-inclinado | APROVADO |  | halteres nas mãos, costas no banco inclinado, pés no chão | — | — |
 | 90 | crossover | APROVADO |  | pegadores nas mãos, cabos das torres, cruzamento à frente | — | — |
 | 91 | remada-unilateral | APROVADO |  | joelho e mão de apoio no banco, halter na mão de trabalho | — | — |
@@ -147,7 +169,7 @@ Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 | 155 | dead-bug | APROVADO |  | braço e perna opostos se estendem | — | — |
 | 156 | elevacao-pernas-barra | APROVADO |  | pendurado na barra, pernas sobem à horizontal | — | — |
 | 157 | salto-tesoura | APROVADO |  | afundo com troca no ar | — | — |
-| 158 | fuga-quadril | REPROVADO | média | não se lê como fuga de quadril: entre o "ponte" e o deitado de lado o corpo vira de bruços com braços para cima sem apoio, e no fim de lado sem apoio das mãos (corpo apoiado no braço dobrado sob o tronco) | 0,5–1,0 | dados (chaves da fuga com rol ±80) |
+| 158 | fuga-quadril | REPROVADO | média | não se lê como fuga de quadril: os braços ficam estendidos no ar (não empurram nada) e o corpo só rola de lado sem levar o quadril para trás; na volta a pose deitada de lado tem o braço de baixo dobrado sob o tronco | 0,1–0,3 e 0,6–0,9 | dados (chaves com rol ±75 e braços bf [125,135]) |
 | 159 | sentar-levantar | APROVADO |  | senta no banco e levanta | — | — |
 | 160 | flexao-declinada | APROVADO |  | pés no banco, mãos no chão | — | — |
 | 161 | supino-halteres | APROVADO |  | halteres nas mãos, costas no banco | — | — |
@@ -162,6 +184,50 @@ Revisados: 153 de 175 — APROVADO 134, REPROVADO 19.
 | 170 | inchworm | APROVADO |  | mãos andam até prancha e voltam | — | — |
 | 171 | bear-crawl | APROVADO |  | quatro apoios com joelhos no ar, mão e pé opostos avançam | — | — |
 | 172 | prova | APROVADO |  | corrida reconhecível | — | — |
-| 173 | alongamento-adutores | REPROVADO | média | borboleta sentada lida como cócoras: de 3/4 a perna de trás atravessa a da frente e os pés somem sob as coxas; nas vistas laterais as mãos parecem soltas perto dos pés | ciclo inteiro (isometria) | dados (pf/pt da borboleta) + motor (segura pés) |
+| 173 | alongamento-adutores | REPROVADO | média | não se lê como borboleta: o corpo fica de cócoras sentado sobre os pés (vista de trás), com a perna de trás atravessando a da frente na vista 3/4 e mãos soltas perto dos pés; a borboleta real é sentado no chão com as solas unidas e joelhos abertos | ciclo inteiro | dados (pf/pt, t/c do sentado) + motor (segura pés) |
 | 174 | circulos-punho | APROVADO |  | antebraços parados, punhos fechados giram | — | — |
 | 175 | carioca | APROVADO | leve | passo cruzado pouco visível na vista frontal | ciclo | câmera |
+
+## Reprovados por gravidade
+
+**Grave (12)**
+1. **rosca-direta, rosca-halteres, rosca-martelo, rosca-elastico** (mesma causa): o braço sobe esticado à frente, como numa elevação frontal, e só dobra o cotovelo no topo. Os dados estão certos (ombro de 2 a 10°, cotovelo de 6 a 146°). A causa provável está no motor: a direção do antebraço é interpolada por arco de círculo máximo em `movimento.py` (`TrilhasPose.__call__`, `slerp_v` dos segmentos "b"/"a") e o IK leva o úmero junto. O QA dá "ok" ou só um aviso de supinação.
+2. **supino-maquina**: os braços ficam parados e esticados no ciclo inteiro, porque a mão fica presa ao pegador parado. O QA dá "ok".
+3. **eliptico**: a mão de trás solta a alça móvel e fica aberta no ar entre 0,25 e 0,75 do ciclo.
+4. **escada**: as mãos ficam abertas por baixo do corrimão e o corrimão atravessa punho e antebraço.
+5. **hack**: só uma mão segura o pegador; a outra fica fechada no ar.
+6. **alongamento-panturrilha**: mãos e antebraços atravessam os degraus do espaldar.
+7. **torcao-coluna**: a mão que devia segurar o joelho fica aberta e flutuando ao lado dele.
+8. **prancha-lateral**: o corpo se apoia num punho fechado com o antebraço vertical, quando o certo é o cotovelo e o antebraço deitados no chão.
+
+**Média (7)**: arnold (o halter atravessa o rosto no início), arremesso-rotacional (a bola entra no quadril na carga),
+abdominal-bicicleta e isometria-pescoco (mão aberta "atrás ou na frente da cabeça" entrando no crânio), alongamento-quadriceps
+(a mão fica espalmada no pé e não agarra), corda (a corda gira como um bambolê na cintura), fuga-quadril e alongamento-adutores (movimento ou pose
+que não se reconhece como o exercício real).
+
+## O que o QA automático não está pegando
+
+- **Trajetória entre as chaves.** O QA mede limites, contato e penetração quadro a quadro, mas não compara o caminho com o movimento real. As 4 roscas
+  "levantam o braço esticado" e passam como ok ou só com aviso. Falta checar que a distância entre cotovelo e tronco (e o ângulo do ombro) fica perto do valor das chaves durante as
+  transições, sem passar de max(chaves) mais uma margem.
+- **Mão que deveria segurar e não segura** quando o alvo é parte do corpo ("segura" nuca, cabeça, pé, joelho, cotovelo). O QA olha a pegada
+  só em implementos. Precisa medir a distância entre a pele da palma e o alvo e o fechamento dos dedos: mão aberta com dedos esticados não conta como "segura".
+- **Mão que deveria estar num pegador e está livre** (elíptico, hack, supino máquina, escada). Se o aparelho tem dois pegadores,
+  as duas mãos devem estar presas em todos os quadros. Hoje a ausência de contato não gera achado.
+- **Ausência de movimento.** Um ciclo com amplitude quase nula, como o supino-maquina, não é sinalizado. Basta comparar a amplitude renderizada com a amplitude
+  dos dados (ex.: |Δcotovelo| real < 30 % do previsto vira erro).
+- **Interpenetração mão×cabeça e implemento×corpo nas mãos.** O halter que atravessa o rosto (arnold), a bola que entra no quadril (arremesso-rotacional) e a
+  mão que entra no crânio (isometria/bicicleta) não aparecem. O teste corpo×corpo parece cobrir só pernas e tronco.
+- **Penetração "rasa" em tubos finos.** No espaldar e na escada, o QA mede 1,4–1,5 cm (só aviso), mas visualmente o degrau passa por dentro
+  da mão. A profundidade sozinha não basta para tubo fino: falta testar se o eixo do tubo cruza o volume da mão ou do antebraço.
+- **Apoio declarado diferente do apoio visível.** Na prancha-lateral o apoio declarado é o "cotovelo_t", mas quem toca o chão é o punho. O QA
+  aceita porque alguma parte do braço toca.
+- **Plano de rotação de implementos animados** (corda de pular girando na horizontal): não há nenhuma verificação.
+- **Pose reconhecível** (borboleta, fuga de quadril): só um revisor humano pega. Sugestão: uma folha de contato por exercício
+  revisada a cada rodada do motor, com a ficha "pose de referência" ao lado.
+
+## Observação sobre o turkish-getup
+
+É o único "erro" do QA, mas visualmente não está entre os piores. A sequência deitado → cotovelo → mão → ponte → joelho → em pé e a volta
+se leem bem e o kettlebell fica na mão o tempo todo. Ficaram só detalhes (punho dobrado no deitado e braço de apoio muito aberto atrás).
+
