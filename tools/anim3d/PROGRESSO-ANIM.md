@@ -169,3 +169,11 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
   alongamento-panturrilha: mãos fecham no degrau do espaldar.
 - QA novo: `motor/amplitude` (ausência de movimento), `apoio/tubo` (tubo fino atravessando mão/antebraço), mãos ocupadas
   em escada/hack/espaldar. QA dos 175: 88 limpos, 86 avisos, 1 erro (turkish-getup), sem regressões.
+
+### Rodada de dados pós-revisão (animador; pesquisa/animador-pos-revisao.md)
+- Dados dos 9 reprovados que eram de dados + a remada-invertida (aviso de amplitude): prancha-lateral (antebraço e mão
+  espalmada no chão, câmera 100/30), torcao-coluna (mão segura o joelho), arnold (halteres no queixo, mais abertos),
+  arremesso-rotacional (bola longe do quadril na carga), abdominal-bicicleta (punho estendido: dedos fora do crânio),
+  isometria-pescoco (palma na testa, câmera de frente), alongamento-quadriceps (mão no tornozelo; QA limpo),
+  alongamento-adutores (borboleta sentada), fuga-quadril (shrimp de lado com câmera de cima), remada-invertida (fundo mais
+  baixo). Turkish-getup não mexido. Pendências de motor achadas: motor-pendencias.md ("Rodada pós-revisão (animador, dados)").
