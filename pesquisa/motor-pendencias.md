@@ -91,3 +91,10 @@ Formato: id | quadro (de 24 fps, como no qa.py) | o que acontece | prova.
 - **Pescoço no deitado**: [PARCIAL] o encosto da cabeça agora vale para vãos até ~20 cm, mas no TGU a cabeça fica olhando o kettlebell (`c` dos dados) e o vão não fechou; com `c` −75 fecha mas piora as transições (descartado).
 - **Calcanhar da perna esticada em apoio**: [NÃO ALTERADO] é a panturrilha da perna reta que fica abaixo do calcanhar quando a pelve encosta; tirar `pe_t` do apoio no deitado resolve a pelve mas cria base fora na volta (medido pelo animador). Fica para a recoreografia.
 - **Ainda falta para zerar o TGU (dados, com `rolt` disponível)**: mão de apoio ao lado do quadril (não atrás), joelho de trás alinhado com a mão no moinho, e extensão do quadril de trás (42° → < 30°).
+
+## Rodada de dados r11 (turkish-getup com "rolt")
+- **turkish-getup** | ponte e moinho | Com `rolt` −45 o centro da pelve sobe ~0,8 dm (o giro é sobre o quadril do lado
+  de apoio) e o ombro do braço de apoio fica a 5,5–5,9 dm do chão: o braço (5,6 dm) chega no limite, a mão flutua 5–6 cm e
+  escorrega 8–12 mm/quadro. Sugestão: `rolt` em torno do centro da pelve, ou baixar o quadril junto. Recoreografia
+  completa testada (8 verificações, não melhor que as 6 atuais): detalhes e o que já ficou resolvido em
+  animador-dados-r8.md (r11).

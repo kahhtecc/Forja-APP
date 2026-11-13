@@ -97,3 +97,41 @@ Conclusão: com os dados no plano sagital (mão de apoio "atrás" e tronco recli
 modelar o apoio lateral de verdade (tronco inclinado sobre a mão do lado, mão e joelho alinhados ao lado do corpo), o que
 pede no motor um "inc"/"rol" só do tronco com a pelve e as pernas fora do giro (ou um apoio lateral de mão que o
 nivelamento respeite) — registrado em motor-pendencias.md.
+
+# Rodada r11 — turkish-getup com "rolt" (recoreografia tentada; dados mantidos)
+
+Resultado: nenhuma variante passou a atual (motor r10: 6 verificações com erro, gravidade 40,4). A melhor recoreografia
+completa ficou em 8 verificações (gravidade 32,8–41,5), por isso `lote3.json` não mudou e o QA dos 175 segue
+86 limpos / 88 avisos / 1 erro. As variantes e o gerador ficaram no scratchpad (`r8/mk.py` monta a sequência por
+parâmetros, `r8/tg.py` prende mão e pé por ajuste numérico e imprime, por chave, ombro, mão, joelho, pés, centro de
+massa com o kettlebell e a distância do CM à linha mão–pé; variantes `r8/v/w3…w10.json`, tira `r8/z/w4.jpg`, `w8.jpg`).
+
+Coreografia testada (w6–w10, 12–14 chaves, 12,9–13,3 s): deitado (braço de apoio aberto a 60°, pé da frente plantado mais
+longe e 1 dm para fora) → sentado na mão (`t` −162) → passo de mão sentado, do ponto de trás (−7,5; 1,9) para o lado do
+quadril (−5,4; −0,9) → ponte alta (`rolt` −45, `tr` −40, quadril 1 dm para o lado da mão) → joelho pousa (`rolt` −45,
+`inc` −25, tronco 36–42° à frente) → quadril recua sobre o joelho com a mão ainda no chão → meio ajoelhado → em pé, e a
+volta espelhada. Mão e antepé presos no mesmo ponto em todas as chaves de cada fase (erro < 1 cm).
+
+O que ficou resolvido nessas variantes (vale para a próxima tentativa):
+- Extensão do quadril de trás: 42° → sem aviso (coxa de trás a −5°/−12° com o tronco inclinado à frente no moinho).
+- Ombro do braço de apoio: sem erro (mão ao lado do quadril + `tr` −40 na ponte).
+- Joelho de trás no mesmo lugar entre "mão no chão" e meio ajoelhado (diferença 0,5 dm, antes 3,7 dm) e alinhado com a mão.
+- Varredura da perna: com o quadril deslocado para o lado da mão e o pé da frente aberto, o CM fica a 1–2 cm da linha
+  mão–pé nas duas chaves (ponte e joelho pousado) e a falta de base da varredura some.
+- Saída da mão no moinho: precisa da chave extra "quadril recua sobre o joelho com a mão ainda no chão" (sem ela o CM
+  está 1,5 dm fora do triângulo joelho–pé–dedos quando a mão sai).
+
+O que não fechou (as 8 verificações da melhor variante):
+- Deitado ↔ sentado: CM fora da base 17–35 cm durante a subida/descida do tronco (existe também nos dados atuais, 13,4 cm).
+  O abdominal "seco" com um braço carregado deixa o CM atrás do quadril; a fase de cotovelo da técnica real resolveria,
+  mas o antebraço apoiado e a mão do sentado ficam a mais de 2,5 dm do alcance das fases seguintes (exige dois passos de mão).
+- Sentado: perna esticada. Com o calcanhar em "apoio" a pelve fica 3,5–6,6 cm no ar; sem ele o joelho "pousa" a 4–6 cm;
+  com a perna 4° abaixo da horizontal a canela entra 1,2 cm no chão. Não achei ângulo que zere os três.
+- Mão de apoio na ponte e no joelho pousado: o ombro fica a 5,5–5,9 dm do chão (o `rolt` sobe o centro da pelve 0,8 dm) e
+  o braço (5,6 dm) chega no limite: a mão flutua 5–6 cm e escorrega 8–12 mm/quadro em 2–3 quadros.
+- Meio ajoelhado → em pé: CM 10–11 cm fora por 0,3–0,7 s enquanto o pé de trás vem à frente (nos dados atuais passa porque
+  o quadril anda só 2,4 dm; aqui anda 3,3 dm).
+
+Para o motor (registrado também em motor-pendencias.md): com `rolt` o pivô é o quadril do lado de apoio e o centro da
+pelve sobe; um `rolt` que girasse em torno do centro da pelve (ou baixasse o quadril junto) daria os ~5 cm que faltam ao
+braço de apoio.
