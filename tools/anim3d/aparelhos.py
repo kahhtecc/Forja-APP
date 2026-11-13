@@ -584,6 +584,11 @@ def pegada_implementos(ctx, h, T, tau, extras):
             for sf, sx in ((".L", 1), (".R", -1)):
                 pegar_em(h, T, sf, c + lat * (0.3 * sx), lat)
             extras["unico"] = (c, lat)
+    if "hack" in ctx.tipos:
+        # pegadores laterais do carrinho do hack: eixo no plano sagital, perpendicular ao antebraço (pegada neutra)
+        for sf in (".L", ".R"):
+            g = T @ h.pegada(sf)
+            pegar_em(h, T, sf, g, _eixo_hack(h, T, sf), None)
     pc = getattr(ctx, "pegadores", None)
     if pc and pc.get("tipo") == "eliptico":
         for sf, sx in ((".L", 1), (".R", -1)):
@@ -1333,6 +1338,16 @@ def _eixos_tronco(h, T):
     return r, u, nb
 
 
+def _eixo_hack(h, T, sf):
+    """Eixo do pegador lateral do hack (mundo): no plano sagital, perpendicular ao antebraço, apontando para cima."""
+    f = T.to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf))
+    a = X.cross(f)
+    if a.length < 1e-6:
+        return Vector((0, 0, 1))
+    a.normalize()
+    return a if a.z >= 0 else -a
+
+
 def _hack(kit, ctx, h, estados):
     """Hack squat: encosto inclinado e ombreiras num carrinho que corre em trilhos paralelos ao tronco,
     plataforma inclinada fixa sob os pés, pegadores ao lado das ombreiras."""
@@ -1406,11 +1421,12 @@ def _hack(kit, ctx, h, estados):
             Kit.por_cil(ombro[sf], topo + nb * 0.9, topo - nb * 1.5)
             Kit.por_cil(haste[sf], topo + nb * 0.8, c + X * sx * 1.3 + u * (dims[1] / 2 - 0.4) + nb * 0.6)
             g = T @ h.pegada(sf)
-            e = T.to_3x3() @ h.eixo_polegar(sf)
-            Kit.por_cil(pega[sf], g - e * 0.6, g + e * 0.6)
+            e = _eixo_hack(h, T, sf)
+            Kit.por_cil(pega[sf], g - e * 0.8, g + e * 0.8)
             lado = c + u * float((g - c).dot(u)) + X * sx * (dims[0] / 2 - 0.2) + nb * 0.2
-            ponta = g + e * 0.6 if (g + e * 0.6).x * sx > (g - e * 0.6).x * sx else g - e * 0.6
-            Kit.por_cil(braco_p[sf], ponta, lado)  # haste sai da ponta de fora do pegador (não da mão)
+            # haste sai da ponta de baixo do pegador (fora da mão) até a lateral do carrinho
+            ponta = g - e * 0.8
+            Kit.por_cil(braco_p[sf], ponta, lado + (ponta - g).dot(u) * u)
     kit.moveis.append(upd)
     _ = estado_ini
 
