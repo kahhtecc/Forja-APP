@@ -10,6 +10,13 @@ PEGADA (mão x implemento segurado; centro do túnel = círculo pelas articulaç
   atravessa pele da mão dentro da empunhadura rígida: > 2,5 cm erro, > 1,5 cm aviso
   cruzada   empunhadura rígida fora da linha dos nós dos dedos: > 40° erro, > 28° aviso
   dedos     mão que segura com os dedos abertos: fechamento < 50 % erro, < 75 % aviso (curva de pegada do motor)
+  palma     empunhadura do lado do DORSO da mão (centro do túnel atrás do plano palmar, na linha das MCP): > 1 cm erro,
+            > 0,5 cm aviso — os dedos fecham para a palma, então o cabo fica sempre na frente dela
+  polegar   ponta do polegar atrás do plano palmar numa pegada (sem oposição em volta do cabo): > 1,5 cm erro, > 0,5 cm aviso
+DEDOS (toda mão, todo quadro; tipo "rom", sub "dedos_hiperext")
+  sinal da flexão de cada falange em relação à normal palmar levada pelo osso-pai (MCP/PIP/DIP dos dedos 2-5; MCP/IP do
+  polegar pela dobra de repouso): extensão além do fisiológico (MCP 30°, PIP 10°, DIP 15°, polegar 20°) > 0 aviso,
+  > 15° erro. Pega o defeito antigo dos dedos fechando para o dorso (unhas para dentro do cabo, PIP a -86°).
 ROM (ângulos reais do esqueleto x AAOS / Norkin & White; (aviso, erro) em LIM; erro exige >= 2 quadros)
   joelho: flexão 135 (150/160), hiperextensão no plano sagital (8/15)
   cotovelo: flexão 150 (150/160), hiperextensão (10/18); antebraço dobrando para o lado de trás da malha = aviso
@@ -138,6 +145,11 @@ class Corpo:
             a = (J("wrist" + sf) - J("lowerarm01" + sf)).normalized()
             self.dobra_cot[sf] = _perp(a, u)
         _ = R
+        # dedos: normal palmar e dobra de repouso do polegar (para o sinal da flexão de cada falange)
+        self.dobra_pol = {}
+        for sf in (".L", ".R"):
+            d = [(h.rest[f"finger1-{j}{sf}"].to_3x3() @ Y).normalized() for j in (1, 2, 3)]
+            self.dobra_pol[sf] = {2: _perp(d[1], d[0]), 3: _perp(d[2], d[1])}
         # rótulo de segmento de cada ponto da pele (osso de maior peso)
         nomes = h.px_nomes
         dom = [nomes[i] for i in h.px_ossos[:, 0]]
@@ -317,6 +329,54 @@ class Corpo:
             pts.append((MASSAS["pe"], a.lerp(C("toe3-1" + sf), 0.5)))
         m = sum(p[0] for p in pts)
         return sum((p[1] * p[0] for p in pts), Vector()) / m
+
+    LIM_EXT_DEDO = {1: 30.0, 2: 10.0, 3: 15.0}  # extensão fisiológica máxima: MCP, PIP, DIP (graus)
+    LIM_EXT_POL = 20.0
+
+    def flexao_dedos(self, sf):
+        """Flexão (graus, + = para a palma, - = para o dorso) de cada articulação: {(dedo, junta): ângulo}. Dedos 2-5:
+        junta 1 = MCP (pai = metacarpo), 2 = PIP, 3 = DIP, medidas no plano (direção do osso-pai, normal palmar levada pelo
+        osso-pai). Polegar: juntas 2 (MCP) e 3 (IP), no plano da dobra de repouso levada pelo osso-pai."""
+        h = self.h
+        Rr = lambda n: h.rot(n) @ h.rest_inv[n].to_3x3()  # noqa: E731
+        pal0 = h.ref_mao[sf].col[2]
+        out = {}
+        for f in range(1, 6):
+            for j in (1, 2, 3):
+                nm = f"finger{f}-{j}{sf}"
+                if nm not in h.basis:
+                    continue
+                if f == 1:
+                    if j == 1:
+                        continue
+                    pai = f"finger1-{j - 1}{sf}"
+                    nref = Rr(pai) @ self.dobra_pol[sf][j]
+                else:
+                    pai = f"metacarpal{f - 1}{sf}" if j == 1 else f"finger{f}-{j - 1}{sf}"
+                    if pai not in h.basis:
+                        continue
+                    nref = Rr(pai) @ pal0
+                dp = (h.cauda(pai) - h.cabeca(pai)).normalized()
+                d = (h.cauda(nm) - h.cabeca(nm)).normalized()
+                n_ = _perp(nref, dp)
+                out[(f, j)] = _deg(math.atan2(d.dot(n_), d.dot(dp)))
+        return out
+
+    def hiperext_dedos(self, sf):
+        """Maior extensão além do fisiológico entre as falanges da mão (graus; <= 0 = nenhuma) e a articulação."""
+        pior, onde = -1e9, None
+        for (f, j), a in self.flexao_dedos(sf).items():
+            lim = self.LIM_EXT_POL if f == 1 else self.LIM_EXT_DEDO[j]
+            exc = -a - lim
+            if exc > pior:
+                pior, onde = exc, (f, j)
+        return pior, onde
+
+    def plano_palmar(self, sf):
+        """(ponto na linha das MCP dos dedos 3-4, normal palmar) no espaço do esqueleto."""
+        h = self.h
+        n = (h.rot("wrist" + sf) @ h.rest_inv["wrist" + sf].to_3x3() @ h.ref_mao[sf].col[2]).normalized()
+        return (h.cabeca("finger3-1" + sf) + h.cabeca("finger4-1" + sf)) / 2, n
 
     def fechamento(self, sf):
         """0 = dedos relaxados, 1 = mão fechada na curva de pegada do motor (pelas rotações reais das falanges 2-5)."""
@@ -793,6 +853,11 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                 mt += mi
         com.append(cm_ / mt)
         P, N = corpo.pele(T)
+        # ---------------- DEDOS: nenhuma falange dobrada para o dorso (hiperextensão), em toda mão
+        for sf in (".L", ".R"):
+            exc, _onde = corpo.hiperext_dedos(sf)
+            reg.add("rom", "dedos_hiperext", "mão " + LADO[sf], j, exc, 0.0, 15.0, "°",
+                    "dedo dobrado para o dorso da mão (hiperextensão)")
         # ---------------- PEGADA
         i_, u_ = ctx.trilhas.segmento(est["tau"])
         j_ = (i_ + 1) % len(ctx.chaves)
@@ -814,6 +879,13 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
                     reg.add("pegada", "atravessa", ld, j, (R - d.min()) * 10, 0.8, 1.5, "cm", "mão dentro da bola")
                 continue
             c_t, kl, r_t = tunel(h, T, sf)
+            # cabo do lado da palma e polegar em oposição (plano palmar na linha das MCP)
+            o_p, n_p = corpo.plano_palmar(sf)
+            Ti_ = T.inverted()
+            reg.add("pegada", "palma", ld, j, -(Ti_ @ c_t - o_p).dot(n_p) * 10, 0.5, 1.0, "cm",
+                    "empunhadura do lado do dorso da mão (dedos fechando para trás)")
+            reg.add("pegada", "polegar", ld, j, -(h.cauda("finger1-3" + sf) - o_p).dot(n_p) * 10, 0.5, 1.5, "cm",
+                    "polegar atrás da mão (sem oposição em volta do cabo)")
             fech = corpo.fechamento(sf)
             reg.add("pegada", "dedos", ld, j, (1 - fech) * 100, 25, 50, "%", "dedos abertos segurando o implemento")
             melhor = None
