@@ -161,3 +161,27 @@ Achados de motor que os dados só contornam (o motor não foi alterado):
   de cima, e o QA dá centro de massa fora da base. Os dados ficaram num lado só (todas as chaves "lado").
 - **Barra fixa: a pegada depende do braço FK da chave** | na remada-invertida, mudar só os ângulos do braço da chave de baixo
   (mesmo corpo) tira as mãos da barra (6 cm fora do túnel dos dedos, erro). O IK das mãos na barra parece partir da pose FK.
+
+## Rodada de aprimoramento final (pesquisa/aprimoramento-final.md)
+- **"segura" na cabeça/nuca**: [RESOLVIDO] distância da pele pelo ponto mais externo num cilindro estreito em volta da reta
+  da palma (antes percentil 80: palma 2–7 cm dentro); giro de 88 % atrás da cabeça; o polegar (que em repouso sai do plano
+  da palma para o lado dela) afasta só até sair da pele. Teste de interior do QA (24 vizinhos): bicicleta 2,0 → 0 cm,
+  isometria 1,7 → 0 cm.
+- **"segura" fecha sempre em 0,55**: [RESOLVIDO] cada dedo fecha (para o lado da palma) até encostar na pele do alvo, sem
+  atravessá-la (varredura + busca binária, KD-tree); sem contato, para onde passa mais perto; perto da cabeça no máx. 0,45.
+  Tornozelo (alongamento-quadriceps), pés (borboleta) e nuca envolvidos pelos dedos. Custo ~0,5 s/quadro só nesses.
+- **Pé sem giro**: [RESOLVIDO] `pgf`/`pgt` (giro do pé no eixo longo, + = sola para dentro). Borboleta com 75.
+- **Joelho "em ponta" com a canela fora do plano da coxa** (achado nesta rodada): [RESOLVIDO] com `cfa` ≠ `pfa` a metade
+  de baixo do fêmur gira até o joelho dobrar no plano coxa-canela (dobradiça), também na IK da perna (borboleta,
+  figura 4, abdutora, torção).
+- **`nivelar_de_lado` só com todas as chaves "lado"**: [RESOLVIDO] por chave; fuga-quadril alterna os lados.
+- **Barra fixa dependente do braço FK**: [RESOLVIDO] com os pés no chão o corpo gira em torno dos pés até a pegada já
+  resolvida pela IK (chaves e quadros): remada-invertida com braços esticados 8,7 → 1,7 cm.
+- **[EM ABERTO, grande] Dedos fecham para o dorso nas pegadas**: o eixo de flexão dos dedos (`_preparar_maos`) leva a ponta
+  do dedo para o lado oposto da palma (conferido: com a mão espalmada no chão, palma para baixo e unhas para cima, o
+  estado 1 levanta a ponta do dedo acima do punho). As pegadas calibradas "funcionam" porque o túnel é medido nos dedos
+  como eles dobram, mas anatomicamente a mão em volta do cabo está em hiperextensão (unhas para dentro, palma para fora).
+  Testado inverter o eixo para todos: pegadas anatomicamente corretas na barra fixa, mas 7 novos erros em 107 exercícios
+  (polegar não envolve o cabo, túnel 1,2–1,8 cm fora, rosto coberto na puxada, punho radial) — revertido. O "segura" já usa
+  o sentido anatômico (`dedo(..., anat=True)`). Para corrigir as pegadas: inverter o eixo, recalibrar o polegar (oposição
+  em volta do cabo, não flexão no plano da palma) e girar `rot_pegada` para a palma ficar de frente para o cabo.
