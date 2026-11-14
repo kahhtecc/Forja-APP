@@ -846,11 +846,6 @@ class Humano:
         pol = f == 1
         rel = self.CURVA["rel"][pol]
         peg = [-x for x in self._peg_dedo(sufixo, f)]
-        if v < 1.0:
-            # mão livre semifechada (corrida, saltos): a curva natural (sem a escala do raio do cabo), chegando à calibrada
-            # em v = 1 (sem salto ao pegar o implemento)
-            nat = [-x for x in self.CURVA["peg"][pol]]
-            peg = [n_ + (c_ - n_) * v for n_, c_ in zip(nat, peg)]
         if v > 1.0:
             w = min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
             pun = [-x for x in self.CURVA["punho_anat"][pol]]
