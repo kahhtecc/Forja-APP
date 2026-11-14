@@ -672,9 +672,10 @@ def pegada_implementos(ctx, h, T, tau, extras):
             for sf, g in ((".L", gL), (".R", gR)):
                 pegar_em(h, T, sf, g, lat, passes=1)
         elif tc == "unico":
-            # pegador único (D) seguro pelas duas mãos juntas no centro (pallof)
+            # pegador único (D) seguro pelas duas mãos juntas no centro (pallof); sentido fixo (o da pose do 1º quadro): o
+            # automático virava no meio do movimento (a linha dos nós da pose livre gira em volta do pegador)
             for sf, sx in ((".L", 1), (".R", -1)):
-                pegar_em(h, T, sf, c + lat * (0.3 * sx), lat)
+                pegar_em(h, T, sf, c + lat * (0.3 * sx), lat, True)
             extras["unico"] = (c, lat)
     if "hack" in ctx.tipos:
         # pegadores laterais do carrinho do hack: eixo no plano sagital, perpendicular ao antebraço (pegada neutra)
