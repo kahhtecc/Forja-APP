@@ -2607,6 +2607,35 @@ def fechar_dedos_contato(h, sf, Q, NQ, v0, w, vmax=1.5):
     kd.balance()
     grade = tuple(g for g in (-0.3, 0.0, 0.3, 0.6, 0.9, 1.2, 1.5) if g <= vmax + 1e-6)
     for f in range(1, 6):
+        if f == 1:
+            # polegar: em repouso ele já sai do plano da palma para o lado dela; com a palma na pele ele afasta (sentido
+            # oposto) só até sair de dentro do alvo
+            v = None
+            ant = None
+            for g in (-0.3, 0.0, 0.3, 0.6, 0.9, 1.2, 1.6):
+                h.dedo(sf, f, g)
+                if _folga_dedo(h, sf, f, kd, Q, NQ) >= 0.0:
+                    v = g
+                    if ant is not None:
+                        lo, hi = ant, g
+                        for _ in range(4):
+                            m_ = (lo + hi) / 2
+                            h.dedo(sf, f, m_)
+                            if _folga_dedo(h, sf, f, kd, Q, NQ) >= 0.0:
+                                hi = m_
+                            else:
+                                lo = m_
+                        v = hi
+                    break
+                ant = g
+            v = 1.6 if v is None else v
+            a0, a1 = h._angs_dedo(sf, f, v0), h._angs_dedo(sf, f, v)
+            angs = [x * (1 - w) + y * w for x, y in zip(a0, a1)]
+            for j in range(1, 4):
+                nome = f"finger{f}-{j}{sf}"
+                if nome in h._eixo_dedo:
+                    h.set_local(nome, Quaternion(h._eixo_dedo[nome], math.radians(angs[j - 1])))
+            continue
         fol = []
         v = None
         for k_, g in enumerate(grade):
@@ -2687,7 +2716,7 @@ def segurar_corpo(h, ctx, T, tau, maos=None):
         R0 = h.rot("wrist" + sf).to_quaternion()
         # palma de frente para a pele (sem torcer o antebraço: 75 %); atrás da cabeça, de frente por inteiro (os dedos não
         # entram no crânio)
-        R = R0.slerp(R_alvo.to_quaternion(), w * (1.0 if nome == "nuca" else 0.75)).to_matrix()
+        R = R0.slerp(R_alvo.to_quaternion(), w * (0.88 if nome == "nuca" else 0.75)).to_matrix()
         if nome == "nuca":
             # mãos atrás da cabeça: cotovelo para fora, no plano frontal do tronco (rotação do ombro dentro do limite)
             Rs = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
