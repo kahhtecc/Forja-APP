@@ -44,7 +44,9 @@ Por animação:
   "maos": estado padrão das mãos livres (como no quadro); sem ele: "punho" em lutas, "semi" em corrida/saltos, "rel" no resto
   "cam_frente": true = com cam < 0 usa o perfil (rosto visível); a câmera negativa sem ele continua por trás
 Pegada: a mão fecha em volta do cabo com a curvatura de cada dedo calibrada para o raio do implemento (barra, halter, alça,
-pegador, corda); o centro da pegada fica na prega da base dos dedos e o polegar fecha por cima. Barra fixa: as mãos ficam
+pegador, corda) e FLEXIONANDO PARA A PALMA (MCP, PIP e DIP; o cabo fica na palma e as unhas por fora); o centro da pegada
+fica na prega da base dos dedos e o polegar faz oposição em volta do cabo (base girada para a palma, MCP/IP fechando até a
+ponta passar para o lado oposto, sobre o indicador; tabela POLEGAR_PEG por raio). Barra fixa: as mãos ficam
 presas na barra em todo quadro e a cabeça passa por trás dela. Máquinas com pegadores automáticos (IK das mãos): leg press,
 cadeiras extensora/flexora, abdutora/adutora, mesa flexora (sob a cabeceira), panturrilha sentado (na alavanca da coxa),
 elíptico (alças móveis), trenó (postes), bike (guidão), roda abdominal. Hack: pegadores desenhados nas mãos (sem IK);
@@ -551,8 +553,9 @@ class Humano:
                         continue
                     b = self.rig.data.bones[nome]
                     dir_b = (J(nome, True) - J(nome)).normalized()
-                    # obs.: com este eixo o ângulo + leva a ponta do dedo para o lado oposto ao de "palma" (o das pegadas
-                    # calibradas); dedo(..., anat=True) usa o sentido contrário (para a palma: mão que segura o corpo)
+                    # eixo LEGADO: com ele o ângulo + leva a ponta do dedo para o dorso (extensão). Os estados v <= 0
+                    # (relaxada, espalmada) usam esse sentido; a flexão (v > 0, pegadas e punho) usa o contrário, para a
+                    # palma (MCP, PIP e DIP flexionam; ver dedo e _flex_dedo)
                     if f == 1:
                         eixo = palma.cross(dir_b).normalized()
                     else:
@@ -578,18 +581,19 @@ class Humano:
         return sum(cs, Vector()) / len(cs), kl
 
     def _curvar(self, sf, escalas):
-        """Dedos na curva de pegada com uma escala por dedo (1..5)."""
-        for f in range(1, 6):
-            cur = self.CURVA["peg"][f == 1]
+        """Dedos 2-5 na curva de pegada com uma escala por dedo (flexão para a palma)."""
+        for f in range(2, 6):
+            cur = self.CURVA["peg"][0]
             for j in range(1, 4):
                 nome = f"finger{f}-{j}{sf}"
                 if nome in self._eixo_dedo:
-                    self.set_local(nome, Quaternion(self._eixo_dedo[nome], math.radians(cur[j - 1] * escalas[f - 1])))
+                    self.set_local(nome, Quaternion(self._eixo_dedo[nome], -math.radians(cur[j - 1] * escalas[f - 1])))
 
     def _calibrar_pegada(self):
         """Pegada real: para cada raio de empunhadura, a curvatura de CADA dedo é ajustada para a pele encostar no cabo sem
         atravessá-lo (o mínimo é mais curto e fecharia para dentro do cabo), e o centro da pegada é o centro do túnel dos
-        dedos médio/anelar (na prega da base dos dedos). O polegar fecha por cima. Calibrado na mão esquerda e espelhado."""
+        dedos médio/anelar (na prega da base dos dedos). Dedos fecham para a palma; o polegar vem da tabela POLEGAR_PEG
+        (_calibrar_polegar). Calibrado na mão esquerda e espelhado."""
         self.zerar()
         sf = ".L"
         dom = [self.px_nomes[i] for i in self.px_ossos[:, 0]]
@@ -625,7 +629,7 @@ class Humano:
             self._curvar(sf, esc)
             c, kl = self._tunel(sf, (3, 4))
             # 2) cada dedo (indicador, mínimo e polegar) fecha até encostar no cabo
-            for f in (2, 5, 1):
+            for f in (2, 5):
                 lo2, hi2 = 0.2, 1.6
                 for _ in range(11):
                     s_ = (lo2 + hi2) / 2
@@ -641,6 +645,93 @@ class Humano:
             self.peg_cal.append((r, list(esc), off))
         self.raio_mao = {".L": 0.15, ".R": 0.15}
         self.zerar()
+
+    def _calibrar_polegar(self, inicios=None, it=150):
+        """Calibração (offline: o resultado vai para POLEGAR_PEG/POLEGAR_PUNHO) do polegar na pegada: para cada raio, com
+        os dedos 2-5 já fechados no cabo, procura a rotação da base e a flexão da MCP/IP (Nelder-Mead) em que a pele do
+        polegar encosta no cabo sem atravessá-lo, a ponta dá a volta até o lado oposto ao da palma (o ângulo, em volta do
+        cabo, da falange média do indicador: oposição) e o polegar não entra nos dedos. Punho: mesma busca com os dedos
+        no punho fechado e o "cabo" = túnel que eles deixam."""
+        sf = ".L"
+        dom = [self.px_nomes[i] for i in self.px_ossos[:, 0]]
+        sel_pol = np.array([i for i, d in enumerate(dom) if d.startswith("finger1-") and d.endswith(sf)])
+        sel_dist = np.array([i for i, d in enumerate(dom) if d.startswith(("finger1-2", "finger1-3")) and d.endswith(sf)])
+        sel_ded = np.array([i for i, d in enumerate(dom) if d.startswith(("finger3-", "finger4-")) and d.endswith(sf)])
+        palma = self.ref_mao[sf].col[2]
+        nomes = self._nomes_pol(sf)
+        inicios = inicios or ([50, 27, 11, 0, 40], [30, 0, 0, 30, 30], [-40, 20, -30, 20, 30], [0, 0, -30, 30, 30], [60, 30, 30, 10, 30])
+        out = []
+        for r_, v in [(r, 1.0) for r in self.RAIOS_PEGA] + [(None, self.PUNHO)]:
+            self.zerar()
+            self.raio_mao = {".L": r_ or self.RAIOS_PEGA[0], ".R": r_ or self.RAIOS_PEGA[0]}
+            for f in range(2, 6):
+                self.dedo(sf, f, v)
+            c, kl = self._tunel(sf, (3, 4))
+            ca, kla = np.array(c), np.array(kl)
+
+            def radial(P):
+                Q = np.atleast_2d(P) - ca
+                return Q - np.outer(Q @ kla, kla)
+            r = r_ if r_ else float(np.linalg.norm(radial(self.proxy(sel=sel_ded)), axis=1).min())
+            e1 = -(palma - kl * palma.dot(kl)).normalized()
+            e2 = kl.cross(e1)
+            E1, E2 = np.array(e1), np.array(e2)
+
+            def ang(P):
+                q = radial(P)[0]
+                return math.atan2(q @ E2, q @ E1)
+            th_alvo = ang((self.cabeca("finger2-2" + sf) + self.cauda("finger2-2" + sf)) / 2)
+
+            def custo(p):
+                for n_, q_ in zip(nomes, self._quats_param_polegar(sf, p)):
+                    self.set_local(n_, q_)
+                rad = np.linalg.norm(radial(self.proxy(sel=sel_pol)), axis=1)
+                pen = max(0.0, r + 0.01 - rad.min())
+                Pd = self.proxy(sel=sel_dist)
+                gap = float(np.linalg.norm(radial(Pd), axis=1).min()) - r
+                dth = (ang(self.cauda(nomes[2])) - th_alvo + math.pi) % (2 * math.pi) - math.pi
+                pen2 = 0.0
+                for b in ("finger2-1", "finger2-2", "finger2-3", "finger3-2", "finger3-3"):
+                    A = np.array(self.cabeca(b + sf))
+                    AB = np.array(self.cauda(b + sf)) - A
+                    tt = np.clip((Pd - A) @ AB / (AB @ AB), 0, 1)
+                    pen2 = max(pen2, 0.07 - float(np.linalg.norm(Pd - (A + np.outer(tt, AB)), axis=1).min()))
+                lim = (sum(max(0, abs(x) - 75) for x in p[:3]) + max(0, -p[3] - 5) + max(0, p[3] - 65) + max(0, -p[4] - 10)
+                       + max(0, p[4] - 85))
+                return 400 * pen ** 2 + dth ** 2 + 30 * max(gap, 0) ** 2 + 400 * max(pen2, 0) ** 2 + 0.01 * lim ** 2
+
+            def nm(x0, passo=20.0):
+                xs = [np.array(x0, float)] + [np.array(x0, float) + np.eye(5)[k] * passo for k in range(5)]
+                fs = [custo(x) for x in xs]
+                for _ in range(it):
+                    o = np.argsort(fs)
+                    xs, fs = [xs[k] for k in o], [fs[k] for k in o]
+                    cen = np.mean(xs[:-1], axis=0)
+                    xr = cen + (cen - xs[-1])
+                    fr = custo(xr)
+                    if fr < fs[0]:
+                        xe = cen + 2 * (cen - xs[-1])
+                        fe = custo(xe)
+                        xs[-1], fs[-1] = (xe, fe) if fe < fr else (xr, fr)
+                    elif fr < fs[-2]:
+                        xs[-1], fs[-1] = xr, fr
+                    else:
+                        xc = cen + 0.5 * (xs[-1] - cen)
+                        fc = custo(xc)
+                        if fc < fs[-1]:
+                            xs[-1], fs[-1] = xc, fc
+                        else:
+                            xs = [xs[0]] + [xs[0] + 0.5 * (x - xs[0]) for x in xs[1:]]
+                            fs = [fs[0]] + [custo(x) for x in xs[1:]]
+                k = int(np.argmin(fs))
+                return xs[k], fs[k]
+            # continuidade entre os raios (uma família só de solução: sem polegar trocando de lado na interpolação)
+            ini = inicios if not out else [out[-1][1], out[0][1]] + (list(inicios) if r_ is None else [])
+            best = min((nm(x0) for x0 in ini), key=lambda t: t[1])
+            out.append((r_, tuple(round(float(x), 1) for x in best[0]), round(float(best[1]), 4)))
+        self.zerar()
+        self.raio_mao = {".L": 0.15, ".R": 0.15}
+        return out
 
     def _cal_raio(self, r):
         """(escalas dos dedos, off_peg da mão esquerda) interpolados para o raio r."""
@@ -671,28 +762,43 @@ class Humano:
         for f in range(1, 6):
             self.dedo(sufixo, f, v)
 
-    def dedo(self, sufixo, f, v, anat=False, mistura=None):
-        """Curvatura do dedo f (estado v, como em dedos). anat=True: fecha para o lado da palma. mistura=(v0, w): mistura
-        os ângulos do estado v0 no sentido normal com os de v no sentido anat (peso w)."""
+    def dedo(self, sufixo, f, v, anat=False, mistura=None, legado=False):
+        """Curvatura do dedo f no estado v (como em dedos). v > 0 flexiona para a palma (MCP, PIP e DIP; pegada 1, punho
+        1,6) e o polegar faz oposição em volta do cabo; v <= 0 estende (relaxada 0, espalmada -1).
+        legado=True: o sentido antigo (+ para o dorso) que o "segura" usa como base para varrer o polegar; anat=True: os
+        ângulos do estado v no sentido da palma, com o relaxado também fechando (mão que segura o corpo); mistura=(v0, w):
+        mistura o estado v0 (normal) com v no sentido anat (peso w)."""
+        if f == 1 and not (legado or anat) and mistura is None:
+            for nome, q in zip(self._nomes_pol(sufixo), self._quats_polegar(sufixo, v)):
+                self.set_local(nome, q)
+            return
         if mistura is not None:
             v0, w = mistura
-            a0, a1 = self._angs_dedo(sufixo, f, v0), self._angs_dedo(sufixo, f, v)
+            a0, a1 = self._angs_novo(sufixo, f, v0), self._angs_dedo(sufixo, f, v)
             angs = [x * (1 - w) - y * w for x, y in zip(a0, a1)]
-        else:
+        elif legado or anat:
             angs = self._angs_dedo(sufixo, f, v)
             if anat:
                 angs = [-x for x in angs]
+        else:
+            angs = self._angs_novo(sufixo, f, v)
         for j in range(1, 4):
             nome = f"finger{f}-{j}{sufixo}"
             if nome in self._eixo_dedo:
                 self.set_local(nome, Quaternion(self._eixo_dedo[nome], math.radians(angs[j - 1])))
 
-    def _angs_dedo(self, sufixo, f, v):
-        pol = f == 1
-        peg = self.CURVA["peg"][pol]
+    def _peg_dedo(self, sufixo, f):
+        """Curva de pegada do dedo f (graus de flexão), escalada pela calibração do raio do cabo."""
+        peg = self.CURVA["peg"][f == 1]
         if getattr(self, "peg_cal", None):
             e_ = self._cal_raio(self.raio_mao[sufixo])[0][f - 1]
             peg = tuple(x * e_ for x in peg)
+        return peg
+
+    def _angs_dedo(self, sufixo, f, v):
+        """Ângulos LEGADOS (eixo _eixo_dedo, + = para o dorso) do estado v; base do "segura"."""
+        pol = f == 1
+        peg = self._peg_dedo(sufixo, f)
         if v > 1.0:
             a, b, w = peg, self.CURVA["punho"][pol], min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
         elif v >= 0:
@@ -700,6 +806,79 @@ class Humano:
         else:
             a, b, w = self.CURVA["rel"][pol], self.CURVA["plana"][pol], -v
         return [a[j] + (b[j] - a[j]) * w for j in range(3)]
+
+    def _angs_novo(self, sufixo, f, v):
+        """Ângulos (eixo _eixo_dedo) do estado v com a flexão anatômica: v <= 0 igual ao legado (extensão leve do
+        relaxado/espalmado); 0 < v <= 1 do relaxado até a pegada FLEXIONADA para a palma; v > 1 até o punho fechado."""
+        if v <= 0:
+            return self._angs_dedo(sufixo, f, v)
+        pol = f == 1
+        rel = self.CURVA["rel"][pol]
+        peg = [-x for x in self._peg_dedo(sufixo, f)]
+        if v > 1.0:
+            w = min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
+            pun = [-x for x in self.CURVA["punho"][pol]]
+            return [peg[j] + (pun[j] - peg[j]) * w for j in range(3)]
+        return [rel[j] + (peg[j] - rel[j]) * v for j in range(3)]
+
+    def _nomes_pol(self, sufixo):
+        return [f"finger1-{j}{sufixo}" for j in (1, 2, 3)]
+
+    # polegar na pegada (oposição em volta do cabo), por raio de empunhadura: rotação da base (vetor de rotação, graus, no
+    # referencial da mão: dedos, lado do polegar, palma) e flexão da MCP e da IP (graus, no plano da dobra de repouso).
+    # Calibrado por _calibrar_polegar (contato com o cabo, ponta do lado oposto ao da palma, sem atravessar cabo e dedos).
+    POLEGAR_PEG = ((0.10, (39.5, 29.2, 7.2, -5.2, 50.3)), (0.13, (64.2, 35.3, 27.5, -5.1, 41.8)),
+                   (0.16, (63.6, 29.5, 28.9, -4.7, 41.8)), (0.20, (71.9, 10.1, 22.9, -2.5, 44.1)),
+                   (0.25, (69.7, 5.1, 33.1, -0.2, 40.1)))
+    POLEGAR_PUNHO = (26.7, 33.6, 29.0, 27.1, 41.7)
+
+    def _eixos_polegar(self, sufixo):
+        """Eixos (locais de cada osso) do polegar: base (dedos, polegar, palma da mão em repouso) e dobra da MCP/IP."""
+        cache = self.__dict__.setdefault("_eixos_pol", {})
+        if sufixo in cache:
+            return cache[sufixo]
+        J = lambda o, c=False: Vector(self.juntas[self.ossos[o]["tail" if c else "head"]])  # noqa: E731
+        nomes = self._nomes_pol(sufixo)
+        loc = lambda n, v: (self.rig.data.bones[n].matrix_local.to_3x3().inverted() @ v).normalized()  # noqa: E731
+        F = self.ref_mao[sufixo]
+        sx = 1 if sufixo == ".L" else -1
+        # espelho: o vetor de rotação é axial (na mão direita, -M·a): os três componentes trocam de sentido
+        base = [loc(nomes[0], F.col[k]) * sx for k in range(3)]
+        d = [(J(n, True) - J(n)).normalized() for n in nomes]
+        dob = [loc(nomes[1], d[0].cross(d[1])), loc(nomes[2], d[1].cross(d[2]))]
+        cache[sufixo] = (base, dob)
+        return cache[sufixo]
+
+    def _quats_param_polegar(self, sufixo, p):
+        base, dob = self._eixos_polegar(sufixo)
+        rv = base[0] * p[0] + base[1] * p[1] + base[2] * p[2]
+        a = rv.length
+        q1 = Quaternion(rv.normalized(), math.radians(a)) if a > 1e-6 else Quaternion()
+        return [q1, Quaternion(dob[0], math.radians(p[3])), Quaternion(dob[1], math.radians(p[4]))]
+
+    def _param_polegar(self, r):
+        tab = self.POLEGAR_PEG
+        if r <= tab[0][0]:
+            return tab[0][1]
+        for (r0, p0), (r1, p1) in zip(tab, tab[1:]):
+            if r <= r1:
+                w = (r - r0) / (r1 - r0)
+                return tuple(a + (b - a) * w for a, b in zip(p0, p1))
+        return tab[-1][1]
+
+    def _quats_polegar(self, sufixo, v):
+        """Rotações locais das 3 falanges do polegar no estado v: v <= 0 como o legado (relaxado/aberto); 0 < v <= 1 do
+        relaxado até a oposição em volta do cabo (raio da mão); v > 1 até o polegar do punho fechado."""
+        nomes = self._nomes_pol(sufixo)
+        leg = lambda vv: [Quaternion(self._eixo_dedo[n], math.radians(a)) for n, a in zip(nomes, self._angs_dedo(sufixo, 1, vv))]  # noqa: E731
+        if v <= 0:
+            return leg(v)
+        peg = self._quats_param_polegar(sufixo, self._param_polegar(self.raio_mao.get(sufixo, 0.15)) if hasattr(self, "raio_mao") else self.POLEGAR_PEG[2][1])
+        if v <= 1.0:
+            return [a.slerp(b, v) for a, b in zip(leg(0.0), peg)]
+        w = min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
+        pun = self._quats_param_polegar(sufixo, self.POLEGAR_PUNHO)
+        return [a.slerp(b, w) for a, b in zip(peg, pun)]
 
     def rot_mao(self, sufixo, dir_dedos, palma):
         """Rotação absoluta do punho para a mão ter os dedos em 'dir_dedos' e a palma voltada para 'palma' (esqueleto)."""
@@ -2636,14 +2815,14 @@ def fechar_dedos_contato(h, sf, Q, NQ, v0, w, vmax=1.5):
             v = None
             ant = None
             for g in (-0.3, 0.0, 0.3, 0.6, 0.9, 1.2, 1.6):
-                h.dedo(sf, f, g)
+                h.dedo(sf, f, g, legado=True)
                 if _folga_dedo(h, sf, f, kd, Q, NQ) >= 0.0:
                     v = g
                     if ant is not None:
                         lo, hi = ant, g
                         for _ in range(4):
                             m_ = (lo + hi) / 2
-                            h.dedo(sf, f, m_)
+                            h.dedo(sf, f, m_, legado=True)
                             if _folga_dedo(h, sf, f, kd, Q, NQ) >= 0.0:
                                 hi = m_
                             else:
@@ -2652,12 +2831,10 @@ def fechar_dedos_contato(h, sf, Q, NQ, v0, w, vmax=1.5):
                     break
                 ant = g
             v = 1.6 if v is None else v
-            a0, a1 = h._angs_dedo(sf, f, v0), h._angs_dedo(sf, f, v)
-            angs = [x * (1 - w) + y * w for x, y in zip(a0, a1)]
-            for j in range(1, 4):
-                nome = f"finger{f}-{j}{sf}"
-                if nome in h._eixo_dedo:
-                    h.set_local(nome, Quaternion(h._eixo_dedo[nome], math.radians(angs[j - 1])))
+            # fora do contato (w < 1) mistura com o polegar do estado v0 da mão (oposição), sem salto na transição
+            a1 = h._angs_dedo(sf, f, v)
+            for nome, q0_, a_ in zip(h._nomes_pol(sf), h._quats_polegar(sf, v0), a1):
+                h.set_local(nome, q0_.slerp(Quaternion(h._eixo_dedo[nome], math.radians(a_)), w))
             continue
         fol = []
         v = None

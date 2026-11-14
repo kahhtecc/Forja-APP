@@ -622,6 +622,12 @@ def pegada_implementos(ctx, h, T, tau, extras):
             eixo = cab.cross(lat).normalized()
             for sf, sx in ((".L", 1), (".R", -1)):
                 pegar_em(h, T, sf, c + lat * (0.7 * sx), eixo)
+            # braços esticados que não alcançam o pegador: o triângulo (solto no cabo) vem até as mãos ao longo do cabo
+            falta = sum(((T @ h.pegada(sf)) - (c + lat * (0.7 * sx))).dot(cab) for sf, sx in ((".L", 1), (".R", -1))) / 2
+            if falta < -0.02:
+                c = c + cab * falta
+                for sf, sx in ((".L", 1), (".R", -1)):
+                    pegar_em(h, T, sf, c + lat * (0.7 * sx), eixo)
             extras["triangulo"] = (c, lat, eixo)
         elif tc == "corda":
             no = c + (A - c).normalized() * 1.2
