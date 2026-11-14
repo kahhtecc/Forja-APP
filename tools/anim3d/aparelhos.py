@@ -2059,8 +2059,10 @@ def _elastico(kit, ctx, h, pr, am):
                 dentro = _ponto_sola(h, T, sf, P, ef, -0.6)
                 Kit.por_cil(sola[sf], fora, dentro)  # passa sob a sola, no arco do pé
                 sobe = fora + Vector((0, 0, 0.35))
-                pts = [g.lerp(sobe, i / 7) for i in range(8)] + [fora]
-                _por_fio(segs[sf], contornar(h, T, pts, ("mao_f", "mao_t", "antebraco_f", "antebraco_t", "pe_f", "pe_t")))
+                # amostragem densa e contornando também o antebraço: a alça fica na palma e o elástico desce rente ao
+                # antebraço e ao deltoide (com 8 pontos e o antebraço excluído ele cortava o braço)
+                pts = [g.lerp(sobe, i / 15) for i in range(16)] + [fora]
+                _por_fio(segs[sf], contornar(h, T, pts, ("mao_f", "mao_t", "pe_f", "pe_t"), iters=5))
         kit.moveis.append(upd)
         return
     if pr.get("de") == "costas":
