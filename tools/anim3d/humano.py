@@ -589,6 +589,8 @@ class Humano:
                 if nome in self._eixo_dedo:
                     self.set_local(nome, Quaternion(self._eixo_dedo[nome], -math.radians(cur[j - 1] * escalas[f - 1])))
 
+    COMPRESSAO_PALMA = 0.09  # dm: a pele da palma afunda em volta do cabo (tenar/hipotenar e prega palmar)
+
     def _calibrar_pegada(self):
         """Pegada real: para cada raio de empunhadura, a curvatura de CADA dedo é ajustada para a pele encostar no cabo sem
         atravessá-lo (o mínimo é mais curto e fecharia para dentro do cabo), e o centro da pegada é o centro do túnel dos
@@ -601,6 +603,7 @@ class Humano:
         self._px_dedo = {f: np.array([d.startswith((f"finger{f}-2", f"finger{f}-3")) and d.endswith(sf) for d in dom]) for f in range(1, 6)}
         self._px_mao = np.where(np.any(np.stack(list(self._px_dedo.values())), axis=0))[0]
         self._px_dedo = {f: m[self._px_mao] for f, m in self._px_dedo.items()}
+        self._px_palma = np.array([i for i, d in enumerate(dom) if d.startswith("metacarpal") and d.endswith(sf)])
         self.peg_cal = []
         for r in self.RAIOS_PEGA:
             esc = [1.0] * 5
@@ -628,7 +631,27 @@ class Humano:
             esc[1:5] = [lo] * 4
             self._curvar(sf, esc)
             c, kl = self._tunel(sf, (3, 4))
-            # 2) cada dedo (indicador, mínimo e polegar) fecha até encostar no cabo
+            # 1b) a palma (pele dos metacarpos) não entra no cabo além da compressão das partes moles (COMPRESSAO_PALMA):
+            # o centro se afasta dela (normal palmar) e médio/anelar fecham de novo em volta desse centro até encostar
+            Qp = self.proxy(sel=self._px_palma) - np.array(c)
+            radp = np.linalg.norm(Qp - np.outer(Qp @ np.array(kl), np.array(kl)), axis=1)
+            pen = r - self.COMPRESSAO_PALMA - float(radp.min())
+            if pen > 0:
+                npal = self.ref_mao[sf].col[2]
+                npal = (npal - kl * npal.dot(kl)).normalized()
+                c = c + npal * pen
+                lo, hi = 0.2, 1.6
+                for _ in range(11):
+                    s_ = (lo + hi) / 2
+                    esc[2:4] = [s_] * 2
+                    self._curvar(sf, esc)
+                    if min(raio_min(3, c, kl), raio_min(4, c, kl)) < r + 0.004:
+                        hi = s_
+                    else:
+                        lo = s_
+                esc[2:4] = [lo] * 2
+                self._curvar(sf, esc)
+            # 2) cada dedo (indicador e mínimo) fecha até encostar no cabo
             for f in (2, 5):
                 lo2, hi2 = 0.2, 1.6
                 for _ in range(11):
@@ -666,7 +689,8 @@ class Humano:
             self.raio_mao = {".L": r_ or self.RAIOS_PEGA[0], ".R": r_ or self.RAIOS_PEGA[0]}
             for f in range(2, 6):
                 self.dedo(sf, f, v)
-            c, kl = self._tunel(sf, (3, 4))
+            # cabo: o centro e o eixo da pegada calibrada (punho fechado: o túnel dos dedos)
+            c, kl = (self.pegada(sf), self.eixo_pegada(sf)) if r_ else self._tunel(sf, (3, 4))
             ca, kla = np.array(c), np.array(kl)
 
             def radial(P):
@@ -696,8 +720,9 @@ class Humano:
                     AB = np.array(self.cauda(b + sf)) - A
                     tt = np.clip((Pd - A) @ AB / (AB @ AB), 0, 1)
                     pen2 = max(pen2, 0.07 - float(np.linalg.norm(Pd - (A + np.outer(tt, AB)), axis=1).min()))
-                lim = (sum(max(0, abs(x) - 75) for x in p[:3]) + max(0, -p[3] - 5) + max(0, p[3] - 65) + max(0, -p[4] - 10)
-                       + max(0, p[4] - 85))
+                # base em oposição (giro para a palma, componentes >= 0) e dentro de 75°; MCP 0..65, IP -10..85
+                lim = (sum(max(0, abs(x) - 75) + max(0, -x - 10) for x in p[:3]) + max(0, -p[3] - 5) + max(0, p[3] - 65)
+                       + max(0, -p[4] - 10) + max(0, p[4] - 85))
                 return 400 * pen ** 2 + dth ** 2 + 30 * max(gap, 0) ** 2 + 400 * max(pen2, 0) ** 2 + 0.01 * lim ** 2
 
             def nm(x0, passo=20.0):
@@ -755,7 +780,10 @@ class Humano:
     # dedos: -1 = espalmados (apoio), 0 = relaxados, 0,4 = semifechados (corrida), 1 = segurando (barra/halter/cabo),
     # PUNHO (1,6) = punho fechado sem objeto (socos). Curvas por falange (proximal, média, distal); 2ª tupla = polegar.
     CURVA = {"plana": ((3, 4, 2), (6, 4, 3)), "rel": ((9, 12, 8), (8, 9, 6)), "peg": ((62, 78, 52), (40, 34, 30)),
-             "punho": ((88, 100, 70), (52, 40, 34))}
+             "punho": ((88, 100, 70), (52, 40, 34)),
+             # punho fechado anatômico (para a palma): as pontas param na palma (com 88/100/70 atravessavam a palma e
+             # saíam no dorso da mão deste modelo; medido em dd/sonda_punho.py)
+             "punho_anat": ((63, 72, 50), (52, 40, 34))}
     PUNHO = 1.6
 
     def dedos(self, sufixo, v):
@@ -817,7 +845,7 @@ class Humano:
         peg = [-x for x in self._peg_dedo(sufixo, f)]
         if v > 1.0:
             w = min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
-            pun = [-x for x in self.CURVA["punho"][pol]]
+            pun = [-x for x in self.CURVA["punho_anat"][pol]]
             return [peg[j] + (pun[j] - peg[j]) * w for j in range(3)]
         return [rel[j] + (peg[j] - rel[j]) * v for j in range(3)]
 
@@ -827,10 +855,10 @@ class Humano:
     # polegar na pegada (oposição em volta do cabo), por raio de empunhadura: rotação da base (vetor de rotação, graus, no
     # referencial da mão: dedos, lado do polegar, palma) e flexão da MCP e da IP (graus, no plano da dobra de repouso).
     # Calibrado por _calibrar_polegar (contato com o cabo, ponta do lado oposto ao da palma, sem atravessar cabo e dedos).
-    POLEGAR_PEG = ((0.10, (39.5, 29.2, 7.2, -5.2, 50.3)), (0.13, (64.2, 35.3, 27.5, -5.1, 41.8)),
-                   (0.16, (63.6, 29.5, 28.9, -4.7, 41.8)), (0.20, (71.9, 10.1, 22.9, -2.5, 44.1)),
-                   (0.25, (69.7, 5.1, 33.1, -0.2, 40.1)))
-    POLEGAR_PUNHO = (26.7, 33.6, 29.0, 27.1, 41.7)
+    POLEGAR_PEG = ((0.10, (44.3, 30.9, 12.8, -5.1, 52.8)), (0.13, (58.0, 27.4, 24.0, -1.8, 48.1)),
+                   (0.16, (62.0, 27.2, 28.3, -5.3, 38.5)), (0.20, (74.6, 9.5, 27.3, -5.1, 40.2)),
+                   (0.25, (67.8, 7.6, 36.8, -5.2, 38.0)))
+    POLEGAR_PUNHO = (21.7, -5.4, 6.4, 52.7, 53.9)
 
     def _eixos_polegar(self, sufixo):
         """Eixos (locais de cada osso) do polegar: base (dedos, polegar, palma da mão em repouso) e dobra da MCP/IP."""
@@ -2290,7 +2318,9 @@ def _segurar_barra(h, ctx, T, b3):
         for sf in (".L", ".R"):
             g = T @ h.pegada(sf)
             if ctx.paralelas:
-                alvo_m = Vector((g.x, g.y, b3.z))
+                # tubos paralelos num x fixo por animação (o mesmo que aparelhos desenha): o da 1ª pegada, entre 2,8 e 3,4
+                xp = ctx.ref.setdefault("paralelas_x", max(2.8, min(3.4, abs(g.x))))
+                alvo_m = Vector((math.copysign(xp, g.x), g.y, b3.z))
                 eixo = Ti.to_3x3() @ Vector((0, 1, 0))
             else:
                 alvo_m = Vector((g.x, b3.y, b3.z))

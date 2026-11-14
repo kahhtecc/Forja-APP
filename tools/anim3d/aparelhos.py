@@ -860,7 +860,8 @@ def montar(kit, ctx, h, estados):
                 # barras centradas nas mãos (o corpo fica no meio das duas, longe dos montantes)
                 c = Vector((c.x, sum((a["gL"].y + a["gR"].y) / 2 for a in am) / len(am) + 0.5, c.z))
                 for s in (-1, 1):
-                    xb = s * max(2.8, min(xmax, 3.4))  # largas o bastante para o quadril passar entre elas
+                    # largas o bastante para o quadril passar entre elas; no x em que o motor prende as mãos
+                    xb = s * ctx.ref.get("paralelas_x", max(2.8, min(xmax, 3.4)))
                     kit.cil((xb, c.y - 6.6, c.z), (xb, c.y + 6.6, c.z), 0.2, kit.metal)
                     for dy in (-6.0, 6.0):
                         kit.cil((xb, c.y + dy, 0), (xb, c.y + dy, c.z - 0.1), 0.22, kit.quadro, 16)
