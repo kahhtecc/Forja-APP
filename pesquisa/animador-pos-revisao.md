@@ -18,7 +18,7 @@ canela/pé), `pencab.py` (quanto a mão entra na cabeça), `fkcab.py`/`grade_cab
 | prancha-lateral | apoiado num punho fechado, antebraço "vertical" | O antebraço já estava deitado no chão (cotovelo 0,5 dm, pele 1 cm), mas apontava para a câmera (cam 90) e o punho fechado parecia o apoio. Tirado `"maos": {"t": "punho"}`, mão de baixo em `apoio` (espalmada no chão, 0,7 cm), câmera 100 / elevação 30: antebraço e mão deitados aparecem inteiros | aviso (3) → aviso (os mesmos 3) |
 | torcao-coluna | mão que segura o joelho aberta, flutuando | `"segura": {"mao_t": "joelho_f"}` em todas as chaves (com rampa de entrada o punho passava de 62° de desvio ulnar, erro); braço de trás `bt` [50,80] `bta` −60 `ata` −90 (abraça o joelho por fora); joelho 1,2 dm mais à frente (`pf` [128,36,90]; com o joelho colado ao peito a palma ia parar no peitoral); torção 6° menor | aviso (8) → aviso (6): sumiram flexão do quadril 157°, congelado e mão flutuando |
 | arnold | halter atravessa o rosto no início | Não havia penetração (QA de penetração limpo): na câmera 75 o halter de trás passava na frente dos olhos. Início com as mãos na altura do queixo e mais abertas (`bf` [38,168] `bfa` 28; chaves 1 e 5 [62,176] `bfa` 36): mãos a ±3,2 dm do centro (antes ±2,4) e 1 dm mais baixas | ok → ok |
-| arremesso-rotacional | bola entra no quadril na carga | Na carga os braços iam para trás do corpo e a bola ficava colada ao quadril do lado da câmera, com o antebraço de trás atravessando o tronco. Braços à frente do peito girado (`bf` [30,50] `bt` [32,52] `bfa` −5 `bta` 5, `tr` −50): a bola fica ~4 dm à frente do quadril de trás | aviso (6) → aviso (1: braço de trás no flanco na transição, já existia) |
+| arremesso-rotacional | bola entra no quadril na carga | Na carga os braços iam para trás do corpo e a bola ficava colada ao quadril do lado da câmera, com o antebraço de trás atravessando o tronco. Braços à frente do peito girado (`bf` [30,50] `bt` [32,52] `bfa` −5 `bta` 5, `tr` −50): a bola fica ~4 dm à frente do quadril de trás | aviso (6) → aviso (2: braço/antebraço de trás no flanco na transição, já existia) |
 | abdominal-bicicleta | mão aberta entra no crânio | Punho em extensão (`puf`/`put` −68) em todas as chaves: a mão chega quase tangente à cabeça e o giro de 75 % do "segura" não enfia os dedos no crânio (penetração medida 4,9 → 1,9 cm) | aviso (4) → aviso (2: desvio ulnar já existente) |
 | isometria-pescoco | mão aberta entra no crânio | A palma ia para o topo da cabeça com os dedos para cima. Cotovelo para o lado e antebraço cruzando para a testa (`bf` [148,160] `bfa` 40 `afa` −55 nas chaves 2–4; aproximação [90,130] `bfa` 30): palma deitada na testa, dedos sobre a linha do cabelo; câmera 30 → 85 (de frente) | aviso (congelado) → aviso (congelado) |
 | alongamento-quadriceps | mão espalmada no pé, não agarra | Alvo `tornozelo_f` (antes `pe_f`, palma no dorso com os dedos ao longo do pé) e braço `bf` [−40,−40] `bfa` 30 `afa` 20, escolhido numa busca de 81 variantes (palma a 8° do alvo, dedos atravessando o tornozelo): os dedos curvam em volta do tornozelo. Dedos perpendiculares à canela exigiam rotação interna do ombro de 107–135° (erro) | aviso (1) → **limpo** |
@@ -45,4 +45,14 @@ de 1 dm) e gira a mão só 75 %; "segura" fecha a mão sempre em 0,55 (tornozelo
 torno da canela (sem solas unidas); `nivelar_de_lado` só com todas as chaves "lado"; pegada da barra fixa depende do braço FK.
 
 ## QA dos 175
-RESULTADO_QA
+qa.py completo (4 processos, 24 fps; refeito depois de o container reiniciar no meio da primeira rodada):
+**88 limpos, 86 só com aviso, 1 com erro (turkish-getup)** — mesmas contagens de antes (88 / 86 / 1). Comparação exercício a
+exercício com o `pesquisa/qa-resultado.json` anterior (fdc1fa3): mudaram só os da rodada, nenhum outro exercício e nenhuma
+regressão para erro:
+- alongamento-quadriceps aviso → limpo; fuga-quadril limpo → aviso (pernas encostando na transição; antes estava limpo mas era
+  irreconhecível).
+- avisos a menos: remada-invertida 10 → 2, arremesso-rotacional 6 → 2, abdominal-bicicleta 4 → 2, torcao-coluna 8 → 6.
+- avisos a mais: alongamento-adutores 1 → 6 (rotação externa do quadril 75°, joelhos/antebraços "pousados" no ar: próprios da
+  borboleta sentada; antes era a pose de cócoras).
+- prancha-lateral, arnold e isometria-pescoco: mesmos achados.
+Relatório: `pesquisa/qa-resultado.md` / `.json`.

@@ -8,10 +8,10 @@ Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 ex
 
 | Tipo | Exercícios com erro | Só aviso |
 |---|---|---|
-| Pegada | 0 | 7 |
+| Pegada | 0 | 6 |
 | Amplitude (ROM) | 1 | 28 |
 | Apoio / interpenetração | 1 | 62 |
-| Motor (pops, skate, chão...) | 0 | 10 |
+| Motor (pops, skate, chão...) | 0 | 7 |
 
 ## Erros por verificação (nº de exercícios)
 
@@ -100,7 +100,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | circulos-ombro | 0 | 0 | 0 | 0 | ok |
 | abertura-peito-dinamica | 0 | 0 | 0 | 0 | ok |
 | alongamento-triceps | 0 | 0 | 0 (2) | 0 | só avisos |
-| torcao-coluna | 0 | 0 (4) | 0 (2) | 0 (2) | só avisos |
+| torcao-coluna | 0 | 0 (4) | 0 (2) | 0 | só avisos |
 | agachamento-elastico | 0 | 0 | 0 | 0 | ok |
 | agachamento-frontal | 0 | 0 | 0 | 0 | ok |
 | cadeira-flexora | 0 | 0 | 0 (2) | 0 | só avisos |
@@ -113,7 +113,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | russian-twist | 0 | 0 | 0 (4) | 0 | só avisos |
 | pallof | 0 | 0 | 0 (4) | 0 (1) | só avisos |
 | salto-distancia | 0 | 0 | 0 | 0 | ok |
-| arremesso-rotacional | 0 | 0 | 0 (6) | 0 | só avisos |
+| arremesso-rotacional | 0 | 0 | 0 (2) | 0 | só avisos |
 | educativos-corrida | 0 | 0 | 0 | 0 | ok |
 | flexao-inclinada | 0 | 0 | 0 | 0 | ok |
 | flexao-pliometrica | 0 | 0 | 0 | 0 | ok |
@@ -154,7 +154,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | panturrilha-pe | 0 | 0 | 0 | 0 | ok |
 | hiperextensao | 0 | 0 | 0 (4) | 0 | só avisos |
 | abdominal-infra | 0 | 0 | 0 (1) | 0 | só avisos |
-| abdominal-bicicleta | 0 | 0 (2) | 0 (2) | 0 | só avisos |
+| abdominal-bicicleta | 0 | 0 (2) | 0 | 0 | só avisos |
 | abdominal-polia | 0 | 0 | 0 | 0 | ok |
 | bound-lateral | 0 | 0 | 0 | 0 | ok |
 | ponte-pescoco | 0 | 0 (1) | 0 | 0 | só avisos |
@@ -165,7 +165,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | supino-elastico | 0 | 0 | 0 | 0 | ok |
 | barra-supinada | 0 | 0 (2) | 0 | 0 | só avisos |
 | remada-baixa | 0 | 0 | 0 | 0 | ok |
-| remada-invertida | 0 (4) | 0 (2) | 0 (2) | 0 (2) | só avisos |
+| remada-invertida | 0 | 0 (2) | 0 | 0 | só avisos |
 | band-pull-apart | 0 | 0 | 0 (1) | 0 | só avisos |
 | desenvolvimento-maquina | 0 | 0 | 0 | 0 | ok |
 | elevacao-frontal | 0 | 0 | 0 | 0 | ok |
@@ -181,7 +181,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | bike-intervalado | 0 | 0 | 0 (3) | 0 | só avisos |
 | escada | 0 | 0 | 0 | 0 | ok |
 | gato-camelo | 0 | 0 | 0 | 0 | ok |
-| alongamento-quadriceps | 0 | 0 (1) | 0 | 0 | só avisos |
+| alongamento-quadriceps | 0 | 0 | 0 | 0 | ok |
 | rolo-quadriceps | 0 | 0 | 0 (2) | 0 | só avisos |
 | rotacao-toracica | 0 | 0 (1) | 0 (4) | 0 | só avisos |
 | circulos-tornozelo | 0 | 0 | 0 (1) | 0 | só avisos |
@@ -201,7 +201,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | elevacao-pernas-barra | 0 | 0 | 0 | 0 | ok |
 | canivete | 0 | 0 (1) | 0 | 0 | só avisos |
 | salto-tesoura | 0 | 0 | 0 | 0 | ok |
-| fuga-quadril | 0 | 0 | 0 | 0 | ok |
+| fuga-quadril | 0 | 0 | 0 (1) | 0 | só avisos |
 | sentar-levantar | 0 | 0 | 0 | 0 | ok |
 | flexao-declinada | 0 | 0 | 0 | 0 | ok |
 | supino-halteres | 0 | 0 | 0 | 0 | ok |
@@ -227,7 +227,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | postura-crianca | 0 | 0 (4) | 0 (7) | 0 | só avisos |
 | alongamento-panturrilha | 0 | 0 | 0 | 0 | ok |
 | rolo-panturrilha | 0 | 0 | 0 (1) | 0 | só avisos |
-| alongamento-adutores | 0 | 0 | 0 | 0 (1) | só avisos |
+| alongamento-adutores | 0 | 0 (2) | 0 (4) | 0 | só avisos |
 | circulos-punho | 0 | 0 | 0 | 0 | ok |
 | carioca | 0 | 0 | 0 | 0 | ok |
 | abraco-joelhos | 0 | 0 (4) | 0 | 0 | só avisos |
