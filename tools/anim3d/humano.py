@@ -6,6 +6,7 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
   "bfa"/"bta": abdução do braço da frente/trás (0 = no plano sagital, 90 = aberto para o lado)
   "afa"/"ata": abdução do antebraço (padrão = a do braço)
   "pfa"/"pta": abdução da perna (coxa); "cfa"/"cta": abdução da canela (padrão = a da coxa; borboleta, figura 4)
+  "pgf"/"pgt": giro do pé em torno do eixo longo do pé (graus; + = sola para dentro: solas juntas na borboleta)
   "tr":   rotação do tronco (torção, graus; + gira o peito para o lado da câmera), distribuída pelas vértebras
   "inc":  inclinação lateral do tronco (graus; + inclina para o lado da câmera), distribuída pelas vértebras
   "rol":  rotação do corpo inteiro em torno do eixo frente-trás (graus; 90 = deitado de lado; + levanta o lado da câmera)
@@ -23,7 +24,8 @@ Poses: as mesmas de tools/anim (ângulos absolutos no plano sagital) + campos 3D
           (ou "lado"); sentado com o quadril sobre banco/chão -> glúteo.
   "maos": estado das mãos livres no quadro: "punho" | "semi" | "rel" | "aberta" | número (-1..1,6) | {"f": .., "t": ..}
   "segura": mão presa a uma parte do corpo por IK: {"mao_f": "pe_t", "mao_t": "joelho_t"}. Alvos: pe_, tornozelo_, canela_,
-          joelho_, coxa_, cotovelo_, braco_, punho_, ombro_, quadril_/cintura_ (+ "f"/"t"), "nuca", "cabeca", "peito".
+          joelho_, coxa_, cotovelo_, braco_, punho_, ombro_, quadril_/cintura_ (+ "f"/"t"), "nuca", "cabeca", "testa"
+          (palma na testa), "peito". A palma encosta na pele e cada dedo fecha até encostar (envolve membros finos).
   "dedos": giro da mão APOIADA (espalmada): "tras" (dedos para o corpo), "fora", "dentro" ou graus em torno da vertical
   "puf"/"put": flexão (+) / extensão (-) do punho da frente/trás; "pdf"/"pdt": desvio radial (+) / ulnar (-) (limite AAOS)
   "trt": torção só da coluna torácica (pelve e lombar paradas: rotação torácica, deitado de lado)
@@ -126,6 +128,7 @@ LADOS = (("f", ".L", 1), ("t", ".R", -1))
 GANHO_OE = 34.0  # graus de elevação da clavícula com "oe" = 1 (ombro sobe ~10 cm: encolhimento bem visível)
 COLUNA = ("root", "spine05", "spine04", "spine03", "spine02", "spine01")
 PESCOCO = ("neck01", "neck02", "neck03", "head")
+DOBRADICA = 1.0  # fração da rotação do fêmur que leva o joelho ao plano coxa-canela (1 = dobradiça perfeita)
 
 
 def d2(ang, abd=0.0, lado=1):
@@ -548,6 +551,8 @@ class Humano:
                         continue
                     b = self.rig.data.bones[nome]
                     dir_b = (J(nome, True) - J(nome)).normalized()
+                    # obs.: com este eixo o ângulo + leva a ponta do dedo para o lado oposto ao de "palma" (o das pegadas
+                    # calibradas); dedo(..., anat=True) usa o sentido contrário (para a palma: mão que segura o corpo)
                     if f == 1:
                         eixo = palma.cross(dir_b).normalized()
                     else:
@@ -664,23 +669,37 @@ class Humano:
 
     def dedos(self, sufixo, v):
         for f in range(1, 6):
-            pol = f == 1
-            peg = self.CURVA["peg"][pol]
-            if getattr(self, "peg_cal", None):
-                e_ = self._cal_raio(self.raio_mao[sufixo])[0][f - 1]
-                peg = tuple(x * e_ for x in peg)
-            if v > 1.0:
-                a, b, w = peg, self.CURVA["punho"][pol], min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
-            elif v >= 0:
-                a, b, w = self.CURVA["rel"][pol], peg, v
-            else:
-                a, b, w = self.CURVA["rel"][pol], self.CURVA["plana"][pol], -v
-            for j in range(1, 4):
-                nome = f"finger{f}-{j}{sufixo}"
-                if nome not in self._eixo_dedo:
-                    continue
-                ang = a[j - 1] + (b[j - 1] - a[j - 1]) * w
-                self.set_local(nome, Quaternion(self._eixo_dedo[nome], math.radians(ang)))
+            self.dedo(sufixo, f, v)
+
+    def dedo(self, sufixo, f, v, anat=False, mistura=None):
+        """Curvatura do dedo f (estado v, como em dedos). anat=True: fecha para o lado da palma. mistura=(v0, w): mistura
+        os ângulos do estado v0 no sentido normal com os de v no sentido anat (peso w)."""
+        if mistura is not None:
+            v0, w = mistura
+            a0, a1 = self._angs_dedo(sufixo, f, v0), self._angs_dedo(sufixo, f, v)
+            angs = [x * (1 - w) - y * w for x, y in zip(a0, a1)]
+        else:
+            angs = self._angs_dedo(sufixo, f, v)
+            if anat:
+                angs = [-x for x in angs]
+        for j in range(1, 4):
+            nome = f"finger{f}-{j}{sufixo}"
+            if nome in self._eixo_dedo:
+                self.set_local(nome, Quaternion(self._eixo_dedo[nome], math.radians(angs[j - 1])))
+
+    def _angs_dedo(self, sufixo, f, v):
+        pol = f == 1
+        peg = self.CURVA["peg"][pol]
+        if getattr(self, "peg_cal", None):
+            e_ = self._cal_raio(self.raio_mao[sufixo])[0][f - 1]
+            peg = tuple(x * e_ for x in peg)
+        if v > 1.0:
+            a, b, w = peg, self.CURVA["punho"][pol], min(1.0, (v - 1.0) / (self.PUNHO - 1.0))
+        elif v >= 0:
+            a, b, w = self.CURVA["rel"][pol], peg, v
+        else:
+            a, b, w = self.CURVA["rel"][pol], self.CURVA["plana"][pol], -v
+        return [a[j] + (b[j] - a[j]) * w for j in range(3)]
 
     def rot_mao(self, sufixo, dir_dedos, palma):
         """Rotação absoluta do punho para a mão ter os dedos em 'dir_dedos' e a palma voltada para 'palma' (esqueleto)."""
@@ -787,6 +806,11 @@ class Humano:
         self.px_w = w
         self.px_rest = np.concatenate([self.verts[idx], np.ones((len(idx), 1))], axis=1)
         self.px_partes = {k: v[idx] for k, v in self.partes.items()}
+        self.px_n_rest = np.asarray(self.normais)[idx]
+        # pele de cada dedo (falanges), por mão: contato dos dedos ao segurar uma parte do corpo
+        dom = [nomes[i] for i in top[:, 0]]
+        self.px_dedo = {(sf, f): np.array([i for i, d in enumerate(dom) if d.startswith((f"finger{f}-2", f"finger{f}-3")) and d.endswith(sf)])
+                        for sf in (".L", ".R") for f in range(1, 6)}
 
     def proxy(self, T=None, sel=None):
         """Pontos da pele (amostra) posados, no espaço do mundo (ou do esqueleto se T é None). sel: índices (subconjunto)."""
@@ -799,6 +823,18 @@ class Humano:
         v = np.einsum("pkij,pj->pki", M[:, :, :3, :], rest)
         return (v * w[:, :, None]).sum(axis=1)
 
+    def proxy_n(self, sel=None):
+        """Pontos da pele (amostra) e normais, posados no espaço do esqueleto."""
+        self._fk()
+        S = np.array([np.array(self.P[b] @ self.rest_inv[b]) for b in self.px_nomes])
+        ossos, rest, w, nr = ((self.px_ossos, self.px_rest, self.px_w, self.px_n_rest) if sel is None else
+                              (self.px_ossos[sel], self.px_rest[sel], self.px_w[sel], self.px_n_rest[sel]))
+        M = S[ossos]
+        v = (np.einsum("pkij,pj->pki", M[:, :, :3, :], rest) * w[:, :, None]).sum(axis=1)
+        n = (np.einsum("pkij,pj->pki", M[:, :, :3, :3], nr) * w[:, :, None]).sum(axis=1)
+        n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
+        return v, n
+
     # ---------------------------------------------------------- pose
     def posar(self, p, maos=None):
         """p: pose normalizada (movimento.normalizar) com '_qb' (0..1: quadril apoiado deitado).
@@ -806,6 +842,7 @@ class Humano:
         p = limitar_rom(p)
         self.zerar()
         self._polos = {}  # plano de flexão de cada membro, fixado pela pose do quadro (IK determinístico)
+        self._wq = {}  # peso da dobradiça do joelho (canela fora do plano da coxa), por lado
         t = p["t"]
         # ---- coluna: curvatura distribuída
         vt = (math.sin(math.radians(t)), -math.cos(math.radians(t)))
@@ -892,11 +929,50 @@ class Humano:
             for n in ("upperleg01", "upperleg02"):
                 self.apontar(n + sf, d2(c_, pa, s))
             ca = p["c" + lado + "a"]
-            for n in ("lowerleg01", "lowerleg02"):
-                self.apontar(n + sf, d2(sh, ca, s))
+            dc, dsh = d2(c_, pa, s), d2(sh, ca, s)
+            # canela fora do plano da coxa (borboleta, figura 4): o fêmur gira no próprio eixo (rotação do quadril) até o
+            # joelho dobrar no plano coxa-canela, como uma dobradiça (sem o joelho "quebrado" de lado, em ponta)
+            wq = DOBRADICA * mov.suave(abs(ca - pa), 5.0, 20.0) * mov.suave(math.degrees(dc.angle(dsh)), 10.0, 30.0)
+            self._wq[sf] = wq
+            self.perna_dobradica(sf, dc, dsh, wq)
             # o osso do pé aponta ~27° para baixo com o pé apoiado (pe = 90)
             self.apontar("foot" + sf, d2(pe - 27, pa * 0.3, s))
+            # "pgf"/"pgt": giro do pé em torno do próprio eixo longo (inversão + rotação da tíbia; + = sola para dentro):
+            # borboleta com as solas juntas
+            g = p.get("pg" + lado, 0.0)
+            if g:
+                ax = (self.cauda("foot" + sf) - self.cabeca("foot" + sf)).normalized()
+                self.set_rot("foot" + sf, Quaternion(ax, math.radians(-g * s)).to_matrix() @ self.rot("foot" + sf))
             self.dedos(sf, (maos or {}).get(sf, 0.0))
+
+    def perna_dobradica(self, sf, dc, dsh, wq):
+        """Coxa em dc e canela em dsh. Com wq > 0 o fêmur gira no próprio eixo até o joelho dobrar no plano coxa-canela
+        (dobradiça) e a canela segue pelo menor arco a partir da coxa; wq = 0: direções absolutas (torção de repouso)."""
+        for n in ("upperleg01", "upperleg02"):
+            self.apontar(n + sf, dc)
+        if wq > 0:
+            R = self.rot("upperleg02" + sf)
+            dob = R @ self.rest_inv["upperleg02" + sf].to_3x3() @ Vector((0, 1, 0))
+            dp, ap_ = dob - dc * dob.dot(dc), dsh - dc * dsh.dot(dc)
+            if dp.length > 1e-6 and ap_.length > 1e-6:
+                dp.normalize()
+                ap_.normalize()
+                ang = math.atan2(dp.cross(ap_).dot(dc), dp.dot(ap_))
+                # só a metade de baixo do fêmur gira (a pele do quadril/glúteo não torce: o glúteo continua apoiado)
+                self.set_rot("upperleg02" + sf, Quaternion(dc, ang * wq).to_matrix() @ R)
+                for pai, n in (("upperleg02", "lowerleg01"), ("lowerleg01", "lowerleg02")):
+                    # orientação de repouso relativa ao pai (sem torção extra) e depois o menor arco até a canela
+                    Rrel = self.rest_inv[pai + sf].to_3x3() @ self.rest[n + sf].to_3x3()
+                    Ra = (self.rot(pai + sf) @ Rrel)
+                    self.set_rot(n + sf, Ra)
+                    self._apontar_min(n + sf, dsh)
+                    if wq < 0.999:
+                        Ra = self.rot(n + sf).to_quaternion()
+                        self.apontar(n + sf, dsh)
+                        self.set_rot(n + sf, self.rot(n + sf).to_quaternion().slerp(Ra, wq).to_matrix())
+                return
+        for n in ("lowerleg01", "lowerleg02"):
+            self.apontar(n + sf, dsh)
 
     # ---------------------------------------------------------- IK de 2 ossos (espaço do esqueleto)
     def ik(self, membro, sf, alvo, rot_fim=None):
@@ -972,10 +1048,7 @@ class Humano:
         if b1[0] == "upperarm01":
             self.braco(sf, (E2 - S).normalized(), (W2 - E2).normalized(), punho=False)
         else:
-            for nb in b1:
-                self.apontar(nb + sf, E2 - S)
-            for nb in b2:
-                self.apontar(nb + sf, W2 - E2)
+            self.perna_dobradica(sf, (E2 - S).normalized(), (W2 - E2).normalized(), self.__dict__.get("_wq", {}).get(sf, 0.0))
         if rot_fim is not None:
             self.set_rot(fim + sf, rot_fim)
         else:
@@ -1917,7 +1990,7 @@ def colocar_chave(h, ctx, q):
     if q["z"]:
         T = Matrix.Translation(ESQ * (q["z"] * k)) @ T  # deslocamento lateral (+ = lado da câmera)
     # 3b) tronco apoiado (sentado no assento, deitado no banco/chão, de lado): a parte mais baixa encosta na superfície
-    if all("lado" in (qq.get("apoio") or []) for qq in anim["quadros"]):  # deitado de lado o ciclo todo
+    if "lado" in (q.get("apoio") or []):  # deitado de lado nesta chave (também quando o ciclo alterna de costas/de lado)
         T = nivelar_de_lado(h, ctx, T)
     if regs:
         T = (apoiar_tronco(h, ctx, T, regs, lim=6.0, fade=False) if "lado" in (q.get("apoio") or [])
@@ -2495,7 +2568,7 @@ ALVOS_SEGURA_PEGA = {"pe_f", "pe_t", "tornozelo_f", "tornozelo_t", "canela_f", "
 def ponto_segura(h, nome):
     """Ponto anatômico (espaço do esqueleto) de um alvo de "segura": pe_f, canela_t, joelho_f, coxa_t, cotovelo_f,
     quadril_f (crista ilíaca/cintura), nuca, cabeca, peito."""
-    if nome in ("nuca", "cabeca"):
+    if nome in ("nuca", "cabeca", "testa"):
         a, b = h.cabeca("head"), h.cauda("head")
         return a + (b - a) * (0.15 if nome == "nuca" else 0.55)
     if nome == "peito":
@@ -2511,16 +2584,64 @@ def ponto_segura(h, nome):
     return a if o2 is None else a + (h.cabeca(o2 + sf) - a) * fr
 
 
-def segurar_corpo(h, ctx, T, tau):
-    """Mão presa a uma parte do corpo (pé, canela, joelho, coxa, cotovelo, cintura, nuca): a palma encosta na pele mais
-    próxima do ponto anatômico, de frente para ela, por IK do braço; peso contínuo entre quadros-chave."""
+def _folga_dedo(h, sf, f, kd, Q, NQ):
+    """Menor distância (com sinal: < 0 = dentro) da pele do dedo f até a pele do alvo (kd sobre Q, normais NQ), em dm."""
+    D = h.proxy(sel=h.px_dedo[(sf, f)][::4])
+    best = 9.0
+    for p_ in D:
+        co_, k_, d_ = kd.find(p_)
+        if d_ is None or d_ > 0.6:
+            continue
+        best = min(best, float(np.dot(p_ - Q[k_], NQ[k_])))
+    return best
+
+
+def fechar_dedos_contato(h, sf, Q, NQ, v0, w, vmax=1.5):
+    """Cada dedo fecha até encostar na pele do alvo, sem atravessá-la: varredura da curvatura até o primeiro contato e
+    busca binária nele (envolve o tornozelo ou o punho, acompanha a cabeça); sem contato, para onde o dedo passa mais
+    perto da pele; dedo que nem chega perto fica relaxado. w mistura com o estado v0 (fora do contato)."""
+    from mathutils.kdtree import KDTree
+    kd = KDTree(len(Q))
+    for k_, q_ in enumerate(Q):
+        kd.insert(q_, k_)
+    kd.balance()
+    grade = tuple(g for g in (-0.3, 0.0, 0.3, 0.6, 0.9, 1.2, 1.5) if g <= vmax + 1e-6)
+    for f in range(1, 6):
+        fol = []
+        v = None
+        for k_, g in enumerate(grade):
+            h.dedo(sf, f, g, anat=True)
+            fol.append(_folga_dedo(h, sf, f, kd, Q, NQ))
+            if fol[-1] <= 0.01:
+                if k_ == 0:
+                    v = g
+                else:
+                    lo, hi = grade[k_ - 1], g
+                    for _ in range(5):
+                        m_ = (lo + hi) / 2
+                        h.dedo(sf, f, m_, anat=True)
+                        if _folga_dedo(h, sf, f, kd, Q, NQ) <= 0.01:
+                            hi = m_
+                        else:
+                            lo = m_
+                    v = lo
+                break
+        if v is None:
+            k_ = int(np.argmin(fol))
+            v = grade[k_] if fol[k_] < 0.12 else min(0.3, vmax)
+        h.dedo(sf, f, v, mistura=(v0, w))
+
+
+def segurar_corpo(h, ctx, T, tau, maos=None):
+    """Mão presa a uma parte do corpo (pé, canela, joelho, coxa, cotovelo, cintura, nuca, cabeça): a palma encosta na pele
+    do alvo, de frente para ela, por IK do braço, e cada dedo fecha até encostar (envolve membros finos, fica aberto na
+    cabeça); peso contínuo entre quadros-chave."""
     i, u = ctx.trilhas.segmento(tau)
     n = len(ctx.chaves)
     sa = ctx.chaves[i]["q"].get("segura") or {}
     sb = ctx.chaves[(i + 1) % n]["q"].get("segura") or {}
     if not sa and not sb:
         return
-    P = h.proxy()  # espaço do esqueleto
     for lado, sf, _ in LADOS:
         ef = "mao_" + lado
         wa, wb = (1.0 if ef in sa else 0.0), (1.0 if ef in sb else 0.0)
@@ -2528,30 +2649,45 @@ def segurar_corpo(h, ctx, T, tau):
         if w < 1e-3:
             continue
         nome = sb.get(ef) if u > 0.5 and ef in sb else sa.get(ef, sb.get(ef))
+        cab = nome in ("nuca", "cabeca", "testa")
+        P, NP = h.proxy_n()  # espaço do esqueleto
         A = ponto_segura(h, nome)
         pc = h.palma_c(sf)
         m = ~(h.px_partes["mao_f"] | h.px_partes["mao_t"] | h.px_partes["antebraco_" + lado])
         dist = np.linalg.norm(P - np.array(A), axis=1)
-        idx = np.where(m & (dist < 1.0))[0]
+        idx = np.where(m & (dist < (1.4 if cab else 1.0)))[0]
         if not len(idx):
             continue
-        # alvo contínuo: na direção da palma a partir do ponto anatômico, à distância média da pele em volta (o ponto de
-        # pele mais próximo pulava de um quadro para outro)
+        # alvo contínuo: na direção da palma a partir do ponto anatômico, até a pele mais externa nessa direção (raio real
+        # do membro/crânio: pontos num cilindro estreito em volta da reta, com a normal para fora)
         nrm = (pc - A)
         nrm = nrm.normalized() if nrm.length > 1e-4 else Vector((0, 0, 1))
+        if nome == "testa":
+            # palma na testa: direção fixa (frente da cabeça, um pouco para cima), qualquer que seja a pose do braço
+            Rh = h.rot("head") @ h.rest_inv["head"].to_3x3()
+            nrm = (Rh @ (FRENTE + CIMA * 0.45)).normalized()
         viz = P[idx] - np.array(A)
         proj = viz @ np.array(nrm)
-        frente = proj > 0.3 * np.linalg.norm(viz, axis=1)
-        raio = float(np.percentile(proj[frente], 80)) if frente.sum() >= 5 else float(np.median(dist[idx]))
+        lat = np.linalg.norm(viz - np.outer(proj, np.array(nrm)), axis=1)
+        fora = (NP[idx] @ np.array(nrm)) > 0.3
+        cil = (proj > 0) & (lat < 0.3) & fora
+        if cil.sum() >= 3:
+            raio = float(proj[cil].max())
+        else:
+            frente = proj > 0.3 * np.linalg.norm(viz, axis=1)
+            raio = float(np.percentile(proj[frente], 80)) if frente.sum() >= 5 else float(np.median(dist[idx]))
         S = A + nrm * raio
         alvo_pc = pc.lerp(S + nrm * 0.1, w)
         ante = (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized()
         dd = ante - nrm * ante.dot(nrm)
         if dd.length < 1e-3:
             dd = Vector((0, 0, 1)) - nrm * nrm.z
+        dd.normalize()
         R_alvo = h.rot_mao(sf, dd.normalized(), -nrm)
         R0 = h.rot("wrist" + sf).to_quaternion()
-        R = R0.slerp(R_alvo.to_quaternion(), w * 0.75).to_matrix()  # palma quase de frente para a pele (sem torcer o antebraço)
+        # palma de frente para a pele (sem torcer o antebraço: 75 %); atrás da cabeça, de frente por inteiro (os dedos não
+        # entram no crânio)
+        R = R0.slerp(R_alvo.to_quaternion(), w * (1.0 if nome == "nuca" else 0.75)).to_matrix()
         if nome == "nuca":
             # mãos atrás da cabeça: cotovelo para fora, no plano frontal do tronco (rotação do ombro dentro do limite)
             Rs = h.rot("spine01") @ h.rest_inv["spine01"].to_3x3()
@@ -2559,6 +2695,12 @@ def segurar_corpo(h, ctx, T, tau):
             h._polos[("braco", sf)] = (Rs @ (ESQ * sx_ + CIMA * 0.2)).normalized()
         for _ in range(2):
             h.ik("braco", sf, alvo_pc - R @ h.off_palma[sf], R)
+        # dedos: fecham até encostar na pele do alvo (vizinhança da palma)
+        pc2 = np.array(h.palma_c(sf))
+        perto = np.where(m & (np.linalg.norm(P - pc2, axis=1) < 1.2))[0][::2]
+        if len(perto):
+            v0 = (maos or {}).get(sf, 0.55)
+            fechar_dedos_contato(h, sf, P[perto], NP[perto], v0, w, vmax=0.45 if cab else 1.5)
 
 
 def ax_dot(v, e):
@@ -2967,7 +3109,7 @@ def finalizar(h, ctx, T, tau, seg, maos):
             T = Matrix.Translation((0, 0, (ctx.z0 - zmin) * w_livre)) @ T
     if ctx.barra_livre:
         extras["barra"] = corrigir_barra(h, ctx, T)
-    segurar_corpo(h, ctx, T, tau)
+    segurar_corpo(h, ctx, T, tau, maos)
     aparelhos.depois_ik(ctx, h, T, tau, extras)
     dedos_pes(h, ctx, T)
     return {"T": T.copy(), "est": h.estado(), "tau": tau, "extras": extras, "pesos": pesos}
