@@ -589,7 +589,7 @@ class Humano:
                 if nome in self._eixo_dedo:
                     self.set_local(nome, Quaternion(self._eixo_dedo[nome], -math.radians(cur[j - 1] * escalas[f - 1])))
 
-    COMPRESSAO_PALMA = 0.09  # dm: a pele da palma afunda em volta do cabo (tenar/hipotenar e prega palmar)
+    COMPRESSAO_PALMA = 0.07  # dm: a pele da palma afunda em volta do cabo (tenar/hipotenar e prega palmar)
 
     def _calibrar_pegada(self):
         """Pegada real: para cada raio de empunhadura, a curvatura de CADA dedo é ajustada para a pele encostar no cabo sem
@@ -651,14 +651,16 @@ class Humano:
                         lo = s_
                 esc[2:4] = [lo] * 2
                 self._curvar(sf, esc)
-            # 2) cada dedo (indicador e mínimo) fecha até encostar no cabo
+            # 2) cada dedo (indicador e mínimo) fecha até encostar no cabo; o mínimo com folga de 2 mm (na ponta da linha
+            # dos nós, ele é o primeiro a entrar no cabo quando a barra cruza a palma na diagonal)
             for f in (2, 5):
                 lo2, hi2 = 0.2, 1.6
+                folga_ = 0.02 if f == 5 else 0.004
                 for _ in range(11):
                     s_ = (lo2 + hi2) / 2
                     esc[f - 1] = s_
                     self._curvar(sf, esc)
-                    if raio_min(f, c, kl) < r + 0.004:
+                    if raio_min(f, c, kl) < r + folga_:
                         hi2 = s_
                     else:
                         lo2 = s_
@@ -787,6 +789,7 @@ class Humano:
     PUNHO = 1.6
 
     def dedos(self, sufixo, v):
+        self.__dict__.setdefault("_v_mao", {})[sufixo] = v
         for f in range(1, 6):
             self.dedo(sufixo, f, v)
 
@@ -860,9 +863,9 @@ class Humano:
     # polegar na pegada (oposição em volta do cabo), por raio de empunhadura: rotação da base (vetor de rotação, graus, no
     # referencial da mão: dedos, lado do polegar, palma) e flexão da MCP e da IP (graus, no plano da dobra de repouso).
     # Calibrado por _calibrar_polegar (contato com o cabo, ponta do lado oposto ao da palma, sem atravessar cabo e dedos).
-    POLEGAR_PEG = ((0.10, (44.3, 30.9, 12.8, -5.1, 52.8)), (0.13, (58.0, 27.4, 24.0, -1.8, 48.1)),
-                   (0.16, (62.0, 27.2, 28.3, -5.3, 38.5)), (0.20, (74.6, 9.5, 27.3, -5.1, 40.2)),
-                   (0.25, (67.8, 7.6, 36.8, -5.2, 38.0)))
+    POLEGAR_PEG = ((0.10, (50.5, 32.0, 14.3, -5.3, 43.5)), (0.13, (61.4, 31.0, 25.9, -5.3, 36.1)),
+                   (0.16, (66.4, 28.3, 34.5, -5.2, 36.9)), (0.20, (72.2, 8.5, 25.8, -5.3, 36.8)),
+                   (0.25, (68.0, 8.0, 36.0, -5.2, 37.0)))  # 0,25: a busca pulou de família; mantida a do raio 0,20
     POLEGAR_PUNHO = (21.7, -5.4, 6.4, 52.7, 53.9)
 
     def _eixos_polegar(self, sufixo):
@@ -966,9 +969,28 @@ class Humano:
             ang = math.atan2(dm.cross(fp).dot(pn), dm.dot(fp))
             exc = abs(ang) - math.radians(12)
             exc *= 1.0 - mov.suave(abs(ang), math.radians(100), math.radians(140))  # ambíguo perto de 180°: não gira
+            diag = 0.0
             if exc > 0:
-                R = Quaternion(pn, math.copysign(min(exc, math.radians(24)), ang)).to_matrix() @ R
+                q_ = Quaternion(pn, math.copysign(min(exc, math.radians(24)), ang)).to_matrix()
+                # sentido da diagonal: o anatômico leva o lado do mínimo para perto do punho (cabo na eminência
+                # hipotenar); o contrário (pegada aberta, desvio radial) leva o cabo para a falange média do mínimo
+                if (q_ @ dm).dot(th) < dm.dot(th):
+                    diag = min(exc, math.radians(24))
+                R = q_ @ R
+            self._abrir_minimo(sufixo, diag)
         return R @ self.rest["wrist" + sufixo].to_3x3()
+
+    def _abrir_minimo(self, sufixo, diag):
+        """Cabo cruzando a palma com o lado do mínimo mais distal (ângulo diag, rad): mínimo e anelar abrem a MCP o
+        bastante para o cabo ficar na prega da PIP em vez de entrar na falange (idempotente: parte do estado da mão)."""
+        v = getattr(self, "_v_mao", {}).get(sufixo)
+        if v is None or v <= 0.5:
+            return
+        for f, k in ((5, 1.6), (4, 0.8)):
+            self.dedo(sufixo, f, v)
+            if diag > 0:
+                nome = f"finger{f}-1{sufixo}"
+                self.set_local(nome, self.basis[nome].to_quaternion() @ Quaternion(self._eixo_dedo[nome], diag * k))
 
     def punho(self, sf, flexao=0.0, desvio=0.0):
         """Articulação do punho independente do antebraço: flexão (+, palma para o antebraço) / extensão (-) e desvio
@@ -3024,7 +3046,8 @@ def corrigir_barra(h, ctx, T):
         return centro, eixo
     if modo != "maos":
         costas = pesc - fw_t * 0.95 - up_t * 0.55
-        rack = pesc + fw_t * (1.45 if modo == "rack" else 1.05) - up_t * 0.55  # rack frontal parado: mais à frente
+        # rack frontal parado: mais à frente
+        rack = pesc + fw_t * (1.45 if modo == "rack" else 1.05) - up_t * 0.55
         alvo = costas if modo == "costas" else rack
         w = 1.0 if modo in ("costas", "rack") else 1.0 - mov.suave((centro - rack).length, 0.7, 2.2)
         if w > 0:
