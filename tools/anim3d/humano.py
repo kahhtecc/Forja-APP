@@ -2014,6 +2014,8 @@ def colocar_chave(h, ctx, q):
         else:
             T = Matrix.Translation((0, 0, b3.z - g.z)) @ T
         T = segurar_barra(h, ctx, T)
+        if pes_chao:
+            T = girar_ate_barra(h, ctx, T)
         T = cabeca_atras_da_barra(h, ctx, T)
     if chave3 is not None and "ancora" not in ref:
         ref["ancora"] = chave3(T).y
@@ -2118,6 +2120,27 @@ def _segurar_barra(h, ctx, T, b3):
             R = h.rot_pegada(sf, eixo, None if ctx.paralelas else ctx.supinada)
             alvo = Ti @ alvo_m - R @ h.off_peg[sf]
             h.ik("braco", sf, alvo, R)
+
+
+def girar_ate_barra(h, ctx, T):
+    """Barra fixa com os pés no chão (remada invertida): o corpo gira em torno dos pés até a pegada JÁ RESOLVIDA pela IK
+    ficar na barra (a rotação pela pegada da pose livre deixava a mão até 9 cm fora quando o braço não alcançava)."""
+    b3 = ctx.ref["barra3"]
+    for _ in range(3):
+        g = (T @ h.pegada(".L") + T @ h.pegada(".R")) / 2
+        if math.hypot(g.y - b3.y, g.z - b3.z) < 0.04:
+            break
+        piv = T @ h.cabeca("foot.L")
+        r = math.hypot(g.y - piv.y, g.z - piv.z)
+        if r < 1e-3 or abs(b3.z - piv.z) >= r:
+            break
+        ang_g = math.atan2(g.z - piv.z, g.y - piv.y)
+        alvo = math.asin((b3.z - piv.z) / r)
+        alvo = alvo if math.cos(ang_g) >= 0 else math.pi - alvo
+        dd = (alvo - ang_g + math.pi) % (2 * math.pi) - math.pi
+        T = _rot_eixo(piv, Vector((1, 0, 0)), max(-0.3, min(0.3, dd))) @ T
+        T = segurar_barra(h, ctx, T)
+    return T
 
 
 def cabeca_atras_da_barra(h, ctx, T, folga=0.32):
@@ -3109,6 +3132,8 @@ def finalizar(h, ctx, T, tau, seg, maos):
         pesos = plantar(h, ctx, T, ctx.chaves, i, j, u)
         if ctx.barra is not None and "barra3" in ctx.ref:
             T = segurar_barra(h, ctx, T)
+            if not ctx.pendurado and not ctx.paralelas and pesos.get("pe_f", 0) > 0.5:
+                T = girar_ate_barra(h, ctx, T)
             T = cabeca_atras_da_barra(h, ctx, T)
     if pesos:
         T = assentar_apoios(h, ctx, T, pesos)
