@@ -1675,7 +1675,8 @@ def _esteira(kit, ctx, root_y, am):
     topo = 11.5
     for s in (-1, 1):
         kit.viga((s * 2.5, frente - 0.6, 0.9), (s * 2.5, frente - 1.4, topo), 0.45, 0.6, kit.quadro)
-        kit.cil((s * 2.6, frente - 1.2, 9.6), (s * 2.6, frente + 3.2, 9.6), 0.16, kit.metal, 16)
+        # corrimão um pouco por fora do balanço dos braços (em 2,6 a mão encostava nele ao caminhar)
+        kit.cil((s * 2.85, frente - 1.2, 9.6), (s * 2.85, frente + 3.2, 9.6), 0.16, kit.metal, 16)
     kit.caixa((0, frente - 1.5, topo + 0.3), (5.6, 1.4, 1.1), kit.preto, 0.25, rot=(math.radians(-25), 0, 0))
     kit.caixa((0, frente - 1.0, topo - 0.3), (5.2, 0.2, 0.5), kit.brasa, 0.05)
 
