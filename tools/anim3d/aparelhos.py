@@ -460,6 +460,10 @@ def depois_ik(ctx, h, T, tau, extras):
 
 def halteres_fora_do_corpo(ctx, h, T, raio=0.66):
     """Halter (um por mão) não entra na coxa/tronco: a mão é afastada para fora (IK) o que faltar."""
+    kb = [p for p in ctx.props if p.get("tipo") == "kettlebell" and _qual_mao(p) != "ambas"]
+    if kb and "halter" not in ctx.tipos:
+        kettlebell_fora_do_corpo(ctx, h, T, kb[0])
+        return
     if "halter" not in ctx.tipos or "halter_unico" in (getattr(ctx, "impl", None) or {}):
         return
     pr = [p for p in ctx.props if p.get("tipo") == "halter"][0]
@@ -483,6 +487,30 @@ def halteres_fora_do_corpo(ctx, h, T, raio=0.66):
             lat = (T.to_3x3() @ Vector((sx, 0, 0))).normalized()
             alvo = Ti @ (T @ h.cabeca("wrist" + sf) + lat * (pior + 0.03))
             h.ik("braco", sf, alvo, h.rot("wrist" + sf))
+
+
+def kettlebell_fora_do_corpo(ctx, h, T, pr, raio=1.0):
+    """Kettlebell de uma mão pendurado (alça na palma): o sino não entra na coxa/tronco; a mão se afasta para fora (IK)
+    o que faltar. Sino aproximado a 1,6 dm abaixo da pegada (a direção real do pêndulo é desenhada em _kettlebell)."""
+    sf = ".L" if _qual_mao(pr) == "f" else ".R"
+    sx = 1 if sf == ".L" else -1
+    Ti = T.inverted()
+    ante = T.to_3x3() @ (h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized()
+    if ante.z > -0.3:
+        return  # braço para cima/à frente: o sino não pendura ao lado da coxa
+    P = h.proxy(T)
+    corpo = h.px_partes["tronco"] | h.px_partes["coxa_f"] | h.px_partes["coxa_t"] | h.px_partes["canela_f"] | h.px_partes["canela_t"]
+    Q = P[corpo]
+    for _ in range(3):
+        c = np.array(T @ h.pegada(sf) + Vector((0, 0, -1.6)))
+        pior = raio - float(np.linalg.norm(Q - c, axis=1).min())
+        if pior <= 0.01:
+            break
+        lat = (T.to_3x3() @ Vector((sx, 0, 0))).normalized()
+        alvo = Ti @ (T @ h.cabeca("wrist" + sf) + lat * (pior + 0.03))
+        h.ik("braco", sf, alvo, h.rot("wrist" + sf))
+        P = h.proxy(T)
+        Q = P[corpo]
 
 
 def pegar_em(h, T, sf, pos, eixo, supinada=None, passes=2):
@@ -620,6 +648,13 @@ def pegada_implementos(ctx, h, T, tau, extras):
         if tc == "triangulo":
             cab = (A - c).normalized()
             eixo = cab.cross(lat).normalized()
+            # o triângulo é solto no cabo: os pegadores ficam perpendiculares aos antebraços (punho neutro, sem desvio
+            # radial), não ao cabo
+            fa = T.to_3x3() @ sum(((h.cabeca("wrist" + sf) - h.cabeca("lowerarm01" + sf)).normalized() for sf in (".L", ".R")), Vector())
+            e2 = fa.cross(lat)
+            if e2.length > 0.3:
+                e2 = e2.normalized() * (1 if e2.dot(eixo) > 0 else -1)
+                eixo = (eixo * 0.3 + e2 * 0.7).normalized()
             for sf, sx in ((".L", 1), (".R", -1)):
                 pegar_em(h, T, sf, c + lat * (0.7 * sx), eixo)
             # braços esticados que não alcançam o pegador: o triângulo (solto no cabo) vem até as mãos ao longo do cabo
@@ -1840,14 +1875,15 @@ def _polia(kit, ctx, pr, am):
             return
         if tipo == "triangulo":
             c, lat, eixo = est["extras"].get("triangulo", ((gL + gR) / 2, (gL - gR).normalized(), Vector((0, 1, 0))))
-            topo = c + (polias[0] - c).normalized() * 1.1
+            # pegadores de 1,4 dm (a mão fechada, ~0,9 dm de largura, cabe sem encostar nas hastes)
+            topo = c + (polias[0] - c).normalized() * 1.2
             for i_, (o, s_) in enumerate(zip(tri[:2], (1, -1))):
                 m_ = c + lat * (0.7 * s_)
-                Kit.por_cil(o, m_ - eixo * 0.6, m_ + eixo * 0.6)
-                Kit.por_cil(tri[2 + i_], m_ + eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1), topo)
+                Kit.por_cil(o, m_ - eixo * 0.7, m_ + eixo * 0.7)
+                Kit.por_cil(tri[2 + i_], m_ + eixo * 0.7 * (1 if eixo.dot(polias[0] - c) > 0 else -1), topo)
                 o.hide_render = tri[2 + i_].hide_render = False
-            Kit.por_cil(tri[4], c + lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1),
-                        c - lat * 0.7 - eixo * 0.6 * (1 if eixo.dot(polias[0] - c) > 0 else -1))
+            Kit.por_cil(tri[4], c + lat * 0.7 - eixo * 0.7 * (1 if eixo.dot(polias[0] - c) > 0 else -1),
+                        c - lat * 0.7 - eixo * 0.7 * (1 if eixo.dot(polias[0] - c) > 0 else -1))
             tri[4].hide_render = False
             cabo_ate(topo)
             for o in cordas + [alca, puxador]:

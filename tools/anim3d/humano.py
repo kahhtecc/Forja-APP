@@ -3068,8 +3068,23 @@ def corrigir_barra(h, ctx, T):
         for sf, sx_ in ((".L", 1), (".R", -1)):
             alvo_m = centro + eixo * (meia * sx_)
             Rh = h.rot_pegada(sf, Ti.to_3x3() @ eixo, ctx.supinada)
+            if modo == "costas":
+                # barra nas costas: punho estendido, a barra apoiada na base da palma (o punho fica sob a barra, não atrás
+                # dela, e o ombro não passa da rotação externa do agachamento real)
+                Rh = _estender_punho(h, sf, Rh, EXT_PUNHO_COSTAS)
             h.ik("braco", sf, Ti @ alvo_m - Rh @ h.off_peg[sf], Rh)
     return centro, eixo
+
+
+EXT_PUNHO_COSTAS = 35.0
+
+
+def _estender_punho(h, sf, R, graus):
+    """Rotação R do punho (esqueleto) com a mão estendida 'graus' em volta do eixo lateral da própria mão."""
+    Rr = R @ h.rest_inv["wrist" + sf].to_3x3()
+    F = h.ref_mao[sf]
+    dm, pa = (Rr @ F.col[0]).normalized(), (Rr @ F.col[2]).normalized()
+    return Quaternion(dm.cross(pa).normalized(), -math.radians(graus)).to_matrix() @ R
 
 
 ISOMETRIAS_PESADAS = ("prancha", "prancha-lateral", "wall-sit", "nordico", "ponte-pescoco", "superman")
