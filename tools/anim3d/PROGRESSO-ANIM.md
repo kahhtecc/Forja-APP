@@ -177,3 +177,13 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
   isometria-pescoco (palma na testa, câmera de frente), alongamento-quadriceps (mão no tornozelo; QA limpo),
   alongamento-adutores (borboleta sentada), fuga-quadril (shrimp de lado com câmera de cima), remada-invertida (fundo mais
   baixo). Turkish-getup não mexido. Pendências de motor achadas: motor-pendencias.md ("Rodada pós-revisão (animador, dados)").
+
+### Rodada de aprimoramento final (pesquisa/aprimoramento-final.md)
+- Motor: "segura" com a palma na pele real (cabeça/nuca sem a mão dentro do crânio), dedos que fecham até encostar no alvo
+  (envolvem tornozelo, pés, nuca), polegar fora do alvo; `pgf`/`pgt` (giro do pé: solas juntas); joelho como dobradiça
+  quando a canela sai do plano da coxa (borboleta, figura 4, abdutora); `nivelar_de_lado` por chave; barra fixa com os
+  pés no chão gira até a pegada resolvida pela IK.
+- Dados: borboleta (solas para dentro, mãos nos pés), fuga-quadril alternando os lados.
+- QA: "pousada" de membros só até 7 cm (coxas na prancha estão no ar, não "apoiadas").
+- Conferidos de novo (tiras de 6 quadros): roscas, supino-maquina, eliptico, escada, hack, corda, alongamento-panturrilha.
+- Em aberto: dedos das pegadas fecham para o dorso (hiperextensão) — ver motor-pendencias.md; turkish-getup (erro, dados).

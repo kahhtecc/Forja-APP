@@ -26,7 +26,8 @@ APOIO
             de uma superfície horizontal) > 3 cm por >= 0,15 s, sem mão presa a algo fixo, sem encosto lateral, fora de voo
             balístico e fora de locomoção (piso rolante, esteira, bike)
   flutua    nenhum contato fora das fases de voo
-  pousada   pelve/costas/cabeça (e coxa/joelho/antebraço deitados) parados de 3 a 15 cm acima de uma superfície: erro se
+  pousada   pelve/costas/cabeça parados de 3 a 15 cm (coxa/joelho/antebraço deitados: 3 a 7 cm; mais alto o membro está
+            claramente no ar, como as coxas na prancha) acima de uma superfície: erro se
             coincide com a base falhando ou, no tronco, se dura >= 1 s e >= 40 % do ciclo a <= 10 cm; senão aviso
   penetra   pele dentro de aparelho: > 1,5 cm erro (estofado: > 2,5 cm)
   amplitude (tipo "motor") amplitude renderizada do cotovelo/joelho x a dos dados (>= 40°): < 50 % aviso, < 35 % erro
@@ -1082,7 +1083,11 @@ def avaliar_corpo(h, corpo, ctx, estados, taus, fps, kit, passo=2):
     vlim = 0.04 * 24.0 / fps
     nh = max(5, int(round(0.4 * fps)))
     for rg, hv in hover.items():
-        flags = [x is not None and 0.3 < x[0] <= 1.5 and x[1] < vlim and not x[2] for x in hv]
+        # membros (coxa, joelho, antebraço) parados a mais de 7 cm de uma superfície estão claramente no ar (coxas na
+        # prancha/flexão, joelhos abertos na borboleta, antebraço no joelho): só o vão de 3 a 7 cm "parece apoiado"; o
+        # tronco (pelve/costas/cabeça) continua até 15 cm (o caso clássico do tronco deitado sobre um apoio invisível)
+        teto = 1.5 if rg in ("pelve", "costas", "cabeca") else 0.7
+        flags = [x is not None and 0.3 < x[0] <= teto and x[1] < vlim and not x[2] for x in hv]
         for ini, L in _runs(flags):
             if L < nh:
                 continue

@@ -2,7 +2,7 @@
 
 Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 exercícios. Critérios, limiares e método de validação em `tools/anim3d/qa_corpo.py` e na seção final.
 
-**1 exercícios com erro, 86 só com aviso, 88 limpos.**
+**1 exercícios com erro, 80 só com aviso, 94 limpos.**
 
 ## Exercícios com defeito, por tipo
 
@@ -10,7 +10,7 @@ Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 ex
 |---|---|---|
 | Pegada | 0 | 6 |
 | Amplitude (ROM) | 1 | 28 |
-| Apoio / interpenetração | 1 | 62 |
+| Apoio / interpenetração | 1 | 53 |
 | Motor (pops, skate, chão...) | 0 | 7 |
 
 ## Erros por verificação (nº de exercícios)
@@ -18,14 +18,14 @@ Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 ex
 | Tipo | Verificação | Exercícios |
 |---|---|---|
 | apoio | base | 3 |
-| apoio | pousada | 2 |
+| apoio | pousada | 1 |
 | rom | quadril_extensao | 1 |
 
 ## Os piores (gravidade = soma de valor/limite dos erros, pesada pela duração)
 
 | # | Exercício | Gravidade | Principais erros |
 |---|---|---|---|
-| 1 | turkish-getup | 40.4 | base coxa dir 22.8 cm; base costas 13.4 cm; pousada joelho dir 10.6 cm; base coxa esq 11.5 cm; quadril_extensao quadril dir 42° |
+| 1 | turkish-getup | 32.8 | base coxa dir 22.8 cm; base costas 13.4 cm; base coxa esq 11.5 cm; quadril_extensao quadril dir 42°; pousada costas 3.2 cm |
 | 2 | agachamento-livre | 0.0 |  |
 | 3 | agachamento-barra | 0.0 |  |
 | 4 | cadeira-extensora | 0.0 |  |
@@ -63,16 +63,16 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | afundo-halteres | 0 | 0 | 0 | 0 | ok |
 | terra | 0 (2) | 0 | 0 | 0 | só avisos |
 | ponte-gluteo | 0 | 0 | 0 (2) | 0 (1) | só avisos |
-| abdutora | 0 | 0 | 0 (2) | 0 | só avisos |
+| abdutora | 0 | 0 | 0 | 0 | ok |
 | panturrilha-elastico | 0 | 0 | 0 | 0 (1) | só avisos |
-| prancha-lateral | 0 | 0 | 0 (3) | 0 | só avisos |
+| prancha-lateral | 0 | 0 | 0 (1) | 0 | só avisos |
 | mountain-climber | 0 | 0 (4) | 0 | 0 | só avisos |
-| roda-abdominal | 0 | 0 | 0 (2) | 0 | só avisos |
+| roda-abdominal | 0 | 0 | 0 | 0 | ok |
 | box-jump | 0 | 0 | 0 (3) | 0 | só avisos |
 | tuck-jump | 0 | 0 | 0 | 0 | ok |
 | nordico | 0 | 0 | 0 (3) | 0 | só avisos |
-| flexao | 0 | 0 | 0 (4) | 0 | só avisos |
-| flexao-diamante | 0 | 0 (4) | 0 (5) | 0 | só avisos |
+| flexao | 0 | 0 | 0 | 0 | ok |
+| flexao-diamante | 0 | 0 (4) | 0 (1) | 0 | só avisos |
 | supino-inclinado | 0 | 0 | 0 | 0 | ok |
 | crossover | 0 | 0 | 0 | 0 | ok |
 | paralelas | 0 (4) | 0 | 0 | 0 | só avisos |
@@ -99,8 +99,8 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | equilibrio-unipodal | 0 | 0 | 0 | 0 | ok |
 | circulos-ombro | 0 | 0 | 0 | 0 | ok |
 | abertura-peito-dinamica | 0 | 0 | 0 | 0 | ok |
-| alongamento-triceps | 0 | 0 | 0 (2) | 0 | só avisos |
-| torcao-coluna | 0 | 0 (4) | 0 (2) | 0 | só avisos |
+| alongamento-triceps | 0 | 0 | 0 (3) | 0 | só avisos |
+| torcao-coluna | 0 | 0 (4) | 0 | 0 | só avisos |
 | agachamento-elastico | 0 | 0 | 0 | 0 | ok |
 | agachamento-frontal | 0 | 0 | 0 | 0 | ok |
 | cadeira-flexora | 0 | 0 | 0 (2) | 0 | só avisos |
@@ -108,8 +108,8 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | stiff | 0 (1) | 0 | 0 | 0 | só avisos |
 | ponte-unilateral | 0 | 0 | 0 (2) | 0 | só avisos |
 | monster-walk | 0 | 0 | 0 | 0 | ok |
-| superman | 0 | 0 (1) | 0 (3) | 0 | só avisos |
-| abdominal | 0 | 0 | 0 (2) | 0 | só avisos |
+| superman | 0 | 0 (1) | 0 (1) | 0 | só avisos |
+| abdominal | 0 | 0 | 0 | 0 | ok |
 | russian-twist | 0 | 0 | 0 (4) | 0 | só avisos |
 | pallof | 0 | 0 | 0 (4) | 0 (1) | só avisos |
 | salto-distancia | 0 | 0 | 0 | 0 | ok |
@@ -135,26 +135,26 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | saco-combinacoes | 0 | 0 | 0 (1) | 0 | só avisos |
 | caminhada-corrida | 0 | 0 | 0 | 0 | ok |
 | bike-leve | 0 | 0 | 0 (2) | 0 | só avisos |
-| remo-ergometro | 0 | 0 (2) | 0 (2) | 0 | só avisos |
+| remo-ergometro | 0 | 0 (2) | 0 | 0 | só avisos |
 | maior-alongamento | 0 | 0 (2) | 0 (1) | 0 | só avisos |
 | alongamento-posterior | 0 | 0 | 0 | 0 | ok |
 | circulos-quadril | 0 | 0 | 0 (2) | 0 | só avisos |
 | alongamento-peito | 0 | 0 (1) | 0 | 0 (1) | só avisos |
 | balanco-pernas | 0 | 0 (2) | 0 (1) | 0 | só avisos |
-| circulos-joelho | 0 | 0 | 0 (1) | 0 | só avisos |
+| circulos-joelho | 0 | 0 | 0 (2) | 0 | só avisos |
 | spider | 0 | 0 (1) | 0 | 0 | só avisos |
 | alongamento-antebraco | 0 | 0 (2) | 0 | 0 | só avisos |
 | alongamento-dorsal | 0 | 0 | 0 | 0 (1) | só avisos |
 | agachamento-salto | 0 | 0 | 0 | 0 | ok |
 | leg-press | 0 | 0 | 0 (3) | 0 | só avisos |
-| mesa-flexora | 0 | 0 | 0 (6) | 0 | só avisos |
+| mesa-flexora | 0 | 0 | 0 (5) | 0 | só avisos |
 | bulgaro | 0 | 0 | 0 (1) | 0 | só avisos |
 | stiff-halteres | 0 | 0 | 0 | 0 | ok |
 | elevacao-quadril | 0 | 0 | 0 (3) | 0 | só avisos |
 | panturrilha-pe | 0 | 0 | 0 | 0 | ok |
 | hiperextensao | 0 | 0 | 0 (4) | 0 | só avisos |
 | abdominal-infra | 0 | 0 | 0 (1) | 0 | só avisos |
-| abdominal-bicicleta | 0 | 0 (2) | 0 | 0 | só avisos |
+| abdominal-bicicleta | 0 | 0 (4) | 0 | 0 | só avisos |
 | abdominal-polia | 0 | 0 | 0 | 0 | ok |
 | bound-lateral | 0 | 0 | 0 | 0 | ok |
 | ponte-pescoco | 0 | 0 (1) | 0 | 0 | só avisos |
@@ -175,7 +175,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | passe-medicine | 0 | 0 | 0 | 0 | ok |
 | corda | 0 | 0 | 0 | 0 | ok |
 | arremesso-medicine | 0 | 0 | 0 | 0 | ok |
-| turkish-getup | 0 | **1** (2) | **5** | 0 | base coxa dir 22.8 cm; base costas 13.4 cm; pousada joelho dir 10.6 cm; base coxa esq 11.5 cm |
+| turkish-getup | 0 | **1** (2) | **4** | 0 | base coxa dir 22.8 cm; base costas 13.4 cm; base coxa esq 11.5 cm; quadril_extensao quadril dir 42° |
 | sprawl | 0 | 0 | 0 | 0 | ok |
 | tiros | 0 | 0 | 0 | 0 | ok |
 | bike-intervalado | 0 | 0 | 0 (3) | 0 | só avisos |
@@ -183,20 +183,20 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | gato-camelo | 0 | 0 | 0 | 0 | ok |
 | alongamento-quadriceps | 0 | 0 | 0 | 0 | ok |
 | rolo-quadriceps | 0 | 0 | 0 (2) | 0 | só avisos |
-| rotacao-toracica | 0 | 0 (1) | 0 (4) | 0 | só avisos |
+| rotacao-toracica | 0 | 0 (1) | 0 (3) | 0 | só avisos |
 | circulos-tornozelo | 0 | 0 | 0 (1) | 0 | só avisos |
 | chute-gluteo | 0 | 0 | 0 | 0 | ok |
-| alongamento-gluteo | 0 | 0 (1) | 0 (5) | 0 | só avisos |
+| alongamento-gluteo | 0 | 0 (1) | 0 (3) | 0 | só avisos |
 | alongamento-pescoco | 0 | 0 | 0 | 0 (1) | só avisos |
 | moinho | 0 | 0 | 0 | 0 | ok |
 | agachamento-goblet | 0 | 0 (2) | 0 (1) | 0 | só avisos |
-| hack | 0 | 0 | 0 (6) | 0 | só avisos |
-| afundo | 0 | 0 | 0 (1) | 0 | só avisos |
+| hack | 0 | 0 | 0 (4) | 0 | só avisos |
+| afundo | 0 | 0 | 0 | 0 | ok |
 | step-up | 0 | 0 | 0 (1) | 0 | só avisos |
 | terra-uma-perna | 0 | 0 | 0 (1) | 0 | só avisos |
 | coice-gluteo | 0 | 0 | 0 | 0 | ok |
 | panturrilha-sentado | 0 | 0 | 0 | 0 | ok |
-| prancha | 0 | 0 | 0 (4) | 0 | só avisos |
+| prancha | 0 | 0 | 0 | 0 | ok |
 | dead-bug | 0 | 0 | 0 | 0 | ok |
 | elevacao-pernas-barra | 0 | 0 | 0 | 0 | ok |
 | canivete | 0 | 0 (1) | 0 | 0 | só avisos |
@@ -214,7 +214,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | desenvolvimento-elastico | 0 | 0 | 0 (1) | 0 | só avisos |
 | crucifixo-inverso | 0 | 0 | 0 | 0 | ok |
 | rosca-direta | 0 | 0 (2) | 0 | 0 | só avisos |
-| rosca-scott | 0 | 0 (2) | 0 (2) | 0 | só avisos |
+| rosca-scott | 0 | 0 (2) | 0 (1) | 0 | só avisos |
 | triceps-banco | 0 | 0 (2) | 0 | 0 | só avisos |
 | isometria-pescoco | 0 | 0 | 0 | 0 (1) | só avisos |
 | swing | 0 | 0 | 0 (2) | 0 | só avisos |
@@ -227,7 +227,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | postura-crianca | 0 | 0 (4) | 0 (7) | 0 | só avisos |
 | alongamento-panturrilha | 0 | 0 | 0 | 0 | ok |
 | rolo-panturrilha | 0 | 0 | 0 (1) | 0 | só avisos |
-| alongamento-adutores | 0 | 0 (2) | 0 (4) | 0 | só avisos |
+| alongamento-adutores | 0 | 0 (2) | 0 | 0 | só avisos |
 | circulos-punho | 0 | 0 | 0 | 0 | ok |
 | carioca | 0 | 0 | 0 | 0 | ok |
 | abraco-joelhos | 0 | 0 (4) | 0 | 0 | só avisos |
