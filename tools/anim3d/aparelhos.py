@@ -1843,10 +1843,11 @@ def _polia(kit, ctx, pr, am):
     puxador = kit.cil_movel(0.13, kit.metal, 12)
     tri = [kit.cil_movel(0.15, kit.preto, 12) for _ in range(2)] + [kit.cil_movel(0.1, kit.metal, 10) for _ in range(3)]
     dalc = [kit.cil_movel(0.15, kit.preto, 12) for _ in range(2)]
+    dlad = [kit.cil_movel(0.045, kit.cabo_m, 8) for _ in range(4)]  # laterais do D (crossover)
 
     def upd(est):
         gL, gR = _maos(h, est)
-        for o in tri + dalc:
+        for o in tri + dalc + dlad:
             o.hide_render = True
         if len(polias) == 2:
             h.restaurar(est["est"])
@@ -1856,7 +1857,14 @@ def _polia(kit, ctx, pr, am):
                 e = (T.to_3x3() @ h.eixo_pegada(sf)).normalized()
                 Kit.por_cil(dalc[i_], g - e * 0.6, g + e * 0.6)
                 dalc[i_].hide_render = False
-                Kit.por_cil(cab, p, g)
+                # pegador em D: o cabo prende no ápice do D, fora da mão fechada (na direção da polia), não no meio da
+                # palma (o cabo saía de dentro do punho)
+                dpol = (p - g) - e * (p - g).dot(e)
+                q = g + (dpol.normalized() if dpol.length > 1e-4 else Vector((0, 0, 1))) * 0.6
+                for k_, s_ in enumerate((1, -1)):
+                    Kit.por_cil(dlad[2 * i_ + k_], g + e * (0.6 * s_), q)
+                    dlad[2 * i_ + k_].hide_render = False
+                Kit.por_cil(cab, p, q)
             for o in [alca, puxador] + cordas:
                 o.hide_render = True
             return
@@ -2553,9 +2561,11 @@ def _corda(kit, ctx, h):
     def upd(est):
         h.restaurar(est["est"])
         T = est["T"]
-        gL, _ = _por_alca(mans[".L"], h, T, ".L", 0.6)
-        gR, _ = _por_alca(mans[".R"], h, T, ".R", 0.6)
+        gL, eL = _por_alca(mans[".L"], h, T, ".L", 0.6)
+        gR, eR = _por_alca(mans[".R"], h, T, ".R", 0.6)
         C = (gL + gR) / 2
+        # a corda sai da ponta da manopla do lado do polegar (em cima do punho fechado), não do meio da palma
+        gL, gR = gL + eL * 0.6, gR + eR * 0.6
         R = max(C.z - ctx.z0 - 0.08, 3.0)
         # 0 = corda embaixo (pico do salto); gira para a frente: embaixo -> atrás -> em cima -> na frente (frente = -y).
         # (antes o sinal invertido girava para trás: a corda passava sob os pés de trás para a frente)
