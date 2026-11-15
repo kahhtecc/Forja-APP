@@ -116,3 +116,11 @@ Um agente por vez, iniciado automaticamente:
 2. Revisor independente dos 175 (reprovados voltam para correção).
 3. **Agente de aprimoramento (modelo Fable)**: depois que tudo acima terminar, rever todas as melhorias feitas nas animações (motor + dados, rodadas 5–11) e melhorar ainda mais — atacar os 88 avisos do QA, naturalidade do movimento (ritmo, easing, respiração, olhar), pegadas e apoios; sem regressões, QA completo no fim.
 4. Render de produção no CI, builds Android/iOS/site, entrega ao usuário.
+
+## Rodada 7 — entrega (15/11)
+- Aprimoramento final (94/80/1) + pegadas com dedos para a palma e polegar em oposição (QA 104 limpos / 70 avisos / 1 erro = turkish-getup, sem regressões; pesquisa/pegadas-dedos.md).
+- Render de produção no CI: run 43657220123 (175 vídeos, commit 1851c64).
+- Links migrados para kahhtecc/Forja-APP (Pages não redireciona após a transferência; allowlist de atualização aceita repo novo e antigo + release-assets.githubusercontent.com).
+- Android teste-33 (43671699600) assinado localmente → entregas/Forja-33.apk (v2) + Forja-33-play.aab (SHA-256 35:99:90…19:41). iOS ios-25 (43671699581) → entregas/Forja-iOS-25.ipa. Site 43671699602 ok.
+- Paridade: 175 mp4 idênticos (hash 869338e35a66) e conteudo2.json idêntico (84bce9f1fa02) no APK, na IPA e no repo.
+- Aviso: APKs antigos (≤32) não reconhecem releases do repo novo; reinstalar uma vez.
