@@ -2,15 +2,15 @@
 
 Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 exercícios. Critérios, limiares e método de validação em `tools/anim3d/qa_corpo.py` e na seção final.
 
-**1 exercícios com erro, 80 só com aviso, 94 limpos.**
+**1 exercícios com erro, 70 só com aviso, 104 limpos.**
 
 ## Exercícios com defeito, por tipo
 
 | Tipo | Exercícios com erro | Só aviso |
 |---|---|---|
-| Pegada | 0 | 6 |
-| Amplitude (ROM) | 1 | 28 |
-| Apoio / interpenetração | 1 | 53 |
+| Pegada | 0 | 3 |
+| Amplitude (ROM) | 1 | 26 |
+| Apoio / interpenetração | 1 | 47 |
 | Motor (pops, skate, chão...) | 0 | 7 |
 
 ## Erros por verificação (nº de exercícios)
@@ -25,7 +25,7 @@ Gerado por `tools/anim3d/qa.py` + `tools/anim3d/qa_relatorio.py` sobre os 175 ex
 
 | # | Exercício | Gravidade | Principais erros |
 |---|---|---|---|
-| 1 | turkish-getup | 32.8 | base coxa dir 22.8 cm; base costas 13.4 cm; base coxa esq 11.5 cm; quadril_extensao quadril dir 42°; pousada costas 3.2 cm |
+| 1 | turkish-getup | 31.2 | base coxa dir 22.4 cm; base costas 12.6 cm; base coxa esq 10.6 cm; quadril_extensao quadril dir 42°; pousada costas 3.2 cm |
 | 2 | agachamento-livre | 0.0 |  |
 | 3 | agachamento-barra | 0.0 |  |
 | 4 | cadeira-extensora | 0.0 |  |
@@ -61,7 +61,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | agachamento-barra | 0 | 0 (2) | 0 | 0 | só avisos |
 | cadeira-extensora | 0 | 0 | 0 (1) | 0 | só avisos |
 | afundo-halteres | 0 | 0 | 0 | 0 | ok |
-| terra | 0 (2) | 0 | 0 | 0 | só avisos |
+| terra | 0 | 0 | 0 (2) | 0 | só avisos |
 | ponte-gluteo | 0 | 0 | 0 (2) | 0 (1) | só avisos |
 | abdutora | 0 | 0 | 0 | 0 | ok |
 | panturrilha-elastico | 0 | 0 | 0 | 0 (1) | só avisos |
@@ -75,8 +75,8 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | flexao-diamante | 0 | 0 (4) | 0 (1) | 0 | só avisos |
 | supino-inclinado | 0 | 0 | 0 | 0 | ok |
 | crossover | 0 | 0 | 0 | 0 | ok |
-| paralelas | 0 (4) | 0 | 0 | 0 | só avisos |
-| puxada-frente | 0 | 0 | 0 (2) | 0 | só avisos |
+| paralelas | 0 | 0 | 0 | 0 | ok |
+| puxada-frente | 0 | 0 (2) | 0 (1) | 0 | só avisos |
 | remada-unilateral | 0 | 0 | 0 | 0 | ok |
 | pullover-polia | 0 | 0 | 0 | 0 | ok |
 | desenvolvimento-halteres | 0 | 0 | 0 | 0 | ok |
@@ -89,7 +89,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | thruster | 0 | 0 | 0 | 0 | ok |
 | farmer-walk | 0 | 0 | 0 | 0 | ok |
 | sombra | 0 | 0 | 0 | 0 | ok |
-| corrida-leve | 0 | 0 | 0 (1) | 0 | só avisos |
+| corrida-leve | 0 | 0 | 0 | 0 | ok |
 | longao | 0 | 0 | 0 | 0 | ok |
 | eliptico | 0 (2) | 0 | 0 | 0 | só avisos |
 | caminhada | 0 | 0 | 0 | 0 | ok |
@@ -105,7 +105,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | agachamento-frontal | 0 | 0 | 0 | 0 | ok |
 | cadeira-flexora | 0 | 0 | 0 (2) | 0 | só avisos |
 | passada-andando | 0 | 0 | 0 | 0 | ok |
-| stiff | 0 (1) | 0 | 0 | 0 | só avisos |
+| stiff | 0 | 0 | 0 | 0 | ok |
 | ponte-unilateral | 0 | 0 | 0 (2) | 0 | só avisos |
 | monster-walk | 0 | 0 | 0 | 0 | ok |
 | superman | 0 | 0 (1) | 0 (1) | 0 | só avisos |
@@ -119,7 +119,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | flexao-pliometrica | 0 | 0 | 0 | 0 | ok |
 | supino-inclinado-barra | 0 | 0 | 0 | 0 | ok |
 | peck-deck | 0 | 0 | 0 | 0 | ok |
-| barra-fixa | 0 (2) | 0 | 0 | 0 | só avisos |
+| barra-fixa | 0 | 0 | 0 | 0 | ok |
 | puxada-triangulo | 0 | 0 | 0 | 0 | ok |
 | remada-elastico | 0 | 0 | 0 | 0 | ok |
 | face-pull | 0 | 0 | 0 | 0 | ok |
@@ -127,12 +127,12 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | elevacao-lateral-elastico | 0 | 0 | 0 | 0 | ok |
 | pike-pushup | 0 | 0 | 0 (2) | 0 | só avisos |
 | rosca-martelo | 0 | 0 | 0 | 0 | ok |
-| triceps-frances | 0 | 0 (2) | 0 | 0 | só avisos |
+| triceps-frances | 0 (2) | 0 (2) | 0 | 0 | só avisos |
 | triceps-coice | 0 | 0 | 0 | 0 | ok |
 | polichinelo | 0 | 0 | 0 | 0 | ok |
-| power-clean | 0 (1) | 0 (2) | 0 (1) | 0 | só avisos |
+| power-clean | 0 | 0 (2) | 0 (5) | 0 | só avisos |
 | sled-push | 0 | 0 | 0 | 0 | ok |
-| saco-combinacoes | 0 | 0 | 0 (1) | 0 | só avisos |
+| saco-combinacoes | 0 | 0 | 0 | 0 | ok |
 | caminhada-corrida | 0 | 0 | 0 | 0 | ok |
 | bike-leve | 0 | 0 | 0 (2) | 0 | só avisos |
 | remo-ergometro | 0 | 0 (2) | 0 | 0 | só avisos |
@@ -146,9 +146,9 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | alongamento-antebraco | 0 | 0 (2) | 0 | 0 | só avisos |
 | alongamento-dorsal | 0 | 0 | 0 | 0 (1) | só avisos |
 | agachamento-salto | 0 | 0 | 0 | 0 | ok |
-| leg-press | 0 | 0 | 0 (3) | 0 | só avisos |
-| mesa-flexora | 0 | 0 | 0 (5) | 0 | só avisos |
-| bulgaro | 0 | 0 | 0 (1) | 0 | só avisos |
+| leg-press | 0 | 0 | 0 (2) | 0 | só avisos |
+| mesa-flexora | 0 | 0 | 0 (2) | 0 | só avisos |
+| bulgaro | 0 | 0 | 0 (2) | 0 | só avisos |
 | stiff-halteres | 0 | 0 | 0 | 0 | ok |
 | elevacao-quadril | 0 | 0 | 0 (3) | 0 | só avisos |
 | panturrilha-pe | 0 | 0 | 0 | 0 | ok |
@@ -163,10 +163,10 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | supino-reto | 0 | 0 | 0 | 0 | ok |
 | supino-maquina | 0 | 0 | 0 | 0 | ok |
 | supino-elastico | 0 | 0 | 0 | 0 | ok |
-| barra-supinada | 0 | 0 (2) | 0 | 0 | só avisos |
+| barra-supinada | 0 | 0 | 0 | 0 | ok |
 | remada-baixa | 0 | 0 | 0 | 0 | ok |
 | remada-invertida | 0 | 0 (2) | 0 | 0 | só avisos |
-| band-pull-apart | 0 | 0 | 0 (1) | 0 | só avisos |
+| band-pull-apart | 0 | 0 | 0 | 0 | ok |
 | desenvolvimento-maquina | 0 | 0 | 0 | 0 | ok |
 | elevacao-frontal | 0 | 0 | 0 | 0 | ok |
 | rotacao-externa | 0 | 0 | 0 (1) | 0 | só avisos |
@@ -175,7 +175,7 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | passe-medicine | 0 | 0 | 0 | 0 | ok |
 | corda | 0 | 0 | 0 | 0 | ok |
 | arremesso-medicine | 0 | 0 | 0 | 0 | ok |
-| turkish-getup | 0 | **1** (2) | **4** | 0 | base coxa dir 22.8 cm; base costas 13.4 cm; base coxa esq 11.5 cm; quadril_extensao quadril dir 42° |
+| turkish-getup | 0 | **1** (2) | **4** | 0 | base coxa dir 22.4 cm; base costas 12.6 cm; base coxa esq 10.6 cm; quadril_extensao quadril dir 42° |
 | sprawl | 0 | 0 | 0 | 0 | ok |
 | tiros | 0 | 0 | 0 | 0 | ok |
 | bike-intervalado | 0 | 0 | 0 (3) | 0 | só avisos |
@@ -184,13 +184,13 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | alongamento-quadriceps | 0 | 0 | 0 | 0 | ok |
 | rolo-quadriceps | 0 | 0 | 0 (2) | 0 | só avisos |
 | rotacao-toracica | 0 | 0 (1) | 0 (3) | 0 | só avisos |
-| circulos-tornozelo | 0 | 0 | 0 (1) | 0 | só avisos |
+| circulos-tornozelo | 0 | 0 | 0 (2) | 0 | só avisos |
 | chute-gluteo | 0 | 0 | 0 | 0 | ok |
 | alongamento-gluteo | 0 | 0 (1) | 0 (3) | 0 | só avisos |
 | alongamento-pescoco | 0 | 0 | 0 | 0 (1) | só avisos |
 | moinho | 0 | 0 | 0 | 0 | ok |
-| agachamento-goblet | 0 | 0 (2) | 0 (1) | 0 | só avisos |
-| hack | 0 | 0 | 0 (4) | 0 | só avisos |
+| agachamento-goblet | 0 | 0 (2) | 0 | 0 | só avisos |
+| hack | 0 | 0 | 0 (5) | 0 | só avisos |
 | afundo | 0 | 0 | 0 | 0 | ok |
 | step-up | 0 | 0 | 0 (1) | 0 | só avisos |
 | terra-uma-perna | 0 | 0 | 0 (1) | 0 | só avisos |
@@ -206,25 +206,25 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | flexao-declinada | 0 | 0 | 0 | 0 | ok |
 | supino-halteres | 0 | 0 | 0 | 0 | ok |
 | crucifixo | 0 | 0 | 0 | 0 | ok |
-| crucifixo-elastico | 0 | 0 | 0 (1) | 0 | só avisos |
+| crucifixo-elastico | 0 | 0 | 0 | 0 | ok |
 | barra-assistida | 0 | 0 | 0 | 0 | ok |
 | remada-curvada | 0 | 0 | 0 | 0 | ok |
 | pulldown-elastico | 0 | 0 | 0 | 0 | ok |
 | encolhimento | 0 | 0 | 0 | 0 | ok |
-| desenvolvimento-elastico | 0 | 0 | 0 (1) | 0 | só avisos |
+| desenvolvimento-elastico | 0 | 0 | 0 | 0 | ok |
 | crucifixo-inverso | 0 | 0 | 0 | 0 | ok |
-| rosca-direta | 0 | 0 (2) | 0 | 0 | só avisos |
-| rosca-scott | 0 | 0 (2) | 0 (1) | 0 | só avisos |
+| rosca-direta | 0 (2) | 0 | 0 | 0 | só avisos |
+| rosca-scott | 0 | 0 | 0 (2) | 0 | só avisos |
 | triceps-banco | 0 | 0 (2) | 0 | 0 | só avisos |
 | isometria-pescoco | 0 | 0 | 0 | 0 (1) | só avisos |
 | swing | 0 | 0 | 0 (2) | 0 | só avisos |
 | battle-rope | 0 | 0 | 0 | 0 | ok |
 | inchworm | 0 | 0 | 0 | 0 | ok |
 | bear-crawl | 0 | 0 | 0 | 0 | ok |
-| tempo-run | 0 | 0 | 0 (2) | 0 | só avisos |
+| tempo-run | 0 | 0 | 0 | 0 | ok |
 | bike-cadencia | 0 | 0 | 0 (2) | 0 | só avisos |
 | prova | 0 | 0 | 0 | 0 | ok |
-| postura-crianca | 0 | 0 (4) | 0 (7) | 0 | só avisos |
+| postura-crianca | 0 | 0 (4) | 0 (6) | 0 | só avisos |
 | alongamento-panturrilha | 0 | 0 | 0 | 0 | ok |
 | rolo-panturrilha | 0 | 0 | 0 (1) | 0 | só avisos |
 | alongamento-adutores | 0 | 0 (2) | 0 | 0 | só avisos |
@@ -232,3 +232,16 @@ Colunas: nº de verificações com erro (e aviso) por tipo; defeitos = os erros 
 | carioca | 0 | 0 | 0 | 0 | ok |
 | abraco-joelhos | 0 | 0 (4) | 0 | 0 | só avisos |
 | alongamento-lateral | 0 | 0 | 0 (3) | 0 | só avisos |
+
+## Verificações novas: dedos e pegada (rodada das pegadas)
+
+- `rom/dedos_hiperext` (toda mão, todo quadro): sinal da flexão de cada falange em relação à normal palmar levada pelo
+  osso-pai (MCP/PIP/DIP dos dedos 2-5; MCP/IP do polegar pela dobra de repouso). Extensão além do fisiológico (MCP 30°,
+  PIP 10°, DIP 15°, polegar 20°): > 0 aviso, > 15° erro.
+- `pegada/palma`: centro do túnel dos dedos atrás do plano palmar (linha das MCP), ou seja, cabo do lado do dorso:
+  > 0,5 cm aviso, > 1 cm erro.
+- `pegada/polegar`: ponta do polegar atrás do plano palmar numa pegada (sem oposição): > 0,5 cm aviso, > 1,5 cm erro.
+
+No motor anterior (043c19d) estas verificações dão erro em todas as pegadas (barra-fixa e rosca-halteres: hiperextensão
+77°, cabo 2,1 cm do lado do dorso, polegar 0,8 cm atrás; sombra: 83°). No motor atual nenhum exercício as aciona.
+Detalhes: `pesquisa/pegadas-dedos.md`.

@@ -186,4 +186,18 @@ crucifixo-inverso, desenvolvimento-barra): escolher cam positiva de 3/4 sem as m
 - Dados: borboleta (solas para dentro, mãos nos pés), fuga-quadril alternando os lados.
 - QA: "pousada" de membros só até 7 cm (coxas na prancha estão no ar, não "apoiadas").
 - Conferidos de novo (tiras de 6 quadros): roscas, supino-maquina, eliptico, escada, hack, corda, alongamento-panturrilha.
-- Em aberto: dedos das pegadas fecham para o dorso (hiperextensão) — ver motor-pendencias.md; turkish-getup (erro, dados).
+- Em aberto: turkish-getup (erro, dados). (Dedos em hiperextensão: resolvido na rodada das pegadas, abaixo.)
+
+### Rodada das pegadas: dedos para a palma (pesquisa/pegadas-dedos.md)
+- Motor: dedos das pegadas flexionavam para o dorso (PIP a -86°, unhas para dentro do cabo); agora MCP/PIP/DIP flexionam
+  para a palma nos estados > 0 (pegada, semifechada, punho), o cabo fica na palma (compressão máx. 7 mm), o polegar faz
+  oposição em volta do cabo (POLEGAR_PEG, `_calibrar_polegar`), punho fechado sem atravessar a palma (`punho_anat`),
+  mínimo/anelar abrem quando o cabo cruza a palma no sentido da pegada aberta; "segura" inalterado.
+- Consequências da mão do outro lado do cabo corrigidas no motor (barra nas costas, kettlebell de uma mão, triângulo,
+  paralelas, pallof, elástico sob os pés, crossover, corda, corrimão da esteira) e em 5 dados (puxada-frente,
+  roda-abdominal, abdominal-polia, desenvolvimento-barra, educativos-corrida).
+- QA novo: `rom/dedos_hiperext`, `pegada/palma`, `pegada/polegar` (pegam o motor antigo,
+  não acionam no atual).
+- QA dos 175: 104 limpos, 70 avisos, 1 erro (antes 94 / 80 / 1), sem regressão de status; avisos 190 → 176, erros 5 → 5
+  (turkish-getup).
+- Ferramentas: `<scratch>/dd/` (zm.sh close-up antes/depois, tiras.sh, sonda_flex.py, cal_pol.py, sonda_punho.py).

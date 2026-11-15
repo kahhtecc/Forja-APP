@@ -177,7 +177,7 @@ Achados de motor que os dados só contornam (o motor não foi alterado):
 - **`nivelar_de_lado` só com todas as chaves "lado"**: [RESOLVIDO] por chave; fuga-quadril alterna os lados.
 - **Barra fixa dependente do braço FK**: [RESOLVIDO] com os pés no chão o corpo gira em torno dos pés até a pegada já
   resolvida pela IK (chaves e quadros): remada-invertida com braços esticados 8,7 → 1,7 cm.
-- **[EM ABERTO, grande] Dedos fecham para o dorso nas pegadas**: o eixo de flexão dos dedos (`_preparar_maos`) leva a ponta
+- **[RESOLVIDO — pesquisa/pegadas-dedos.md] Dedos fecham para o dorso nas pegadas**: o eixo de flexão dos dedos (`_preparar_maos`) leva a ponta
   do dedo para o lado oposto da palma (conferido: com a mão espalmada no chão, palma para baixo e unhas para cima, o
   estado 1 levanta a ponta do dedo acima do punho). As pegadas calibradas "funcionam" porque o túnel é medido nos dedos
   como eles dobram, mas anatomicamente a mão em volta do cabo está em hiperextensão (unhas para dentro, palma para fora).
@@ -185,3 +185,25 @@ Achados de motor que os dados só contornam (o motor não foi alterado):
   (polegar não envolve o cabo, túnel 1,2–1,8 cm fora, rosto coberto na puxada, punho radial) — revertido. O "segura" já usa
   o sentido anatômico (`dedo(..., anat=True)`). Para corrigir as pegadas: inverter o eixo, recalibrar o polegar (oposição
   em volta do cabo, não flexão no plano da palma) e girar `rot_pegada` para a palma ficar de frente para o cabo.
+
+## Rodada das pegadas (dedos para a palma; pesquisa/pegadas-dedos.md)
+- **Dedos em hiperextensão nas pegadas**: [RESOLVIDO] flexão anatômica (MCP/PIP/DIP para a palma) nos estados > 0,
+  calibração da pegada refeita (cabo na palma, palma comprimindo no máx. 7 mm), polegar em oposição em volta do cabo
+  (tabela POLEGAR_PEG/POLEGAR_PUNHO de `_calibrar_polegar`), punho fechado sem as pontas atravessarem a palma
+  (`CURVA["punho_anat"]`), mínimo/anelar abrindo a MCP quando o cabo cruza a palma no sentido da pegada aberta. QA novo:
+  `rom/dedos_hiperext`, `pegada/palma`, `pegada/polegar` (pegam o motor antigo).
+- Consequências corrigidas (a mão passou para o outro lado do cabo): agachamento-barra (punho estendido na barra nas
+  costas), terra-uma-perna (kettlebell fora da coxa), remada-baixa/puxada-triangulo (triângulo solto no cabo, pegadores
+  1,4 dm perpendiculares aos antebraços), paralelas (x fixo dos tubos), pallof (sentido fixo do pegador único),
+  desenvolvimento-elastico (elástico contorna o antebraço), crossover (cabo no ápice do D), corda de pular (sai da ponta
+  da manopla), esteira (corrimão em ±2,85); dados: puxada-frente (cam 50), roda-abdominal (joelhos como apoio),
+  abdominal-polia (afa -10 na chave 0), desenvolvimento-barra (bfa 22 na chave 0), educativos-corrida (bfa 8).
+  QA dos 175: 104 limpos, 70 avisos, 1 erro (antes 94/80/1), sem regressão de status.
+- **Em aberto (limites)**: o polegar vem de uma tabela calibrada nesta malha (MakeHuman padrão): outra malha de mão exige
+  rodar `_calibrar_polegar` de novo; em cabos grossos (raio ≥ 0,2 dm) o polegar não alcança o lado oposto (fica ao lado
+  do cabo, como na mão real com pegador grosso); o sentido automático do cabo (`rot_pegada` com `supinada=None`) segue a
+  linha dos nós da pose livre e pode virar no meio do movimento quando o cabo fica perpendicular a ela (no pallof o sentido
+  ficou fixo; um desempate pela palma foi testado e deixado de fora por não ter sido validado nos 175); o
+  "segura" mantém a base antiga do polegar (varredura no sentido legado); a mão livre semifechada (corrida, 0,45) usa a
+  curva de pegada escalada pelo raio do cabo e fica pouco curvada (MCP 24–40°): partir da curva natural sem escala foi
+  testado e desfeito (mãos de apoio do bear-crawl flutuando 5,9 cm, mão no quadril nos educativos de corrida).
