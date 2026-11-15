@@ -12,7 +12,10 @@ A parte de código e segurança já está pronta (ver `SECURITY.md`). O que sobr
 | Política de privacidade | `https://kahhtecc.github.io/Forja-APP/privacidade.html` |
 | Site | `https://kahhtecc.github.io/Forja-APP/` |
 | SHA-256 da chave de assinatura | `35:99:90:E6:E5:A6:49:86:33:F7:43:EC:2E:5F:BB:73:75:2A:E5:BC:5B:1D:FC:47:F7:AE:28:70:D4:4E:19:41` |
-| Textos da ficha, ícone e destaque | `docs/loja/` |
+| Textos da ficha, ícone, destaque e capturas | `docs/loja/` |
+| Nível de API alvo (targetSdk) | 36 (Android 16), o mínimo exigido pela Play desde 31/08/2026 para apps novos e atualizações |
+
+> Requisitos da Play Console conferidos em 15/11/2026 (ver "Fontes" no fim). As regras mudam: se algo no console estiver diferente, vale o que o console mostra.
 
 ---
 
@@ -36,8 +39,10 @@ Sem os secrets, o CI gera só builds de teste (`teste-N`), que o app nunca ofere
 ### Passo 2: conta de desenvolvedor (1 a 3 dias para aprovar)
 1. Acesse **play.google.com/console** com a conta Google que vai ser a dona do app e pague a taxa única de **US$ 25**.
 2. Tipo de conta: **Pessoal**.
-3. Faça a **verificação de identidade**: nome completo, endereço, documento (RG ou CNH) e telefone. Espere o e-mail de aprovação.
-4. **Verificação de desenvolvedor Android** (obrigatória no Brasil desde 30/09/2026): no Play Console, abra **Verificação de desenvolvedor Android** e registre o pacote `com.kaiquecupertino.forja`. Para o que sai pela Play, o console registra a chave da Play sozinho. Adicione também a SHA-256 acima, para o APK distribuído pelo GitHub.
+3. Faça a **verificação de identidade**: nome completo, endereço, documento (RG ou CNH) e telefone. Espere o e-mail de aprovação. A taxa não é devolvida se o documento ou o cartão forem recusados, então use dados no seu nome.
+4. Confirme o **e-mail de contato** e o **telefone** (o console manda códigos).
+5. **Verificação do aparelho Android** (contas pessoais novas): instale o app **Google Play Console** num celular Android de verdade (Android 10 ou mais novo, sem root), entre com a mesma conta, escolha a conta de desenvolvedor e toque em **Verificar**. Leva menos de um minuto. Sem isso o app não pode ser disponibilizado na Play.
+6. **Verificação de desenvolvedor Android** (proteção ativa no Brasil desde 30/09/2026): o Google diz que a Play registra sozinha a grande maioria dos apps. Mesmo assim, abra **Verificação de desenvolvedor Android** no Play Console e confira se o pacote `com.kaiquecupertino.forja` aparece registrado. Adicione também a SHA-256 acima, para o APK distribuído pelo GitHub (fora da Play o registro é manual).
 
 ### Passo 3: criar o app
 1. **Todos os apps › Criar app**.
@@ -52,12 +57,12 @@ Responda cada cartão assim:
 | Política de privacidade | o link da tabela do topo |
 | Acesso ao app | Todas as funcionalidades estão disponíveis sem acesso especial (sem login) |
 | Anúncios | Não, o app não contém anúncios |
+| ID de publicidade | Não, o app não usa o ID de publicidade |
 | Classificação do conteúdo | e-mail de contato › categoria **Referência, notícias ou educação** (ou *Todos os outros tipos*) › responda **Não** a violência, sexo, linguagem, drogas, apostas, compras e interação entre usuários. Resultado esperado: **Livre** |
 | Público-alvo | **18 anos ou mais** (pode marcar também 13 a 17). Não é direcionado a crianças |
 | Apps de notícias / governo / financeiro / VPN | Não |
-| **Apps de saúde** | categoria **Fitness e exercícios físicos**. Não é dispositivo médico |
+| **Apps de saúde** | recurso **Atividade e condicionamento físico** (grupo Saúde e fitness). Não é dispositivo médico. As justificativas do Health Connect ficam **dentro deste mesmo formulário** (ver abaixo) |
 | **Segurança dos dados** | ver abaixo |
-| **Permissões do Health Connect** | ver abaixo |
 | **Serviço em primeiro plano** | ver abaixo |
 | Recursos financeiros / Apps de vigilância | Não |
 
@@ -67,7 +72,7 @@ Responda cada cartão assim:
 2. *Os dados são criptografados em trânsito?* **Sim** (só HTTPS, e só para baixar conteúdo público).
 3. *Os usuários podem pedir a exclusão?* Sim: Perfil › Apagar todos os dados, ou desinstalando.
 
-**Permissões do Health Connect** (o formulário aparece depois que você envia o primeiro AAB):
+**Health Connect** (dentro do formulário **Apps de saúde**: depois de marcar o recurso, o console pede uma explicação para cada tipo de dado; o antigo formulário separado de pedido de acesso foi desativado). Se a lista de tipos de dados ainda não aparecer, envie antes o AAB para a faixa de teste fechado (Passo 6) e volte aqui:
 
 | Permissão | Justificativa para colar |
 |---|---|
@@ -85,11 +90,11 @@ A tela de justificativa do app abre pelo próprio Health Connect. Política: o m
 ### Passo 5: ficha da loja (menu **Expandir o crescimento › Presença na loja › Versão principal da página**)
 - Nome, descrição curta e descrição completa: copie de `docs/loja/ficha.md`.
 - Ícone: `docs/loja/icone-512.png` · Recurso gráfico: `docs/loja/destaque-1024x500.png`.
-- Capturas de tela: de 2 a 8 imagens. Use as capturas da release mais recente no GitHub (`01-boas-vindas.png`, `hoje`, `plano`, `treino`, `perfil`…).
+- Capturas de tela: de 2 a 8 imagens. Use as 8 de `docs/loja/capturas/` (1080×2160). As capturas brutas da release (`01-boas-vindas.png`…) têm 1080×2400, mais compridas que a proporção máxima de 2:1 que a Play aceita, e por isso foram recortadas (sem a barra de status e a barra de gestos).
 - Categoria: **Saúde e fitness** · E-mail de contato: o da conta.
 
 ### Passo 6: teste fechado obrigatório (14 dias)
-Contas pessoais novas precisam de **12 testadores com o app instalado por 14 dias seguidos** antes de liberar a produção.
+Contas pessoais criadas depois de 13/11/2023 precisam de um teste fechado com **pelo menos 12 testadores inscritos por 14 dias seguidos** antes de liberar a produção (contas de organização não têm essa regra). A contagem vale no momento do pedido: se alguém sair do teste no meio, os 14 dias dele recomeçam. Por isso convide 15 ou mais.
 1. **Testar e lançar › Teste › Teste fechado › Criar faixa**.
 2. **Testadores**: crie uma lista com os e-mails (conta Google) de pelo menos 12 pessoas, ou use um Grupo do Google.
 3. **Criar versão** › envie o `Forja-N-play.aab` (da release `build-N` mais recente ou o que recebeu assinado) › notas: "Primeira versão de teste" › **Revisar e lançar**.
@@ -97,11 +102,11 @@ Contas pessoais novas precisam de **12 testadores com o app instalado por 14 dia
 5. Peça para manterem o app instalado e abrirem de vez em quando por 14 dias.
 
 ### Passo 7: produção
-1. Depois dos 14 dias: **Painel › Solicitar acesso à produção** e responda o questionário (o que os testadores acharam e o que você mudou).
+1. Depois dos 14 dias: **Painel › Solicitar acesso à produção** e responda o questionário (como recrutou os testadores, o que eles acharam e o que você mudou). A resposta costuma sair em até 7 dias.
 2. Com o acesso liberado: **Produção › Criar versão** › mesmo AAB (ou um mais novo) › **Países**: Brasil (ou todos) › **Revisar e lançar**.
-3. A análise leva de algumas horas a 7 dias. Saindo na Play, o aviso do Play Protect some.
+3. A análise leva de algumas horas a 7 dias, ou mais em casos excepcionais; contas novas costumam cair na revisão mais demorada. Saindo na Play, o aviso do Play Protect some.
 
-**Atualizações depois:** a cada push, o GitHub gera um novo `Forja-N-play.aab`. Envie em **Produção › Criar versão**. Animações e exercícios novos chegam sozinhos (atualização de conteúdo, sem código), o que a Play permite.
+**Atualizações depois:** a cada push, o GitHub gera um novo `Forja-N-play.aab` (o número da versão sobe sozinho; a Play recusa um AAB com número repetido). Envie em **Produção › Criar versão**. Cada atualização precisa continuar mirando o nível de API exigido no ano. Animações e exercícios novos chegam sozinhos (atualização de conteúdo, sem código), o que a Play permite.
 
 **Se o Play Protect bloquear o APK do GitHub antes de sair na Play:** peça revisão em support.google.com/googleplay/android-developer/contact/protectappeals.
 
@@ -193,3 +198,12 @@ Também exigem a conta Apple Developer (US$ 99) e a **notarização** da Apple. 
 - [ ] Release Android chamada `build-N`, não `teste-N` (sinal de que os secrets da chave estão configurados).
 - [ ] Notas da versão escritas em "Novidades desta versão".
 - [ ] Política de privacidade atualizada se o app passou a usar algo novo.
+
+## Fontes (conferidas em 15/11/2026)
+- Taxa, identidade e verificação do aparelho: Ajuda do Play Console (support.google.com/googleplay/android-developer, artigos 6112435, 10841920 e 14316361).
+- Teste fechado com 12 testadores por 14 dias: Ajuda do Play Console, artigo 14151465.
+- Nível de API alvo: developer.android.com/google/play/requirements/target-sdk.
+- Assinatura de apps pelo Google Play e chave de upload: developer.android.com/studio/publish/app-signing.
+- Health Connect no formulário Apps de saúde: developer.android.com/health-and-fitness/guides/health-connect/publish/declare-access.
+- Serviço em primeiro plano (declaração e vídeo): Ajuda do Play Console, artigo 13392821.
+- Verificação de desenvolvedor Android: developer.android.com/developer-verification.
