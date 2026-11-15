@@ -93,7 +93,7 @@ struct PerfilView: View {
                 Secao(titulo: "Sobre")
                 linha("flask.fill", "Base científica", "Diretrizes e \(app.fontes.count) referências usadas nas rotinas") { abrir(.fontes) }
                 linha("lock.shield.fill", "Política de privacidade", "Nada sai do seu aparelho: sem cadastro, anúncios ou rastreamento") {
-                    UIApplication.shared.open(URL(string: "https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html")!)
+                    UIApplication.shared.open(URL(string: "https://kahhtecc.github.io/Forja-APP/privacidade.html")!)
                 }
                 Cartao {
                     Text("Forja 1.0 para iOS").font(Tipo.corpoForte)

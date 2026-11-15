@@ -28,12 +28,15 @@ object Seguranca {
         return u.takeIf { it.scheme.equals("https", ignoreCase = true) && !it.host.isNullOrBlank() }
     }
 
+    private val REPOS = listOf("/kahhtecc/Forja-APP/", "/kaiqueguimacuper-bit/teste-3/")
+
     /** Links de atualização do APK: só do próprio repositório no GitHub. */
     fun linkDoRepositorio(url: String?): Boolean {
         val u = linkSeguro(url) ?: return false
         val p = u.path.orEmpty()
-        return (u.host == "github.com" && p.startsWith("/kaiqueguimacuper-bit/teste-3/")) ||
-            (u.host == "objects.githubusercontent.com")
+        // O repositório foi transferido para kahhtecc/Forja-APP; o caminho antigo continua aceito (o GitHub redireciona).
+        return (u.host == "github.com" && REPOS.any { p.startsWith(it) }) ||
+            u.host == "objects.githubusercontent.com" || u.host == "release-assets.githubusercontent.com"
     }
 
     fun abrirLink(ctx: Context, url: String?) {

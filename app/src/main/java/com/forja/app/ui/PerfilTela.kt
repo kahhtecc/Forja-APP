@@ -362,4 +362,4 @@ fun TelaFontes(vm: AppViewModel, onVoltar: () -> Unit) {
     }
 }
 
-const val PRIVACIDADE = "https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html"
+const val PRIVACIDADE = "https://kahhtecc.github.io/Forja-APP/privacidade.html"

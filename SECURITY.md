@@ -1,7 +1,7 @@
 # Segurança do Forja
 
 ## Como reportar uma falha
-Abra uma issue em https://github.com/kaiqueguimacuper-bit/teste-3/issues com o título "Segurança" (sem detalhes que permitam explorar a falha) e combinamos um canal privado. Resposta em até 7 dias.
+Abra uma issue em https://github.com/kahhtecc/Forja-APP/issues com o título "Segurança" (sem detalhes que permitam explorar a falha) e combinamos um canal privado. Resposta em até 7 dias.
 
 ## O que o app faz para proteger quem usa
 | Área | Android | iPhone | Web |

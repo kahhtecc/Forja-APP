@@ -17,9 +17,9 @@ import java.net.URL
  * altere BASE.
  */
 object Conteudo {
-    const val BASE = "https://raw.githubusercontent.com/kaiqueguimacuper-bit/teste-3/claude/personalized-workout-app-ou3pc2/app/src/main/assets/"
+    const val BASE = "https://raw.githubusercontent.com/kahhtecc/Forja-APP/claude/personalized-workout-app-ou3pc2/app/src/main/assets/"
     const val MANIFESTO = "conteudo2.json"
-    private const val RELEASES = "https://api.github.com/repos/kaiqueguimacuper-bit/teste-3/releases?per_page=15"
+    private const val RELEASES = "https://api.github.com/repos/kahhtecc/Forja-APP/releases?per_page=15"
 
     data class Manifesto(val versao: Int, val arquivos: Map<String, String>)
 

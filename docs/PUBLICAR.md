@@ -9,8 +9,8 @@ A parte de código e segurança já está pronta (ver `SECURITY.md`). O que sobr
 |---|---|
 | Nome do pacote / Bundle ID | `com.kaiquecupertino.forja` |
 | Bundle ID da extensão (Atividade ao Vivo) | `com.kaiquecupertino.forja.widgets` |
-| Política de privacidade | `https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html` |
-| Site | `https://kaiqueguimacuper-bit.github.io/teste-3/` |
+| Política de privacidade | `https://kahhtecc.github.io/Forja-APP/privacidade.html` |
+| Site | `https://kahhtecc.github.io/Forja-APP/` |
 | SHA-256 da chave de assinatura | `35:99:90:E6:E5:A6:49:86:33:F7:43:EC:2E:5F:BB:73:75:2A:E5:BC:5B:1D:FC:47:F7:AE:28:70:D4:4E:19:41` |
 | Textos da ficha, ícone e destaque | `docs/loja/` |
 
@@ -116,10 +116,10 @@ Contas pessoais novas precisam de **12 testadores com o app instalado por 14 dia
 | **C. TestFlight e App Store** | US$ 99 por ano | não (o GitHub compila) | permanente | sim |
 
 ### A. App da Tela de Início (começa hoje, sem custo)
-1. No iPhone, abra **https://kaiqueguimacuper-bit.github.io/teste-3/** no **Safari**.
+1. No iPhone, abra **https://kahhtecc.github.io/Forja-APP/** no **Safari**.
 2. Toque em **Compartilhar** (quadrado com seta) › **Adicionar à Tela de Início** › **Adicionar**.
 
-Fica com ícone próprio, abre em tela cheia, funciona offline e se atualiza sozinho. Passo a passo com imagens: https://kaiqueguimacuper-bit.github.io/teste-3/instalar.html
+Fica com ícone próprio, abre em tela cheia, funciona offline e se atualiza sozinho. Passo a passo com imagens: https://kahhtecc.github.io/Forja-APP/instalar.html
 
 ### B. App nativo pelo Sideloadly (grátis, renovar a cada 7 dias)
 1. Baixe o `Forja-ios-N.ipa` mais recente em **Releases** no GitHub (ou use o que recebeu).

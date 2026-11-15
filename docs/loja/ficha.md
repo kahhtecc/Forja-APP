@@ -49,8 +49,8 @@ O Forja não substitui avaliação médica nem acompanhamento de um profissional
 **Novidades desta versão:** Primeira versão do Forja na loja, com treino no relógio, Health Connect / app Saúde e monitor cardíaco Bluetooth.
 
 **E-mail de contato:** (o e-mail da conta de desenvolvedor)
-**Site:** https://kaiqueguimacuper-bit.github.io/teste-3/
-**Política de privacidade:** https://kaiqueguimacuper-bit.github.io/teste-3/privacidade.html
+**Site:** https://kahhtecc.github.io/Forja-APP/
+**Política de privacidade:** https://kahhtecc.github.io/Forja-APP/privacidade.html
 
 ## Gráficos
 - `icone-512.png`: ícone 512×512

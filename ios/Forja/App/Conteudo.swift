@@ -5,7 +5,7 @@ import CryptoKit
 /// o app traz exercises.json, fontes.json e anim3d/ com um manifesto (versão + SHA-1).
 /// Ao abrir, baixa o manifesto publicado; se a versão for maior, baixa só os arquivos que mudaram.
 enum Conteudo {
-    static let base = URL(string: "https://raw.githubusercontent.com/kaiqueguimacuper-bit/teste-3/claude/personalized-workout-app-ou3pc2/app/src/main/assets/")!
+    static let base = URL(string: "https://raw.githubusercontent.com/kahhtecc/Forja-APP/claude/personalized-workout-app-ou3pc2/app/src/main/assets/")!
     static let manifesto = "conteudo2.json"
 
     struct Manifesto: Decodable { let versao: Int; let arquivos: [String: String] }
