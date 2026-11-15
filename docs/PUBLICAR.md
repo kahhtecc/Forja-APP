@@ -24,7 +24,7 @@ A parte de código e segurança já está pronta (ver `SECURITY.md`). O que sobr
 ### Passo 1: guardar a chave e ligar a assinatura automática (5 minutos, uma vez só)
 A chave `forja-upload.jks` e a senha são a identidade do app. **Sem elas não dá para atualizar o app nunca mais.**
 1. Guarde a pasta `chave/` (forja-upload.jks, senha.txt e forja-upload.jks.base64.txt) em dois lugares seguros: Google Drive pessoal e um pendrive. Não mande por WhatsApp nem e-mail.
-2. No GitHub: repositório **teste-3** › **Settings** › **Secrets and variables** › **Actions** › **New repository secret**. Crie os quatro:
+2. No GitHub: repositório **Forja-APP** (o antigo teste-3, que foi transferido para kahhtecc/Forja-APP) › **Settings** › **Secrets and variables** › **Actions** › **New repository secret**. Crie os quatro:
 
 | Nome | Valor |
 |---|---|
